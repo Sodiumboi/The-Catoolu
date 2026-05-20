@@ -40,7 +40,8 @@ export default function CharacterEditorPage() {
          style={{ background: 'var(--bg-page)' }}>
       <div className="text-center">
         <img src={logo} alt="The Catoolu"
-             style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+             className="object-contain animate-pulse mx-auto mb-4"
+             style={{ width: '56px', height: '56px' }} />
         <p style={{ color: 'var(--text-muted)' }}>Loading investigator file...</p>
       </div>
     </div>

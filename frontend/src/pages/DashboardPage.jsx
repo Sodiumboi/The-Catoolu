@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import CharacterCard from '../components/CharacterCard';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/vault-logo.png';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -226,7 +227,9 @@ export default function DashboardPage() {
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="text-center">
-              <div className="text-4xl mb-4 animate-pulse">🐙</div>
+              <img src={logo} alt="Loading"
+                   className="object-contain animate-pulse mx-auto mb-4"
+                   style={{ width: '56px', height: '56px' }} />
               <p style={{ color: 'var(--text-muted)' }}>Summoning investigators...</p>
             </div>
           </div>

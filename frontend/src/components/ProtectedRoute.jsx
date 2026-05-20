@@ -8,12 +8,12 @@ export default function ProtectedRoute({ children }) {
   // Still checking localStorage — show nothing (prevents flash of login page)
   if (loading) {
     return (
-      <div className="flex flex-col items-center gap-3">
-          <img src={logo} alt="Loading"
-               className="object-contain animate-pulse"
-               style={{ width: '56px', height: '56px' }} />
-          <p style={{ color: 'var(--text-muted)' }}>Consulting the tomes...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-3">
+        <img src={logo} alt="Loading"
+             className="object-contain animate-pulse"
+             style={{ width: '56px', height: '56px' }} />
+        <p style={{ color: 'var(--text-muted)' }}>Consulting the tomes...</p>
+      </div>
     );
   }
 
