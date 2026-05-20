@@ -65,12 +65,24 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'An unexpected server error occurred.' });
 });
 
-// ── Start Server ───────────────────────────────────────────
-app.listen(PORT, () => {
+// Create the HTTP server explicitly
+const http = require('http');
+const { setupSocket } = require('./socket');
+
+const httpServer = http.createServer(app);
+
+// Attach Socket.io to the HTTP server
+const io = setupSocket(httpServer);
+
+// Make io available to routes if needed later
+app.set('io', io);
+
+// Start listening
+httpServer.listen(PORT, () => {
   console.log('');
   console.log('🐙 ═══════════════════════════════════════════');
-  console.log(`   CoC Manager API running on port ${PORT}`);
-  console.log(`   http://localhost:${PORT}/api/health`);
+  console.log('   CoC Manager API running on port', PORT);
+  console.log('   http://localhost:' + PORT + '/api/health');
   console.log('🐙 ═══════════════════════════════════════════');
   console.log('');
 });
