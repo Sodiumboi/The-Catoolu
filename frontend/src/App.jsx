@@ -4,7 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import CharacterEditorPage from './pages/CharacterEditorPage';
+import CharacterEditorPage from './pages/CharacterEditor';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage  from './pages/ResetPasswordPage';
 import ProfilePage        from './pages/ProfilePage';

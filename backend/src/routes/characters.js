@@ -9,6 +9,7 @@
 // ============================================================
 
 const express = require('express');
+const crypto  = require('crypto');
 const pool    = require('../config/db');
 const auth    = require('../middleware/auth');
 
@@ -63,6 +64,11 @@ router.post('/', async (req, res) => {
     const cleanSheet = JSON.parse(JSON.stringify(sheet_data));
     if (cleanSheet?.Investigator?.PersonalDetails?.Portrait) {
       delete cleanSheet.Investigator.PersonalDetails.Portrait;
+    }
+
+    // Inject UUID into the sheet on first import
+    if (cleanSheet?.Investigator?.Header) {
+      cleanSheet.Investigator.Header.UUID = crypto.randomUUID();
     }
 
     const result = await pool.query(
