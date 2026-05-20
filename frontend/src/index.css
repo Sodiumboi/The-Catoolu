@@ -41,7 +41,7 @@
   --accent-hover:   #C0DD97;
 
   /* Semantic */
-  --danger:         var(--danger);
+  --danger:         #c0392b;
   --danger-bg:      #fceae8;
   --success:        #3B6D11;
   --warning:        #8b5a14;

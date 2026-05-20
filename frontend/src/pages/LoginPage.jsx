@@ -8,8 +8,9 @@ export default function LoginPage() {
   const navigate             = useNavigate();
 
   const [mode,     setMode]     = useState('login');
-  const [username, setUsername] = useState('');
-  const [email,    setEmail]    = useState('');
+  const [username,   setUsername]   = useState('');
+  const [identifier, setIdentifier] = useState('');
+  const [email,      setEmail]      = useState('');
   const [password, setPassword] = useState('');
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(false);
@@ -20,7 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        await login(email, password);
+        await login(identifier, password);
       } else {
         await register(username, email, password);
       }
@@ -142,15 +143,28 @@ export default function LoginPage() {
               </FormField>
             )}
 
-            <FormField label="Email">
-              <FormInput
-                type="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="investigator@arkham.edu"
-                required
-              />
-            </FormField>
+            {/* Login: email or username. Register: email only */}
+            {mode === 'login' ? (
+              <FormField label="Email or Username">
+                <FormInput
+                  type="text"
+                  value={identifier}
+                  onChange={setIdentifier}
+                  placeholder="investigator@arkham.edu or username"
+                  required
+                />
+              </FormField>
+            ) : (
+              <FormField label="Email">
+                <FormInput
+                  type="email"
+                  value={email}
+                  onChange={setEmail}
+                  placeholder="investigator@arkham.edu"
+                  required
+                />
+              </FormField>
+            )}
 
             <FormField label="Password">
               <FormInput

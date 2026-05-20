@@ -18,6 +18,7 @@ export default function CharacterCard({ character, onDelete, onOpen }) {
         borderColor: 'var(--border-main, var(--accent)44)',
         boxShadow:   '0 4px 20px rgba(0,0,0,0.4)',
         minHeight:   '180px',
+        maxHeight:   '280px',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.borderColor = 'var(--accent, var(--accent))';
@@ -32,13 +33,20 @@ export default function CharacterCard({ character, onDelete, onOpen }) {
     >
 
       {/* ── LEFT: Portrait ── */}
-      <div className="flex-shrink-0 relative overflow-hidden" style={{ width: '120px' }}>
+      <div className="flex-shrink-0 relative overflow-hidden" style={{ width: '120px', alignSelf: 'stretch' }}>
         {portrait_data ? (
           <img
             src={`data:image/jpeg;base64,${portrait_data}`}
             alt={name}
-            className="w-full h-full object-cover object-top"
-            style={{ display: 'block' }}
+            style={{
+              position:   'absolute',
+              inset:      0,
+              width:      '100%',
+              height:     '100%',
+              objectFit:  'cover',
+              objectPosition: 'top',
+              display:    'block',
+            }}
           />
         ) : (
           <div

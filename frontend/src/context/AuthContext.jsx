@@ -27,8 +27,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ── Login ────────────────────────────────────────────────
-  const login = async (email, password) => {
-    const response = await apiClient.post('/auth/login', { email, password });
+  const login = async (identifier, password) => {
+    const response = await apiClient.post('/auth/login', { identifier, password });
     const { token, user: userData } = response.data;
 
     localStorage.setItem('coc_token', token);

@@ -327,8 +327,6 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
                     {panel === 'main'
                       ? <MainMenuPanel
                           user={user}
-                          theme={theme}
-                          toggleTheme={toggleTheme}
                           navigate={navigate}
                           setDropdownOpen={setDropdownOpen}
                           setPanel={setPanel}
@@ -397,8 +395,7 @@ function DropdownItem({ label, icon, onClick, danger, chevron }) {
 
 // ── Main menu panel ────────────────────────────────────────
 function MainMenuPanel({
-  user, theme, toggleTheme, navigate,
-  setDropdownOpen, setPanel, handleLogout
+  user, navigate, setDropdownOpen, setPanel, handleLogout
 }) {
   return (
     <>
@@ -431,28 +428,6 @@ function MainMenuPanel({
           onClick={() => setPanel('preferences')}
           chevron
         />
-
-        {/* Theme quick-toggle */}
-        <div
-          onClick={toggleTheme}
-          style={{
-            display:    'flex',
-            alignItems: 'center',
-            gap:        '8px',
-            padding:    '8px 10px',
-            borderRadius:'8px',
-            cursor:     'pointer',
-            fontFamily: 'var(--font-sans)',
-            fontSize:   '13px',
-            color:      'var(--text-secondary)',
-            transition: 'background 0.1s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = 'var(--row-hover)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        >
-          <span>{theme === 'dark' ? '☀️' : '🌑'}</span>
-          {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-        </div>
 
         <div style={{ height: '1px', background: 'var(--border-main)', margin: '4px 0' }} />
 

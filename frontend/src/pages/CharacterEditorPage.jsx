@@ -35,6 +35,181 @@ function Section({ title, children }) {
   );
 }
 
+// ── Unsaved Changes Warning Modal ─────────────────────────
+function UnsavedChangesModal({ changedSections, onCancel, onDiscard, onSave, saving }) {
+  return (
+    // Backdrop
+    <div
+      style={{
+        position:       'fixed',
+        inset:          0,
+        background:     'rgba(0, 0, 0, 0.5)',
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'center',
+        zIndex:         200,
+        padding:        '24px',
+        backdropFilter: 'blur(4px)',
+      }}
+      onClick={onCancel}
+    >
+      {/* Modal card — stop click propagation so backdrop click works */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background:   'var(--bg-card)',
+          border:       '1px solid var(--border-main)',
+          borderRadius: '16px',
+          boxShadow:    'var(--shadow-dropdown)',
+          padding:      '28px',
+          width:        '100%',
+          maxWidth:     '420px',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <span style={{ fontSize: '22px' }}>⚠️</span>
+          <h2 style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize:   '20px',
+            color:      'var(--text-primary)',
+            margin:     0,
+          }}>
+            Unsaved Changes
+          </h2>
+        </div>
+
+        {/* Body */}
+        <p style={{
+          fontFamily:   'var(--font-sans)',
+          fontSize:     '14px',
+          color:        'var(--text-secondary)',
+          margin:       '0 0 12px',
+          lineHeight:   '1.6',
+        }}>
+          You have unsaved changes to this investigator:
+        </p>
+
+        {/* Changed sections list */}
+        {changedSections.length > 0 && (
+          <ul style={{
+            margin:     '0 0 20px',
+            padding:    '12px 16px',
+            background: 'var(--bg-section-hd)',
+            borderRadius:'8px',
+            border:     '1px solid var(--border-main)',
+            listStyle:  'none',
+          }}>
+            {changedSections.map(section => (
+              <li key={section} style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize:   '13px',
+                color:      'var(--text-primary)',
+                padding:    '3px 0',
+                display:    'flex',
+                alignItems: 'center',
+                gap:        '8px',
+              }}>
+                <span style={{ color: 'var(--warning)', fontSize: '10px' }}>●</span>
+                {section}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <p style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize:   '13px',
+          color:      'var(--text-muted)',
+          margin:     '0 0 24px',
+        }}>
+          What would you like to do?
+        </p>
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+
+          {/* Cancel — stay on editor */}
+          <button
+            onClick={onCancel}
+            style={{
+              padding:      '8px 16px',
+              borderRadius: '8px',
+              border:       '1px solid var(--border-main)',
+              background:   'transparent',
+              color:        'var(--text-secondary)',
+              fontFamily:   'var(--font-sans)',
+              fontSize:     '13px',
+              cursor:       'pointer',
+              transition:   'all 0.15s ease',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = 'var(--text-secondary)';
+              e.currentTarget.style.color       = 'var(--text-primary)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = 'var(--border-main)';
+              e.currentTarget.style.color       = 'var(--text-secondary)';
+            }}
+          >
+            Cancel
+          </button>
+
+          {/* Discard — leave without saving */}
+          <button
+            onClick={onDiscard}
+            style={{
+              padding:      '8px 16px',
+              borderRadius: '8px',
+              border:       '1px solid var(--danger)',
+              background:   'transparent',
+              color:        'var(--danger)',
+              fontFamily:   'var(--font-sans)',
+              fontSize:     '13px',
+              cursor:       'pointer',
+              transition:   'all 0.15s ease',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'var(--danger-bg)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent';
+            }}
+          >
+            Discard Changes
+          </button>
+
+          {/* Save & Leave */}
+          <button
+            onClick={onSave}
+            disabled={saving}
+            style={{
+              padding:      '8px 16px',
+              borderRadius: '8px',
+              border:       'none',
+              background:   saving ? 'var(--text-muted)' : 'var(--color-primary)',
+              color:        '#ffffff',
+              fontFamily:   'var(--font-sans)',
+              fontSize:     '13px',
+              fontWeight:   '500',
+              cursor:       saving ? 'not-allowed' : 'pointer',
+              transition:   'background 0.15s ease',
+            }}
+            onMouseEnter={e => {
+              if (!saving) e.currentTarget.style.background = 'var(--color-primary-dark)';
+            }}
+            onMouseLeave={e => {
+              if (!saving) e.currentTarget.style.background = 'var(--color-primary)';
+            }}
+          >
+            {saving ? 'Saving...' : '💾 Save & Leave'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Backstory textarea ─────────────────────────────────────
 function BackstoryField({ label, value, onChange }) {
   return (
@@ -108,22 +283,23 @@ function StatBox({ label, value, onChange, sublabel }) {
   const fifth = Math.floor(num / 5);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col items-center gap-1">
 
-      {/* Stat label — vertically centred next to the boxes */}
-      <div className="flex flex-col items-center justify-center"
-           style={{ width: '36px' }}>
-        <span className="font-bold uppercase text-sm leading-none"
-              style={{ color: 'var(--accent)' }}>
-          {label}
-        </span>
-        {sublabel && (
-          <span className="leading-none mt-0.5"
-                style={{ color: 'var(--text-faint)', fontSize: '8px' }}>
-            {sublabel}
+      {/* Label on top — only rendered when a label prop is provided */}
+      {label && (
+        <div className="flex flex-col items-center">
+          <span className="font-bold uppercase leading-none"
+                style={{ color: 'var(--accent)', fontSize: '13px' }}>
+            {label}
           </span>
-        )}
-      </div>
+          {sublabel && (
+            <span className="leading-none mt-0.5"
+                  style={{ color: 'var(--text-faint)', fontSize: '8px' }}>
+              {sublabel}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Three boxes */}
       <div className="flex gap-1 items-end">
@@ -279,6 +455,16 @@ export default function CharacterEditorPage() {
   // ★ NEW — ref for hidden portrait file input
   const portraitInputRef = useRef(null);
 
+  // ── Dirty state tracking ──────────────────────────────────
+  const [isDirty,        setIsDirty]        = useState(false);
+  const [showWarning,    setShowWarning]    = useState(false);
+  const [pendingNav,     setPendingNav]     = useState(null);
+  const [pendingChanges, setPendingChanges] = useState([]);
+  const [warnSaving,     setWarnSaving]     = useState(false);
+
+  // Store the original sheet on load — never changes, used for diff
+  const originalSheetRef = useRef(null);
+
   // ── Load character ───────────────────────────────────────
   useEffect(() => {
     const fetch = async () => {
@@ -288,6 +474,8 @@ export default function CharacterEditorPage() {
       setError('');
       setLoading(true);
       setSaved(false);
+      setIsDirty(false);
+      originalSheetRef.current = null;
       try {
         const res = await apiClient.get(`/characters/${id}`);
         const data = res.data.character.sheet_data;
@@ -313,6 +501,7 @@ export default function CharacterEditorPage() {
         }
 
         setSheet(data);
+        originalSheetRef.current = data;
 
       } catch (err) {
         setError(
@@ -326,6 +515,99 @@ export default function CharacterEditorPage() {
     };
     fetch();
   }, [id]);
+
+  // ── Detect which sections have changed ────────────────────
+  function getChangedSections() {
+    if (!originalSheetRef.current || !sheet) return [];
+
+    const orig = originalSheetRef.current.Investigator;
+    const curr = sheet.Investigator;
+    if (!orig || !curr) return [];
+
+    const changed = [];
+
+    const differs = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
+
+    if (differs(orig.PersonalDetails,  curr.PersonalDetails))  changed.push('Personal Details');
+    if (differs(orig.Characteristics,  curr.Characteristics))  changed.push('Characteristics');
+    if (differs(orig.Skills,           curr.Skills))           changed.push('Skills');
+    if (differs(orig.Weapons,          curr.Weapons))          changed.push('Weapons');
+    if (differs(orig.Backstory,        curr.Backstory))        changed.push('Backstory');
+    if (differs(orig.Possessions,      curr.Possessions))      changed.push('Possessions');
+    if (differs(orig.Cash,             curr.Cash))             changed.push('Financial Status');
+
+    return changed;
+  }
+
+  // ── Browser back button interception ─────────────────────
+  useEffect(() => {
+    // Push a dummy history entry so pressing Back hits this
+    // entry first instead of actually leaving the editor
+    window.history.pushState({ catooluEditor: true }, '');
+
+    const handlePopState = () => {
+      // Browser back was pressed — intercept it
+      if (isDirty) {
+        // Push another dummy entry to stay on the current page
+        // (popstate already popped one, so we need to re-add it)
+        window.history.pushState({ catooluEditor: true }, '');
+        // Show the warning
+        setPendingNav('back');
+        setPendingChanges(getChangedSections());
+        setShowWarning(true);
+      }
+      // If not dirty, let the browser navigate normally
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isDirty]); // re-runs when isDirty changes so handler always has fresh value
+
+  // ── Warning modal handlers ────────────────────────────────
+
+  const handleWarnCancel = () => {
+    setShowWarning(false);
+    setPendingNav(null);
+  };
+
+  const handleWarnDiscard = () => {
+    setIsDirty(false);
+    setShowWarning(false);
+    const dest = pendingNav;
+    setPendingNav(null);
+
+    if (dest === 'back') {
+      window.history.back();
+    } else {
+      navigate(dest);
+    }
+  };
+
+  const handleWarnSave = async () => {
+    setWarnSaving(true);
+    try {
+      await apiClient.put(`/characters/${id}`, { sheet_data: sheet });
+      setIsDirty(false);
+      originalSheetRef.current = sheet;
+      setShowWarning(false);
+      const dest = pendingNav;
+      setPendingNav(null);
+
+      if (dest === 'back') {
+        window.history.back();
+      } else {
+        navigate(dest);
+      }
+    } catch {
+      setError('Failed to save. Please try again.');
+      setShowWarning(false);
+    } finally {
+      setWarnSaving(false);
+    }
+  };
 
   // ── Shortcuts ────────────────────────────────────────────
   const inv     = sheet?.Investigator;
@@ -345,6 +627,7 @@ export default function CharacterEditorPage() {
       updater(next);
       return next;
     });
+    setIsDirty(true); // ← mark dirty on every change
   };
 
   // ── Personal details ─────────────────────────────────────
@@ -400,6 +683,20 @@ export default function CharacterEditorPage() {
   // ── Backstory ────────────────────────────────────────────
   const updateBack = (field, value) => {
     updateSheet(s => { s.Investigator.Backstory[field] = value; });
+  };
+
+  // ── Navigation guard ─────────────────────────────────────
+  // Call this instead of navigate() whenever leaving the editor.
+  // If dirty, shows the warning modal and stores the destination.
+  // If clean, navigates immediately.
+  const guardedNavigate = (destination) => {
+    if (isDirty) {
+      setPendingNav(destination);
+      setPendingChanges(getChangedSections());
+      setShowWarning(true);
+    } else {
+      navigate(destination);
+    }
   };
 
   // ★ NEW — Portrait upload handler ────────────────────────
@@ -477,6 +774,8 @@ export default function CharacterEditorPage() {
     setError('');
     try {
       await apiClient.put(`/characters/${id}`, { sheet_data: sheet });
+      setIsDirty(false);
+      originalSheetRef.current = sheet;
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch {
@@ -529,6 +828,9 @@ export default function CharacterEditorPage() {
   const half        = Math.ceil(filteredSkillIndices.length / 2);
   const leftSkills  = filteredSkillIndices.slice(0, half);
   const rightSkills = filteredSkillIndices.slice(half);
+  
+
+
 
   // ── Loading / error states ───────────────────────────────
   // Sheet hasn't loaded yet OR is between navigation states
@@ -549,7 +851,7 @@ export default function CharacterEditorPage() {
          style={{ background: 'var(--bg-page)' }}>
       <div className="text-center">
         <p style={{ color: 'var(--danger)' }}>{error}</p>
-        <button onClick={() => navigate('/dashboard')}
+        <button onClick={() => guardedNavigate('/dashboard')}
                 className="mt-4 px-4 py-2 rounded text-sm"
                 style={{ background: 'var(--accent)', color: 'var(--bg-page)' }}>
           Back to Dashboard
@@ -563,6 +865,17 @@ export default function CharacterEditorPage() {
   // ══════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-input)' }}>
+
+      {/* ── Unsaved Changes Warning Modal ── */}
+      {showWarning && (
+        <UnsavedChangesModal
+          changedSections={pendingChanges}
+          onCancel={handleWarnCancel}
+          onDiscard={handleWarnDiscard}
+          onSave={handleWarnSave}
+          saving={warnSaving}
+        />
+      )}
 
       {/* ── Sticky Top Bar ── */}
       {/* ── NavBar (shared) ── */}
@@ -583,7 +896,7 @@ export default function CharacterEditorPage() {
       }}>
         {/* Left: back button + character name */}
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/dashboard')}
+          <button onClick={() => guardedNavigate('/dashboard')}
                   style={{
                     fontSize:    '13px',
                     padding:     '5px 12px',
@@ -633,12 +946,19 @@ export default function CharacterEditorPage() {
                     borderRadius: '8px',
                     fontSize:     '13px',
                     fontWeight:   '500',
-                    border:       'none',
-                    background:   saving ? 'var(--text-muted)' : 'var(--accent)',
-                    color:        '#ffffff',
+                    border:       isDirty
+                      ? '2px solid var(--color-primary-dark)'
+                      : '2px solid transparent',
+                    background:   saving
+                      ? 'var(--text-muted)'
+                      : isDirty
+                        ? 'var(--color-primary)'
+                        : 'var(--accent-bg)',
+                    color:        saving || isDirty ? '#ffffff' : 'var(--accent)',
                     cursor:       saving ? 'not-allowed' : 'pointer',
+                    transition:   'all 0.2s ease',
                   }}>
-            {saving ? 'Saving...' : '💾 Save'}
+            {saving ? 'Saving...' : isDirty ? '💾 Save*' : '✓ Saved'}
           </button>
         </div>
       </div>
@@ -688,17 +1008,13 @@ export default function CharacterEditorPage() {
                 { key: 'DEX' },
                 { key: 'INT', sub: 'IDEA' },
               ].map(({ key, sub }) => (
-                <div key={key} className="flex items-center gap-3">
-                  <span className="text-sm font-bold uppercase w-8 text-right"
-                        style={{ color: 'var(--accent)' }}>
-                    {key}
-                    {sub && <span className="block text-xs font-normal"
-                                  style={{ color: 'var(--text-faint)', fontSize: '8px' }}>
-                      {sub}
-                    </span>}
-                  </span>
-                  <StatBox value={chars[key]} onChange={v => updateChar(key, v)} />
-                </div>
+                <StatBox
+                  key={key}
+                  label={key}
+                  sublabel={sub}
+                  value={chars[key]}
+                  onChange={v => updateChar(key, v)}
+                />
               ))}
             </div>
 
@@ -714,17 +1030,13 @@ export default function CharacterEditorPage() {
                 { key: 'APP' },
                 { key: 'EDU', sub: 'KNOW' },
               ].map(({ key, sub }) => (
-                <div key={key} className="flex items-center gap-3">
-                  <span className="text-sm font-bold uppercase w-8 text-right"
-                        style={{ color: 'var(--accent)' }}>
-                    {key}
-                    {sub && <span className="block text-xs font-normal"
-                                  style={{ color: 'var(--text-faint)', fontSize: '8px' }}>
-                      {sub}
-                    </span>}
-                  </span>
-                  <StatBox value={chars[key]} onChange={v => updateChar(key, v)} />
-                </div>
+                <StatBox
+                  key={key}
+                  label={key}
+                  sublabel={sub}
+                  value={chars[key]}
+                  onChange={v => updateChar(key, v)}
+                />
               ))}
             </div>
 

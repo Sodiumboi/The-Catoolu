@@ -84,21 +84,20 @@ router.post('/register', async (req, res) => {
 // ── POST /api/auth/login ───────────────────────────────────
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required.' });
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Email/username and password are required.' });
     }
 
-    // ── Find user ──
+    // ── Find user by email or username ──
     const result = await pool.query(
-      'SELECT id, username, email, password FROM users WHERE email = $1',
-      [email.toLowerCase()]
+      'SELECT id, username, email, password FROM users WHERE email = $1 OR username = $1',
+      [identifier.toLowerCase()]
     );
 
     if (result.rows.length === 0) {
-      // Deliberately vague — don't reveal whether email exists
-      return res.status(401).json({ error: 'Invalid email or password.' });
+      return res.status(401).json({ error: 'Invalid credentials.' });
     }
 
     const user = result.rows[0];
