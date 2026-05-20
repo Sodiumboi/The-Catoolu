@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import logo from '../../assets/vault-logo.png';
 import NavBar from '../../components/NavBar';
 import Footer from '../../components/Footer';
@@ -33,6 +34,40 @@ export default function CharacterEditorPage() {
     updateCash, handlePortraitUpload, handleSave, handleExport,
     guardedNavigate, handleWarnCancel, handleWarnDiscard, handleWarnSave,
   } = editor;
+
+  // ── UUID reveal (press U five times while not in an input) ─
+  const [showUuid,  setShowUuid]  = useState(false);
+  const [uuidCopied, setUuidCopied] = useState(false);
+  const uKeyRef = useRef({ count: 0, timer: null });
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key !== 'u' && e.key !== 'U') return;
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
+      const state = uKeyRef.current;
+      state.count += 1;
+      clearTimeout(state.timer);
+      if (state.count >= 5) {
+        state.count = 0;
+        setShowUuid(v => !v);
+        setUuidCopied(false);
+      } else {
+        state.timer = setTimeout(() => { state.count = 0; }, 1500);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
+  const handleCopyUuid = () => {
+    const uuid = editor.inv?.Header?.UUID;
+    if (!uuid) return;
+    navigator.clipboard.writeText(uuid).then(() => {
+      setUuidCopied(true);
+      setTimeout(() => setUuidCopied(false), 2000);
+    });
+  };
 
   // ── Loading state ─────────────────────────────────────────
   if (loading || (!editor.sheet && !error) || currentId !== id) return (
@@ -208,6 +243,44 @@ export default function CharacterEditorPage() {
       </div>
 
       <Footer />
+
+      {/* UUID reveal toast — press U five times to toggle */}
+      {showUuid && (
+        <div style={{
+          position: 'fixed', bottom: '28px', right: '28px', zIndex: 200,
+          background: 'var(--bg-card)', border: '1px solid var(--border-main)',
+          borderRadius: '10px', padding: '12px 16px',
+          boxShadow: 'var(--shadow-dropdown)',
+          display: 'flex', flexDirection: 'column', gap: '6px',
+          maxWidth: '340px', minWidth: '260px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+              Character UUID
+            </span>
+            <button onClick={() => setShowUuid(false)}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: '0 2px' }}>
+              ✕
+            </button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <code style={{ fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'monospace', flex: 1, wordBreak: 'break-all', lineHeight: 1.5 }}>
+              {editor.inv?.Header?.UUID ?? <span style={{ color: 'var(--text-faint)' }}>No UUID — re-import to assign one</span>}
+            </code>
+            {editor.inv?.Header?.UUID && (
+              <button onClick={handleCopyUuid}
+                      style={{
+                        fontSize: '11px', padding: '3px 10px', borderRadius: '6px',
+                        border: '1px solid var(--border-main)', background: uuidCopied ? 'var(--accent-bg)' : 'transparent',
+                        color: uuidCopied ? 'var(--accent)' : 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap',
+                        transition: 'all 0.15s ease',
+                      }}>
+                {uuidCopied ? '✓ Copied' : 'Copy'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -50,6 +50,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth',       authRoutes);
 app.use('/api/characters', characterRoutes);
 app.use('/api/profile',    profileRoutes);
+app.use('/api/campaigns',  require('./routes/campaigns'));
 
 // ── 404 Handler ────────────────────────────────────────────
 // Catches any request to a route that doesn't exist
