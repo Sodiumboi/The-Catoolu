@@ -52,3 +52,82 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 
 CREATE INDEX IF NOT EXISTS idx_reset_tokens_token   ON password_reset_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_reset_tokens_user_id ON password_reset_tokens(user_id);
+
+-- ════════════════════════════════════════════════════════════
+-- v1.5 Nyarlathotep — Campaign Social Layer
+-- ════════════════════════════════════════════════════════════
+
+-- ── Campaigns ────────────────────────────────────────────────
+-- A campaign is a group created by a Keeper.
+-- keeper_id references the user who created it — they always
+-- have the 'keeper' role in campaign_members too.
+CREATE TABLE IF NOT EXISTS campaigns (
+  id           SERIAL PRIMARY KEY,
+  name         VARCHAR(100) NOT NULL,
+  description  TEXT         DEFAULT '',
+  keeper_id    INTEGER      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  invite_code  VARCHAR(10)  NOT NULL UNIQUE,
+  created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+-- ── Campaign Members ─────────────────────────────────────────
+-- Join table linking users to campaigns.
+-- role: 'keeper' (full control) or 'player' (participant)
+-- A user can only appear once per campaign (UNIQUE constraint).
+CREATE TABLE IF NOT EXISTS campaign_members (
+  id           SERIAL PRIMARY KEY,
+  campaign_id  INTEGER     NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+  user_id      INTEGER     NOT NULL REFERENCES users(id)     ON DELETE CASCADE,
+  role         VARCHAR(10) NOT NULL DEFAULT 'player'
+                           CHECK (role IN ('keeper', 'player')),
+  joined_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE (campaign_id, user_id)
+);
+
+-- ── Messages ─────────────────────────────────────────────────
+-- Persistent chat log for each campaign.
+-- type: 'chat' | 'roll' | 'system'
+-- content: plain text for chat/system, JSON string for roll results
+-- user_id is NULL for system messages (no sender)
+CREATE TABLE IF NOT EXISTS messages (
+  id           SERIAL PRIMARY KEY,
+  campaign_id  INTEGER     NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+  user_id      INTEGER               REFERENCES users(id)    ON DELETE SET NULL,
+  type         VARCHAR(10) NOT NULL  DEFAULT 'chat'
+                           CHECK (type IN ('chat', 'roll', 'system')),
+  content      TEXT        NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL  DEFAULT NOW()
+);
+
+-- ── Indexes ───────────────────────────────────────────────────
+-- Speed up the most common queries:
+
+-- "Which campaigns does this user belong to?" (dashboard load)
+CREATE INDEX IF NOT EXISTS idx_campaign_members_user_id
+  ON campaign_members(user_id);
+
+-- "Who are the members of this campaign?" (room load)
+CREATE INDEX IF NOT EXISTS idx_campaign_members_campaign_id
+  ON campaign_members(campaign_id);
+
+-- "Give me the last 50 messages for this campaign" (chat history)
+-- DESC because we almost always want newest-first
+CREATE INDEX IF NOT EXISTS idx_messages_campaign_id_created
+  ON messages(campaign_id, created_at DESC);
+
+-- "Give me all messages from this user" (future: user history)
+CREATE INDEX IF NOT EXISTS idx_messages_user_id
+  ON messages(user_id);
+
+-- ── Auto-update updated_at on campaigns ───────────────────────
+-- PostgreSQL doesn't auto-update timestamps like MySQL does.
+-- We need a trigger function + trigger for the campaigns table.
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS ∑LaTeX Math is a Pro FeatureUnlock Telescopo Pro to render mathematical expressions and equations.Unlock Telescopo Pro LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER campaigns_updated_at
+  BEFORE UPDATE ON campaigns
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
