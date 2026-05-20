@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const jwt        = require('jsonwebtoken');
 const pool       = require('./config/db');
+const { roll }   = require('./utils/dice');
 
 // ── Event name constants ───────────────────────────────────────
 // Define once, use everywhere. Typos become obvious.
@@ -8,6 +9,7 @@ const EVENTS = {
   // Client → Server
   JOIN_CAMPAIGN:   'join_campaign',
   SEND_MESSAGE:    'send_message',
+  ROLL_DICE:       'roll_dice',
   TYPING:          'typing',
   STOP_TYPING:     'stop_typing',
 
@@ -161,6 +163,65 @@ function setupSocket(httpServer) {
       } catch (err) {
         console.error('send_message error:', err);
         socket.emit(EVENTS.ERROR, { message: 'Failed to send message.' });
+      }
+    });
+
+    // ── ROLL_DICE ──────────────────────────────────────────────
+    // Payload: { campaignId, notation, skillName?, skillValue? }
+    // notation supports: 1d100, 2d6+3, d20, 1d100adv, 1d100dis
+    socket.on(EVENTS.ROLL_DICE, async (payload) => {
+      try {
+        const { campaignId, notation, skillName, skillValue } = payload;
+
+        if (!campaignId || !notation) {
+          return socket.emit(EVENTS.ERROR, { message: 'Invalid roll payload.' });
+        }
+
+        // Verify membership
+        const memberCheck = await pool.query(
+          'SELECT id FROM campaign_members WHERE campaign_id=$1 AND user_id=$2',
+          [campaignId, socket.user.id]
+        );
+        if (memberCheck.rows.length === 0) {
+          return socket.emit(EVENTS.ERROR, { message: 'Not a campaign member.' });
+        }
+
+        // Roll the dice — crypto.randomInt() under the hood
+        const result = roll(notation, skillValue, skillName);
+
+        if (result.error) {
+          return socket.emit(EVENTS.ERROR, { message: result.error });
+        }
+
+        // Save to database as JSON string
+        const content = JSON.stringify(result);
+
+        const dbResult = await pool.query(
+          `INSERT INTO messages (campaign_id, user_id, type, content)
+           VALUES ($1, $2, 'roll', $3)
+           RETURNING id, type, content, created_at`,
+          [campaignId, socket.user.id, content]
+        );
+
+        const message = {
+          ...dbResult.rows[0],
+          user_id:  socket.user.id,
+          username: socket.user.username,
+          // Send parsed object — client doesn't need to JSON.parse
+          content:  result,
+        };
+
+        // Broadcast to everyone in the room
+        io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, message);
+
+        console.log(
+          `🎲 ${socket.user.username} rolled ${notation}` +
+          (result.successLevel ? ` → ${result.total}` : '')
+        );
+
+      } catch (err) {
+        console.error('roll_dice error:', err);
+        socket.emit(EVENTS.ERROR, { message: 'Failed to process roll.' });
       }
     });
 
