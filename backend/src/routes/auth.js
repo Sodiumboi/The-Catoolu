@@ -92,8 +92,8 @@ router.post('/login', async (req, res) => {
 
     // ── Find user by email or username ──
     const result = await pool.query(
-      'SELECT id, username, email, password FROM users WHERE email = $1 OR username = $1',
-      [identifier.toLowerCase()]
+      'SELECT id, username, email, password FROM users WHERE email = $1 OR username = $2',
+      [identifier.toLowerCase(), identifier]
     );
 
     if (result.rows.length === 0) {
