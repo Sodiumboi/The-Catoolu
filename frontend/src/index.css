@@ -203,3 +203,74 @@ input[type='number'] {
   0%, 100% { box-shadow: 0 0 0 0 rgba(59, 109, 17, 0.4); }
   50%       { box-shadow: 0 0 0 6px rgba(59, 109, 17, 0); }
 }
+
+/* ── CoC Roll Result Colours ────────────────────────────────── */
+:root,
+[data-theme="light"] {
+  --roll-critical-bg:     #FFF9E6;
+  --roll-critical-border: #F59E0B;
+  --roll-critical-text:   #92400E;
+
+  --roll-extreme-bg:      #F3E8FF;
+  --roll-extreme-border:  #9333EA;
+  --roll-extreme-text:    #6B21A8;
+
+  --roll-hard-bg:         #EFF6FF;
+  --roll-hard-border:     #3B82F6;
+  --roll-hard-text:       #1E40AF;
+
+  --roll-regular-bg:      var(--accent-bg);
+  --roll-regular-border:  var(--accent);
+  --roll-regular-text:    var(--color-primary-dark);
+
+  --roll-failure-bg:      var(--danger-bg);
+  --roll-failure-border:  var(--danger);
+  --roll-failure-text:    var(--danger);
+
+  --roll-fumble-bg:       #1a0000;
+  --roll-fumble-border:   #7f0000;
+  --roll-fumble-text:     #ff6b6b;
+
+  --roll-none-bg:         var(--bg-section-hd);
+  --roll-none-border:     var(--border-main);
+  --roll-none-text:       var(--text-primary);
+}
+
+[data-theme="dark"] {
+  --roll-critical-bg:     #2a2000;
+  --roll-critical-border: #F59E0B;
+  --roll-critical-text:   #FCD34D;
+
+  --roll-extreme-bg:      #1e0a2e;
+  --roll-extreme-border:  #9333EA;
+  --roll-extreme-text:    #C084FC;
+
+  --roll-hard-bg:         #0a1628;
+  --roll-hard-border:     #3B82F6;
+  --roll-hard-text:       #93C5FD;
+
+  --roll-regular-bg:      var(--accent-bg);
+  --roll-regular-border:  var(--accent);
+  --roll-regular-text:    var(--color-primary-dark);
+
+  --roll-failure-bg:      var(--danger-bg);
+  --roll-failure-border:  var(--danger);
+  --roll-failure-text:    var(--danger);
+
+  --roll-fumble-bg:       #1a0000;
+  --roll-fumble-border:   #7f0000;
+  --roll-fumble-text:     #ff6b6b;
+
+  --roll-none-bg:         var(--bg-section-hd);
+  --roll-none-border:     var(--border-main);
+  --roll-none-text:       var(--text-primary);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}

@@ -1,165 +1,90 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import NavBar       from '../components/NavBar';
-import MessageList  from '../components/MessageList';
-import ChatInput    from '../components/ChatInput';
-import OnlineSidebar from '../components/OnlineSidebar';
-import DicePanel     from '../components/DicePanel';
-import { useSocket } from '../context/SocketContext';
-import { useAuth }   from '../context/AuthContext';
-import { useCampaign }      from '../context/CampaignContext';
+import { useParams, useNavigate }      from 'react-router-dom';
+import NavBar              from '../components/NavBar';
+import RollFeed            from '../components/RollFeed';
+import ChatInput           from '../components/ChatInput';
+import DiceRow             from '../components/DiceRow';
+import RoomSidebar         from '../components/RoomSidebar';
+import CelebrationOverlay  from '../components/CelebrationOverlay';
+import SkillRollPopup      from '../components/SkillRollPopup';
+import { useSocket }       from '../context/SocketContext';
+import { useAuth }         from '../context/AuthContext';
+import { useCampaign }     from '../context/CampaignContext';
 import { useNotifications } from '../context/NotificationContext';
-import apiClient     from '../api/client';
+import apiClient           from '../api/client';
 
-
-function SkillPicker({ skills, onSelect, onClose }) {
-  const [search, setSearch] = useState('');
-
-  const filtered = skills.filter(s =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  ).slice(0, 12);
-
-  return (
-    <div style={{
-      position:     'absolute',
-      bottom:       '100%',
-      left:         0,
-      right:        0,
-      background:   'var(--bg-card)',
-      border:       '1px solid var(--border-main)',
-      borderRadius: '10px 10px 0 0',
-      boxShadow:    'var(--shadow-dropdown)',
-      zIndex:       50,
-      overflow:     'hidden',
-      maxHeight:    '260px',
-      display:      'flex',
-      flexDirection:'column',
-    }}>
-      <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-main)' }}>
-        <input
-          type="text"
-          placeholder="Search skills..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          autoFocus
-          onKeyDown={e => { if (e.key === 'Escape') onClose(); }}
-          style={{
-            width:        '100%',
-            padding:      '6px 10px',
-            borderRadius: '6px',
-            border:       '1px solid var(--border-input)',
-            background:   'var(--bg-input)',
-            color:        'var(--text-primary)',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '13px',
-            outline:      'none',
-            boxSizing:    'border-box',
-          }}
-        />
-      </div>
-
-      <div style={{ overflowY: 'auto', flex: 1 }}>
-        {filtered.length === 0 ? (
-          <div style={{ padding: '16px', textAlign: 'center', fontSize: '13px', color: 'var(--text-faint)' }}>
-            No skills found
-          </div>
-        ) : (
-          filtered.map((skill, i) => (
-            <button
-              key={i}
-              onClick={() => onSelect(skill)}
-              style={{
-                width:          '100%',
-                display:        'flex',
-                alignItems:     'center',
-                justifyContent: 'space-between',
-                padding:        '8px 16px',
-                background:     'transparent',
-                border:         'none',
-                borderBottom:   '1px solid var(--border-main)',
-                cursor:         'pointer',
-                fontFamily:     'var(--font-sans)',
-                fontSize:       '13px',
-                color:          'var(--text-primary)',
-                textAlign:      'left',
-                transition:     'background 0.1s ease',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--row-hover)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <span>{skill.name}</span>
-              <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                <span>{skill.value}</span>
-                <span style={{ color: 'var(--text-faint)' }}>
-                  ½{Math.floor(parseInt(skill.value) / 2)}
-                  {'  '}
-                  ⅕{Math.floor(parseInt(skill.value) / 5)}
-                </span>
-              </div>
-            </button>
-          ))
-        )}
-      </div>
-
-      <div style={{
-        padding:    '6px 12px',
-        borderTop:  '1px solid var(--border-main)',
-        fontSize:   '11px',
-        color:      'var(--text-faint)',
-        fontStyle:  'italic',
-        background: 'var(--bg-section-hd)',
-      }}>
-        Select a skill to roll against it · Esc to close
-      </div>
-    </div>
-  );
+// ── Roll context label builder ─────────────────────────────────
+function getRollLabel(skillName, statName) {
+  if (!skillName && !statName) return 'Roll';
+  const name = skillName || statName;
+  const weaponSkills = ['brawl', 'handgun', 'rifle', 'shotgun', 'fighting', 'bow'];
+  if (weaponSkills.some(w => name.toLowerCase().includes(w))) return 'Make an Attack!';
+  if (name.toLowerCase() === 'sanity') return 'Sanity Roll!';
+  return 'Roll ' + name;
 }
 
 export default function CampaignRoomPage() {
-  const { id }         = useParams();
-  const navigate       = useNavigate();
-  const { socket, connected } = useSocket();
-  const { user }       = useAuth();
-  const { enterRoom, leaveRoom }             = useCampaign();
+  const { id }                    = useParams();
+  const navigate                  = useNavigate();
+  const { socket, connected }     = useSocket();
+  const { user }                  = useAuth();
+  const { enterRoom, leaveRoom }  = useCampaign();
   const { setCurrentRoom, clearCurrentRoom } = useNotifications();
 
-  const [campaign,     setCampaign]     = useState(null);
-  const [messages,     setMessages]     = useState([]);
-  const [members,      setMembers]      = useState([]);
-  const [onlineUsers,  setOnlineUsers]  = useState([]);
-  const [myRole,       setMyRole]       = useState(null);
-  const [typingUsers,  setTypingUsers]  = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [error,        setError]        = useState('');
-  const [inRoom,       setInRoom]       = useState(false);
+  // ── Core state ────────────────────────────────────────────────
+  const [campaign,      setCampaign]      = useState(null);
+  const [messages,      setMessages]      = useState([]);
+  const [members,       setMembers]       = useState([]);
+  const [onlineUsers,   setOnlineUsers]   = useState([]);
+  const [myRole,        setMyRole]        = useState(null);
+  const [myCharacter,   setMyCharacter]   = useState(null);
+  const [myCharacters,  setMyCharacters]  = useState([]);
+  const [typingUsers,   setTypingUsers]   = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState('');
+  const [inRoom,        setInRoom]        = useState(false);
 
-  const [text,         setText]         = useState('');
-  const [advMode,      setAdvMode]       = useState(false);
-  const [disMode,      setDisMode]       = useState(false);
-  const [skillContext, setSkillContext]  = useState(null);
-  const [allSkills,    setAllSkills]     = useState([]);
+  // ── UI state ──────────────────────────────────────────────────
+  const [text,          setText]          = useState('');
+  const [advMode,       setAdvMode]       = useState(false);
+  const [disMode,       setDisMode]       = useState(false);
+  const [hideResults,   setHideResults]   = useState(false);
+  const [sidebarTab,    setSidebarTab]    = useState('chat');
+  const [afk,           setAfk]           = useState(false);
+  const [celebration,   setCelebration]   = useState(null); // 'critical' | 'fumble' | null
+  const [rollPopup,     setRollPopup]     = useState(null);
+  // rollPopup: { label, value, mode, top, left }
 
-  const [pickerDismissed, setPickerDismissed] = useState(false);
-  const [myCharacters,    setMyCharacters]    = useState([]);
-
-  // ── Load campaign + message history ────────────────────────
+  // ── Load campaign + messages ──────────────────────────────────
   useEffect(() => {
     const load = async () => {
       try {
-        const [campRes, msgRes] = await Promise.all([
+        const [campRes, msgRes, charRes] = await Promise.all([
           apiClient.get('/campaigns/' + id),
           apiClient.get('/campaigns/' + id + '/messages?limit=50'),
+          apiClient.get('/characters'),
         ]);
-        setCampaign(campRes.data.campaign);
-        setMembers(campRes.data.campaign.members);
-        setMyRole(campRes.data.campaign.my_role);
+
+        const camp = campRes.data.campaign;
+        setCampaign(camp);
+        setMembers(camp.members || []);
+        setMyRole(camp.my_role);
         setMessages(msgRes.data.messages);
+        setMyCharacters(charRes.data.characters || []);
+
+        // Check if character already registered
+        const me = camp.members?.find(m => m.id === user?.id);
+        if (me?.character_id && me?.character_name) {
+          setMyCharacter({
+            id:         me.character_id,
+            name:       me.character_name,
+            occupation: me.character_occupation,
+          });
+        }
       } catch (err) {
-        setError(
-          err.response?.status === 403
-            ? 'You are not a member of this campaign.'
-            : 'Could not load campaign.'
-        );
+        setError(err.response?.status === 403
+          ? 'You are not a member of this campaign.'
+          : 'Could not load campaign.');
       } finally {
         setLoading(false);
       }
@@ -167,192 +92,217 @@ export default function CampaignRoomPage() {
     load();
   }, [id]);
 
-  // ── Load investigator skills for skill picker ─────────────────
-  useEffect(() => {
-    const loadSkills = async () => {
-      try {
-        const res = await apiClient.get('/characters');
-        const chars = res.data.characters;
-        if (chars && chars.length > 0) {
-          const skillMap = new Map();
-          chars.forEach(char => {
-            const skills = char.sheet_data?.Investigator?.Skills?.Skill || [];
-            skills.forEach(s => {
-              if (s.name && s.value && parseInt(s.value) > 0) {
-                if (!skillMap.has(s.name) || parseInt(s.value) > parseInt(skillMap.get(s.name).value)) {
-                  skillMap.set(s.name, { name: s.name, value: s.value });
-                }
-              }
-            });
-          });
-          setAllSkills(Array.from(skillMap.values()).sort((a, b) => a.name.localeCompare(b.name)));
-        }
-      } catch {
-        // Skills are optional — fail silently
-      }
-    };
-    loadSkills();
-  }, []);
-
-  // ── Join Socket.io room when connected ───────────────────────
+  // ── Socket room join ──────────────────────────────────────────
   useEffect(() => {
     if (!socket || !connected || loading || error) return;
 
     socket.emit('join_campaign', parseInt(id));
 
-    // Named handlers so socket.off() only removes these specific listeners
-    // (calling socket.off(event) without a handler removes ALL listeners for
-    // that event — including the global one in NotificationContext)
     const onJoined = (data) => {
-      setOnlineUsers(data.onlineUsers);
+      setOnlineUsers(data.onlineUsers || []);
       setInRoom(true);
-      enterRoom(parseInt(id), campaign?.name || 'Campaign');
-      setCurrentRoom(parseInt(id));
+      if (campaign) {
+        enterRoom(parseInt(id), campaign.name);
+        setCurrentRoom(parseInt(id));
+      }
     };
-    const onMessage     = (msg)          => setMessages(prev => [...prev, msg]);
-    const onUserJoined  = (u)            => setOnlineUsers(prev => prev.find(x => x.id === u.id) ? prev : [...prev, u]);
-    const onUserLeft    = (u)            => setOnlineUsers(prev => prev.filter(x => x.id !== u.id));
-    const onTypingStart = ({ username }) => setTypingUsers(prev => prev.includes(username) ? prev : [...prev, username]);
-    const onTypingStop  = ({ username }) => setTypingUsers(prev => prev.filter(u => u !== username));
-    const onError       = ({ message })  => console.error('Socket error:', message);
 
-    socket.on('joined',         onJoined);
-    socket.on('receive_message',onMessage);
-    socket.on('user_joined',    onUserJoined);
-    socket.on('user_left',      onUserLeft);
-    socket.on('typing_start',   onTypingStart);
-    socket.on('typing_stop',    onTypingStop);
-    socket.on('error',          onError);
+    const onMessage = (msg) => {
+      setMessages(prev => [...prev, msg]);
+
+      // Trigger celebration for Nat 1 / 00 (100) on d100 rolls
+      if (msg.type === 'roll') {
+        const content = typeof msg.content === 'string'
+          ? JSON.parse(msg.content) : msg.content;
+        if (content?.notation?.includes('d100')) {
+          const total = content.total;
+          if (total === 1)   setCelebration('critical');
+          if (total === 100) setCelebration('fumble');
+        }
+      }
+    };
+
+    const onUserJoined = (u) => {
+      setOnlineUsers(prev => prev.find(x => x.id === u.id) ? prev : [...prev, u]);
+    };
+
+    const onUserLeft  = (u) => {
+      setOnlineUsers(prev => prev.filter(x => x.id !== u.id));
+    };
+
+    const onTypingStart = ({ username }) => {
+      setTypingUsers(prev => prev.includes(username) ? prev : [...prev, username]);
+    };
+
+    const onTypingStop = ({ username }) => {
+      setTypingUsers(prev => prev.filter(u => u !== username));
+    };
+
+    const onAfkChange = ({ userId, afk: isAfk }) => {
+      setOnlineUsers(prev => prev.map(u =>
+        u.id === userId ? { ...u, afk: isAfk } : u
+      ));
+    };
+
+    socket.on('joined',        onJoined);
+    socket.on('receive_message', onMessage);
+    socket.on('user_joined',   onUserJoined);
+    socket.on('user_left',     onUserLeft);
+    socket.on('typing_start',  onTypingStart);
+    socket.on('typing_stop',   onTypingStop);
+    socket.on('afk_change',    onAfkChange);
 
     return () => {
-      socket.off('joined',         onJoined);
-      socket.off('receive_message',onMessage);
-      socket.off('user_joined',    onUserJoined);
-      socket.off('user_left',      onUserLeft);
-      socket.off('typing_start',   onTypingStart);
-      socket.off('typing_stop',    onTypingStop);
-      socket.off('error',          onError);
+      socket.off('joined',          onJoined);
+      socket.off('receive_message', onMessage);
+      socket.off('user_joined',     onUserJoined);
+      socket.off('user_left',       onUserLeft);
+      socket.off('typing_start',    onTypingStart);
+      socket.off('typing_stop',     onTypingStop);
+      socket.off('afk_change',      onAfkChange);
     };
-  }, [socket, connected, loading, error, id]);
+  }, [socket, connected, loading, error, id, campaign]);
 
-  // ── Clear notification room tracking on unmount ─────────────
-  // leaveRoom() is NOT called here — it's only called when the user clicks
-  // "Leave Table", so the NavBar pill stays visible while browsing other pages
+  // Set current room for notifications when campaign loads
+  useEffect(() => {
+    if (campaign && inRoom) {
+      enterRoom(parseInt(id), campaign.name);
+      setCurrentRoom(parseInt(id));
+    }
+  }, [campaign, inRoom]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => { clearCurrentRoom(); };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Load user's characters for the picker ────────────────────
-  useEffect(() => {
-    const loadChars = async () => {
-      try {
-        const res = await apiClient.get('/characters');
-        setMyCharacters(res.data.characters || []);
-      } catch { /* silent */ }
-    };
-    loadChars();
   }, []);
 
-  // Derive character + picker visibility from campaign data (no setState-in-effect)
-  const myMemberData  = campaign?.members?.find(m => m.id === user?.id);
-  const myCharacter   = myMemberData?.character_id ? {
-    id:         myMemberData.character_id,
-    name:       myMemberData.character_name,
-    occupation: myMemberData.character_occupation,
-  } : null;
-  const showCharPicker = !!(campaign && !myCharacter && myCharacters.length > 0 && !pickerDismissed);
-
-  const handleRegisterCharacter = async (character) => {
-    try {
-      await apiClient.put('/campaigns/' + id + '/character', {
-        character_id: character?.id || null,
-      });
-      // Update local campaign members so myCharacter re-derives correctly
-      setCampaign(prev => ({
-        ...prev,
-        members: prev.members.map(m =>
-          m.id === user?.id
-            ? { ...m,
-                character_id:         character?.id         || null,
-                character_name:       character?.name       || null,
-                character_occupation: character?.occupation || null }
-            : m
-        ),
-      }));
-      setPickerDismissed(true);
-    } catch { /* silent */ }
-  };
-
-  const showSkills = (text.trim() === '/roll' || text.trim() === '/roll ') && allSkills.length > 0;
-
-  // ── Send a message or roll ────────────────────────────────────
-  const handleSend = (inputText) => {
+  // ── Send handler ──────────────────────────────────────────────
+  const handleSend = (inputText, shiftKey = false) => {
     if (!socket || !inRoom) return;
+
+    // Auto-clear AFK on send
+    if (afk) handleToggleAfk();
+
+    // Easter egg: shift key triggers celebration
+    if (shiftKey) {
+      setCelebration(Math.random() > 0.5 ? 'critical' : 'fumble');
+      return;
+    }
 
     const trimmed = inputText.trim();
     const isRoll  = trimmed.startsWith('/roll');
 
     if (isRoll) {
       let notation = trimmed.replace(/^\/roll\s*/i, '').trim();
-
-      if (notation && !notation.endsWith('adv') && !notation.endsWith('dis')) {
-        if (advMode) notation = notation + 'adv';
-        if (disMode) notation = notation + 'dis';
+      if (!notation) notation = advMode ? '1d100adv' : disMode ? '1d100dis' : '1d100';
+      else if (!notation.endsWith('adv') && !notation.endsWith('dis')) {
+        if (advMode) notation += 'adv';
+        if (disMode) notation += 'dis';
       }
 
-      if (!notation) notation = advMode ? '1d100adv' : disMode ? '1d100dis' : '1d100';
-
       socket.emit('roll_dice', {
-        campaignId: parseInt(id),
+        campaignId:  parseInt(id),
         notation,
-        skillName:  skillContext?.name  || null,
-        skillValue: skillContext?.value || null,
+        skillName:   null,
+        skillValue:  null,
+        characterName: myCharacter?.name || null,
       });
-
-      setSkillContext(null);
     } else {
       socket.emit('send_message', {
-        campaignId: parseInt(id),
-        content:    trimmed,
+        campaignId:    parseInt(id),
+        content:       trimmed,
+        characterName: myCharacter?.name || null,
       });
     }
   };
 
+  // ── Skill/stat click roll ─────────────────────────────────────
+  const handleElementClick = (e, label, value, defaultMode) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setRollPopup({
+      label,
+      value,
+      mode: defaultMode || (advMode ? 'adv' : disMode ? 'dis' : 'normal'),
+      anchorRect: rect,
+    });
+  };
+
+  const handlePopupRoll = (mode, label, value) => {
+    if (!socket || !inRoom) return;
+    const suffix   = mode === 'adv' ? 'adv' : mode === 'dis' ? 'dis' : '';
+    const notation = '1d100' + suffix;
+    socket.emit('roll_dice', {
+      campaignId:    parseInt(id),
+      notation,
+      skillName:     label,
+      skillValue:    value,
+      characterName: myCharacter?.name || null,
+    });
+    setRollPopup(null);
+  };
+
+  // ── HP/MP/Luck/Sanity auto-save ───────────────────────────────
+  const handleStatBlur = async (statKey, oldVal, newVal, characterId) => {
+    if (oldVal === newVal || !characterId) return;
+    try {
+      // Save to DB
+      await apiClient.put('/characters/' + characterId + '/stat', {
+        stat: statKey, value: newVal,
+      });
+      // Broadcast to room
+      socket?.emit('send_message', {
+        campaignId:    parseInt(id),
+        content:       JSON.stringify({
+          stat:          statKey,
+          oldVal,
+          newVal,
+          characterName: myCharacter?.name,
+        }),
+        type:          'stat_change',
+        characterName: myCharacter?.name || null,
+      });
+    } catch { /* silent */ }
+  };
+
+  // ── AFK toggle ────────────────────────────────────────────────
+  const handleToggleAfk = () => {
+    const next = !afk;
+    setAfk(next);
+    socket?.emit('afk_change', { campaignId: parseInt(id), afk: next });
+  };
+
+  // ── Leave table ───────────────────────────────────────────────
+  const handleLeave = () => {
+    socket?.emit('leave_campaign', { campaignId: parseInt(id) });
+    leaveRoom();
+    clearCurrentRoom();
+    navigate('/campaign');
+  };
+
+  // ── Adv/Dis toggle ────────────────────────────────────────────
+  const handleToggleAdv = () => { setAdvMode(p => !p); setDisMode(false); };
+  const handleToggleDis = () => { setDisMode(p => !p); setAdvMode(false); };
+
+  // ── Character change (from sidebar) ──────────────────────────
+  const handleChangeCharacter = async (character) => {
+    try {
+      await apiClient.put('/campaigns/' + id + '/character', {
+        character_id: character?.id || null,
+      });
+      setMyCharacter(character || null);
+    } catch { /* silent */ }
+  };
+
   // ── Typing handlers ───────────────────────────────────────────
-  const handleTyping = () => {
-    socket?.emit('typing', { campaignId: parseInt(id) });
-  };
+  const handleTyping     = () => socket?.emit('typing',      { campaignId: parseInt(id) });
+  const handleStopTyping = () => socket?.emit('stop_typing', { campaignId: parseInt(id) });
 
-  const handleStopTyping = () => {
-    socket?.emit('stop_typing', { campaignId: parseInt(id) });
-  };
-
-  const handleToggleAdv = () => {
-    setAdvMode(prev => !prev);
-    setDisMode(false);
-  };
-
-  const handleToggleDis = () => {
-    setDisMode(prev => !prev);
-    setAdvMode(false);
-  };
-
-  const handleSkillSelect = (skill) => {
-    setSkillContext(skill);
-    const suffix = advMode ? 'adv' : disMode ? 'dis' : '';
-    setText('/roll 1d100' + suffix);
-  };
-
-  // ── Render ────────────────────────────────────────────────────
+  // ── Render guards ─────────────────────────────────────────────
   if (loading) return (
     <div style={{
-      minHeight:  '100vh',
-      background: 'var(--bg-page)',
-      display:    'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color:      'var(--text-muted)',
-      fontFamily: 'var(--font-sans)',
+      minHeight:'100vh', background:'var(--bg-page)',
+      display:'flex', alignItems:'center', justifyContent:'center',
+      color:'var(--text-muted)', fontFamily:'var(--font-sans)',
     }}>
       Loading campaign...
     </div>
@@ -360,21 +310,21 @@ export default function CampaignRoomPage() {
 
   if (error) return (
     <div style={{
-      minHeight:  '100vh',
-      background: 'var(--bg-page)',
-      display:    'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'column',
-      gap: '16px',
-      fontFamily: 'var(--font-sans)',
+      minHeight:'100vh', background:'var(--bg-page)',
+      display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center', gap:'16px',
+      fontFamily:'var(--font-sans)',
     }}>
-      <p style={{ color: 'var(--danger)' }}>{error}</p>
-      <a href="/campaign" style={{ color: 'var(--accent)', fontSize: '14px' }}>
+      <p style={{ color:'var(--danger)' }}>{error}</p>
+      <button onClick={() => navigate('/campaign')}
+              style={{ color:'var(--accent)', background:'none', border:'none', cursor:'pointer' }}>
         ← Back to Campaigns
-      </a>
+      </button>
     </div>
   );
+
+  // ── My character's sheet data ─────────────────────────────────
+  const myCharData = myCharacters.find(c => c.id === myCharacter?.id);
 
   return (
     <div style={{
@@ -382,65 +332,138 @@ export default function CampaignRoomPage() {
       display:       'flex',
       flexDirection: 'column',
       background:    'var(--bg-page)',
+      overflow:      'hidden',
     }}>
+
+      {/* Celebration overlay */}
+      {celebration && (
+        <CelebrationOverlay
+          type={celebration}
+          onDone={() => setCelebration(null)}
+        />
+      )}
+
+      {/* Skill roll popup */}
+      {rollPopup && (
+        <div style={{
+          position: 'fixed',
+          top:      rollPopup.anchorRect.top - 8,
+          left:     rollPopup.anchorRect.left + rollPopup.anchorRect.width / 2,
+          zIndex:   200,
+          transform:'translateX(-50%) translateY(-100%)',
+        }}>
+          <SkillRollPopup
+            label={rollPopup.label}
+            value={rollPopup.value}
+            defaultMode={rollPopup.mode}
+            onRoll={(mode) => handlePopupRoll(mode, rollPopup.label, rollPopup.value)}
+            onClose={() => setRollPopup(null)}
+          />
+        </div>
+      )}
+
       <NavBar activeTab="campaign" />
 
       {/* Room header */}
       <div style={{
-        padding:      '10px 20px',
-        borderBottom: '1px solid var(--border-main)',
-        background:   'var(--bg-nav)',
-        display:      'flex',
-        alignItems:   'center',
+        padding:       '8px 20px',
+        borderBottom:  '1px solid var(--border-main)',
+        background:    'var(--bg-nav)',
+        display:       'flex',
+        alignItems:    'center',
         justifyContent:'space-between',
-        flexShrink:   0,
+        flexShrink:    0,
       }}>
         <div>
           <h2 style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize:   '17px',
-            color:      'var(--text-primary)',
-            margin:     0,
+            fontFamily:'var(--font-serif)', fontSize:'17px',
+            color:'var(--text-primary)', margin:0,
           }}>
             {campaign?.name}
           </h2>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-            {myRole === 'keeper' ? '🎭 You are the Keeper' : '⚔️ Player'}
-            {' · '}
+          <p style={{ fontSize:'12px', color:'var(--text-muted)', margin:0, display:'flex', gap:'8px', alignItems:'center' }}>
+            <span>You are the</span>
+            <span style={{
+              background:'var(--bg-section-hd)',
+              border:'1px solid var(--border-main)',
+              borderRadius:'4px', padding:'1px 6px',
+              fontSize:'11px', color:'var(--text-primary)',
+            }}>
+              {myRole}
+            </span>
             <span style={{ color: connected && inRoom ? '#22c55e' : 'var(--text-faint)' }}>
-              {connected && inRoom ? '● Connected' : '○ Connecting...'}
+              ● {connected && inRoom ? 'Connected' : 'Connecting...'}
             </span>
           </p>
         </div>
-        <button
-          onClick={() => {
-            socket?.emit('leave_campaign', { campaignId: parseInt(id) });
-            leaveRoom();
-            clearCurrentRoom();
-            navigate('/campaign');
-          }}
-          style={{
-            padding:      '6px 14px',
-            borderRadius: '8px',
-            border:       '1px solid var(--danger)',
-            background:   'transparent',
-            color:        'var(--danger)',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '13px',
-            cursor:       'pointer',
-            transition:   'all 0.15s ease',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-bg)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-        >
-          Leave Table
-        </button>
+
+        <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
+          {/* I'm Not Here toggle */}
+          <button
+            onClick={handleToggleAfk}
+            style={{
+              padding:      '6px 14px',
+              borderRadius: '8px',
+              border:       '1px solid var(--border-main)',
+              background:   afk ? 'var(--bg-section-hd)' : 'transparent',
+              color:        afk ? '#EAB308' : 'var(--text-muted)',
+              fontFamily:   'var(--font-sans)',
+              fontSize:     '13px',
+              cursor:       'pointer',
+              transition:   'all 0.15s ease',
+            }}
+          >
+            {afk ? "I'm Here" : "I'm Not Here"}
+          </button>
+
+          {/* Leave Table */}
+          <button
+            onClick={handleLeave}
+            style={{
+              padding:      '6px 14px',
+              borderRadius: '8px',
+              border:       '1px solid var(--danger)',
+              background:   'transparent',
+              color:        'var(--danger)',
+              fontFamily:   'var(--font-sans)',
+              fontSize:     '13px',
+              cursor:       'pointer',
+              transition:   'all 0.15s ease',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            Leave Table
+          </button>
+        </div>
       </div>
 
-      {/* Main layout */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      {/* Main content */}
+      <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
 
-        {/* Chat area */}
+        {/* Left: character sheet */}
+        {myCharData && (
+          <div style={{
+            width:        '420px',
+            flexShrink:   0,
+            overflowY:    'auto',
+            borderRight:  '1px solid var(--border-main)',
+            background:   'var(--bg-page)',
+          }}>
+            {/* RoomSheet renders a session-mode sheet */}
+            {/* Implemented in next step */}
+            <SessionSheet
+              charData={myCharData}
+              characterId={myCharacter?.id}
+              advMode={advMode}
+              disMode={disMode}
+              onElementClick={handleElementClick}
+              onStatBlur={handleStatBlur}
+            />
+          </div>
+        )}
+
+        {/* Middle: roll feed */}
         <div style={{
           flex:          1,
           display:       'flex',
@@ -448,66 +471,105 @@ export default function CampaignRoomPage() {
           overflow:      'hidden',
           background:    'var(--bg-page)',
         }}>
-          {/* Messages */}
-          <MessageList messages={messages} currentUserId={user?.id} />
+          <RollFeed
+            messages={messages}
+            currentUserId={user?.id}
+            hideResults={hideResults}
+          />
 
           {/* Typing indicator */}
           {typingUsers.length > 0 && (
             <div style={{
-              padding:   '4px 20px 8px',
-              fontSize:  '12px',
-              color:     'var(--text-faint)',
-              fontStyle: 'italic',
+              padding:'4px 16px 8px', fontSize:'12px',
+              color:'var(--text-faint)', fontStyle:'italic',
+              fontFamily:'var(--font-sans)',
             }}>
               {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
             </div>
           )}
 
-          {/* Dice panel */}
-          <DicePanel
-            onRoll={notation => {
-              setText('/roll ' + notation);
-              if (!showSkills) {
-                setTimeout(() => {
-                  handleSend('/roll ' + notation);
-                  setText('');
-                }, 50);
-              }
-            }}
-            advMode={advMode}
-            disMode={disMode}
+          {/* Dice row */}
+          <DiceRow
+            advMode={advMode} disMode={disMode}
+            hideResults={hideResults}
             onToggleAdv={handleToggleAdv}
             onToggleDis={handleToggleDis}
+            onToggleHide={() => setHideResults(p => !p)}
+            onRoll={(notation, shiftKey) => {
+              if (shiftKey) { setCelebration(Math.random() > 0.5 ? 'critical' : 'fumble'); return; }
+              if (!socket || !inRoom) return;
+              socket.emit('roll_dice', {
+                campaignId:    parseInt(id),
+                notation,
+                characterName: myCharacter?.name || null,
+              });
+            }}
           />
 
-          {/* Skill picker + chat input wrapper */}
-          <div style={{ position: 'relative' }}>
-            {showSkills && (
-              <SkillPicker
-                skills={allSkills}
-                onSelect={handleSkillSelect}
-                onClose={() => setText('')}
-              />
-            )}
-            <ChatInput
-              text={text}
-              setText={setText}
-              onSend={handleSend}
-              onTyping={handleTyping}
-              onStopTyping={handleStopTyping}
-              disabled={!connected || !inRoom}
-              skillContext={skillContext}
-            />
-          </div>
+          {/* Chat input */}
+          <ChatInput
+            text={text}
+            setText={(val) => {
+              setText(val);
+              // Auto-clear AFK when typing
+              if (afk && val.length > 0) handleToggleAfk();
+            }}
+            onSend={handleSend}
+            onTyping={handleTyping}
+            onStopTyping={handleStopTyping}
+            disabled={!connected || !inRoom}
+          />
         </div>
 
-        {/* Sidebar */}
-        <OnlineSidebar
+        {/* Right: vertical tab sidebar */}
+        <RoomSidebar
+          activeTab={sidebarTab}
+          onTabChange={setSidebarTab}
           members={members}
           onlineUsers={onlineUsers}
           myRole={myRole}
-          inviteCode={campaign?.invite_code}
+          myCharacter={myCharacter}
+          myCharacters={myCharacters}
+          onChangeCharacter={handleChangeCharacter}
+          campaignId={id}
         />
+      </div>
+    </div>
+  );
+}
+
+// ── SessionSheet placeholder ───────────────────────────────────
+// This is a thin wrapper — the full session-mode sheet rendering
+// (clickable skills, editable HP etc.) is scope for a follow-up.
+// For now it renders the character name and occupation as a stub.
+function SessionSheet({ charData, characterId, advMode, disMode, onElementClick, onStatBlur }) {
+  const inv     = charData?.sheet_data?.Investigator;
+  const details = inv?.PersonalDetails || {};
+
+  return (
+    <div style={{ padding: '16px', fontFamily: 'var(--font-sans)' }}>
+      <div style={{
+        fontFamily:   'var(--font-serif)',
+        fontSize:     '18px',
+        color:        'var(--text-primary)',
+        marginBottom: '4px',
+      }}>
+        {details.Name || 'Investigator'}
+      </div>
+      <div style={{ fontSize: '13px', color: 'var(--accent)', marginBottom: '16px' }}>
+        {details.Occupation}
+      </div>
+      <div style={{
+        padding:    '12px',
+        borderRadius:'8px',
+        border:     '1px solid var(--border-main)',
+        background: 'var(--bg-section-hd)',
+        fontSize:   '12px',
+        color:      'var(--text-faint)',
+        fontStyle:  'italic',
+        textAlign:  'center',
+      }}>
+        Full session sheet — Phase 9
       </div>
     </div>
   );

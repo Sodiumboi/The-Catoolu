@@ -233,4 +233,41 @@ router.put('/:id/notes', async (req, res) => {
   }
 });
 
+// ── PUT /api/characters/:id/stat ─────────────────────────────
+// Update a single tracked stat (HP, MP, Luck, Sanity current value)
+router.put('/:id/stat', async (req, res) => {
+  try {
+    const { stat, value } = req.body;
+
+    const allowed = ['HitPts', 'MagicPts', 'Luck', 'Sanity'];
+    if (!allowed.includes(stat)) {
+      return res.status(400).json({ error: 'Invalid stat.' });
+    }
+
+    const ownerCheck = await pool.query(
+      'SELECT id FROM characters WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    if (ownerCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Character not found.' });
+    }
+
+    await pool.query(
+      `UPDATE characters
+       SET sheet_data = jsonb_set(
+         sheet_data,
+         '{Investigator,Characteristics,' || $1 || '}',
+         to_jsonb($2::text)
+       )
+       WHERE id = $3 AND user_id = $4`,
+      [stat, String(value), req.params.id, req.user.id]
+    );
+
+    res.json({ message: 'Stat updated.' });
+  } catch (err) {
+    console.error('Stat update error:', err);
+    res.status(500).json({ error: 'Failed to update stat.' });
+  }
+});
+
 module.exports = router;

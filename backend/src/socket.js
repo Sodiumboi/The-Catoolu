@@ -12,6 +12,7 @@ const EVENTS = {
   ROLL_DICE:       'roll_dice',
   TYPING:          'typing',
   STOP_TYPING:     'stop_typing',
+  AFK_CHANGE:      'afk_change',
 
   // Server → Client
   JOINED:          'joined',
@@ -248,6 +249,17 @@ function setupSocket(httpServer) {
     socket.on(EVENTS.STOP_TYPING, ({ campaignId }) => {
       socket.to(roomName(campaignId)).emit(EVENTS.TYPING_STOP, {
         username: socket.user.username,
+      });
+    });
+
+    // ── AFK_CHANGE ─────────────────────────────────────────────
+    // Client toggles AFK status; broadcast to other room members.
+    socket.on(EVENTS.AFK_CHANGE, ({ campaignId, afk }) => {
+      socket.afk = afk;
+      socket.to(roomName(campaignId)).emit(EVENTS.AFK_CHANGE, {
+        userId:   socket.user.id,
+        username: socket.user.username,
+        afk,
       });
     });
 
