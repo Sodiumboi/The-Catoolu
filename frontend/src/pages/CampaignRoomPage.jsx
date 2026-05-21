@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import NavBar       from '../components/NavBar';
 import MessageList  from '../components/MessageList';
 import ChatInput    from '../components/ChatInput';
@@ -7,6 +7,8 @@ import OnlineSidebar from '../components/OnlineSidebar';
 import DicePanel     from '../components/DicePanel';
 import { useSocket } from '../context/SocketContext';
 import { useAuth }   from '../context/AuthContext';
+import { useCampaign }      from '../context/CampaignContext';
+import { useNotifications } from '../context/NotificationContext';
 import apiClient     from '../api/client';
 
 
@@ -115,8 +117,11 @@ function SkillPicker({ skills, onSelect, onClose }) {
 
 export default function CampaignRoomPage() {
   const { id }         = useParams();
+  const navigate       = useNavigate();
   const { socket, connected } = useSocket();
   const { user }       = useAuth();
+  const { enterRoom, leaveRoom }             = useCampaign();
+  const { setCurrentRoom, clearCurrentRoom } = useNotifications();
 
   const [campaign,     setCampaign]     = useState(null);
   const [messages,     setMessages]     = useState([]);
@@ -133,6 +138,9 @@ export default function CampaignRoomPage() {
   const [disMode,      setDisMode]       = useState(false);
   const [skillContext, setSkillContext]  = useState(null);
   const [allSkills,    setAllSkills]     = useState([]);
+
+  const [pickerDismissed, setPickerDismissed] = useState(false);
+  const [myCharacters,    setMyCharacters]    = useState([]);
 
   // ── Load campaign + message history ────────────────────────
   useEffect(() => {
@@ -192,51 +200,88 @@ export default function CampaignRoomPage() {
 
     socket.emit('join_campaign', parseInt(id));
 
-    socket.on('joined', (data) => {
+    // Named handlers so socket.off() only removes these specific listeners
+    // (calling socket.off(event) without a handler removes ALL listeners for
+    // that event — including the global one in NotificationContext)
+    const onJoined = (data) => {
       setOnlineUsers(data.onlineUsers);
       setInRoom(true);
-    });
+      enterRoom(parseInt(id), campaign?.name || 'Campaign');
+      setCurrentRoom(parseInt(id));
+    };
+    const onMessage     = (msg)          => setMessages(prev => [...prev, msg]);
+    const onUserJoined  = (u)            => setOnlineUsers(prev => prev.find(x => x.id === u.id) ? prev : [...prev, u]);
+    const onUserLeft    = (u)            => setOnlineUsers(prev => prev.filter(x => x.id !== u.id));
+    const onTypingStart = ({ username }) => setTypingUsers(prev => prev.includes(username) ? prev : [...prev, username]);
+    const onTypingStop  = ({ username }) => setTypingUsers(prev => prev.filter(u => u !== username));
+    const onError       = ({ message })  => console.error('Socket error:', message);
 
-    socket.on('receive_message', (msg) => {
-      setMessages(prev => [...prev, msg]);
-    });
-
-    socket.on('user_joined', (user) => {
-      setOnlineUsers(prev => {
-        if (prev.find(u => u.id === user.id)) return prev;
-        return [...prev, user];
-      });
-    });
-
-    socket.on('user_left', (user) => {
-      setOnlineUsers(prev => prev.filter(u => u.id !== user.id));
-    });
-
-    socket.on('typing_start', ({ username }) => {
-      setTypingUsers(prev => {
-        if (prev.includes(username)) return prev;
-        return [...prev, username];
-      });
-    });
-
-    socket.on('typing_stop', ({ username }) => {
-      setTypingUsers(prev => prev.filter(u => u !== username));
-    });
-
-    socket.on('error', ({ message }) => {
-      console.error('Socket error:', message);
-    });
+    socket.on('joined',         onJoined);
+    socket.on('receive_message',onMessage);
+    socket.on('user_joined',    onUserJoined);
+    socket.on('user_left',      onUserLeft);
+    socket.on('typing_start',   onTypingStart);
+    socket.on('typing_stop',    onTypingStop);
+    socket.on('error',          onError);
 
     return () => {
-      socket.off('joined');
-      socket.off('receive_message');
-      socket.off('user_joined');
-      socket.off('user_left');
-      socket.off('typing_start');
-      socket.off('typing_stop');
-      socket.off('error');
+      socket.off('joined',         onJoined);
+      socket.off('receive_message',onMessage);
+      socket.off('user_joined',    onUserJoined);
+      socket.off('user_left',      onUserLeft);
+      socket.off('typing_start',   onTypingStart);
+      socket.off('typing_stop',    onTypingStop);
+      socket.off('error',          onError);
     };
   }, [socket, connected, loading, error, id]);
+
+  // ── Clear notification room tracking on unmount ─────────────
+  // leaveRoom() is NOT called here — it's only called when the user clicks
+  // "Leave Table", so the NavBar pill stays visible while browsing other pages
+  useEffect(() => {
+    return () => { clearCurrentRoom(); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Load user's characters for the picker ────────────────────
+  useEffect(() => {
+    const loadChars = async () => {
+      try {
+        const res = await apiClient.get('/characters');
+        setMyCharacters(res.data.characters || []);
+      } catch { /* silent */ }
+    };
+    loadChars();
+  }, []);
+
+  // Derive character + picker visibility from campaign data (no setState-in-effect)
+  const myMemberData  = campaign?.members?.find(m => m.id === user?.id);
+  const myCharacter   = myMemberData?.character_id ? {
+    id:         myMemberData.character_id,
+    name:       myMemberData.character_name,
+    occupation: myMemberData.character_occupation,
+  } : null;
+  const showCharPicker = !!(campaign && !myCharacter && myCharacters.length > 0 && !pickerDismissed);
+
+  const handleRegisterCharacter = async (character) => {
+    try {
+      await apiClient.put('/campaigns/' + id + '/character', {
+        character_id: character?.id || null,
+      });
+      // Update local campaign members so myCharacter re-derives correctly
+      setCampaign(prev => ({
+        ...prev,
+        members: prev.members.map(m =>
+          m.id === user?.id
+            ? { ...m,
+                character_id:         character?.id         || null,
+                character_name:       character?.name       || null,
+                character_occupation: character?.occupation || null }
+            : m
+        ),
+      }));
+      setPickerDismissed(true);
+    } catch { /* silent */ }
+  };
 
   const showSkills = (text.trim() === '/roll' || text.trim() === '/roll ') && allSkills.length > 0;
 
@@ -367,16 +412,29 @@ export default function CampaignRoomPage() {
             </span>
           </p>
         </div>
-        <a
-          href="/campaign"
-          style={{
-            fontSize:       '13px',
-            color:          'var(--text-muted)',
-            textDecoration: 'none',
+        <button
+          onClick={() => {
+            socket?.emit('leave_campaign', { campaignId: parseInt(id) });
+            leaveRoom();
+            clearCurrentRoom();
+            navigate('/campaign');
           }}
+          style={{
+            padding:      '6px 14px',
+            borderRadius: '8px',
+            border:       '1px solid var(--danger)',
+            background:   'transparent',
+            color:        'var(--danger)',
+            fontFamily:   'var(--font-sans)',
+            fontSize:     '13px',
+            cursor:       'pointer',
+            transition:   'all 0.15s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--danger-bg)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
         >
-          ← Campaigns
-        </a>
+          Leave Table
+        </button>
       </div>
 
       {/* Main layout */}

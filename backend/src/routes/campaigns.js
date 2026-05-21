@@ -204,7 +204,23 @@ router.get('/:id', async (req, res) => {
 
     // Get all members with their usernames
     const membersRes = await pool.query(
-      `SELECT u.id, u.username, cm.role, cm.joined_at
+      `SELECT
+         u.id,
+         u.username,
+         u.avatar_url,
+         cm.role,
+         cm.joined_at,
+         cm.character_id,
+         (
+           SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Name'
+           FROM characters
+           WHERE id = cm.character_id
+         ) AS character_name,
+         (
+           SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Occupation'
+           FROM characters
+           WHERE id = cm.character_id
+         ) AS character_occupation
        FROM campaign_members cm
        JOIN users u ON cm.user_id = u.id
        WHERE cm.campaign_id = $1
@@ -366,6 +382,42 @@ router.post('/:id/messages', async (req, res) => {
   } catch (err) {
     console.error('Post message error:', err);
     res.status(500).json({ error: 'Failed to post message.' });
+  }
+});
+
+// ── PUT /api/campaigns/:id/character ─────────────────────────
+// Register or update the investigator a player is using.
+// character_id: null = "decide later"
+router.put('/:id/character', async (req, res) => {
+  try {
+    const { character_id } = req.body;
+    const campaignId       = req.params.id;
+
+    if (!(await isMember(campaignId, req.user.id))) {
+      return res.status(403).json({ error: 'Not a campaign member.' });
+    }
+
+    if (character_id) {
+      const ownerCheck = await pool.query(
+        'SELECT id FROM characters WHERE id = $1 AND user_id = $2',
+        [character_id, req.user.id]
+      );
+      if (ownerCheck.rows.length === 0) {
+        return res.status(403).json({ error: 'Character not found.' });
+      }
+    }
+
+    await pool.query(
+      `UPDATE campaign_members
+       SET character_id = $1
+       WHERE campaign_id = $2 AND user_id = $3`,
+      [character_id || null, campaignId, req.user.id]
+    );
+
+    res.json({ message: 'Investigator registered.' });
+  } catch (err) {
+    console.error('Register character error:', err);
+    res.status(500).json({ error: 'Failed to register investigator.' });
   }
 });
 

@@ -7,8 +7,36 @@
 
 const express = require('express');
 const bcrypt  = require('bcryptjs');
+const multer  = require('multer');
+const path    = require('path');
+const fs      = require('fs');
 const pool    = require('../config/db');
 const auth    = require('../middleware/auth');
+
+// ── Multer config ─────────────────────────────────────────────
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../../uploads/avatars');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, req.user.id + '.jpg');
+  },
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits:  { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPG, PNG, and WebP images are allowed.'));
+    }
+  },
+});
 
 const router = express.Router();
 router.use(auth);
@@ -17,7 +45,7 @@ router.use(auth);
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, email, created_at FROM users WHERE id = $1',
+      'SELECT id, username, email, avatar_url, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
     if (result.rows.length === 0) {
@@ -123,6 +151,30 @@ router.put('/password', async (req, res) => {
   } catch (err) {
     console.error('Change password error:', err);
     res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// ── POST /api/profile/avatar ──────────────────────────────────
+router.post('/avatar', avatarUpload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded.' });
+    }
+
+    const avatarUrl = '/uploads/avatars/' + req.user.id + '.jpg';
+
+    await pool.query(
+      'UPDATE users SET avatar_url = $1 WHERE id = $2',
+      [avatarUrl, req.user.id]
+    );
+
+    res.json({ avatar_url: avatarUrl });
+  } catch (err) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File too large. Maximum size is 2MB.' });
+    }
+    console.error('Avatar upload error:', err);
+    res.status(500).json({ error: err.message || 'Failed to upload avatar.' });
   }
 });
 

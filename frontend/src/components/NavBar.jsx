@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useCampaign } from '../context/CampaignContext';
+import { useNotifications } from '../context/NotificationContext';
 import logo from '../assets/vault-logo.png';
 
 // ── Tab definitions ────────────────────────────────────────
@@ -16,6 +18,7 @@ const TABS = [
 export default function NavBar({ activeTab = 'investigators', onImport, investigatorCount }) {
   const { user, logout }          = useAuth();
   const { theme, toggleTheme }    = useTheme();
+  const { activeRoom }            = useCampaign();
   const navigate                  = useNavigate();
   const location                  = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -228,6 +231,48 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
           marginLeft: 'auto',
           flexShrink: 0,
         }}>
+
+          {/* Return to Room pill — only shown when in a session */}
+          {activeRoom && (
+            <button
+              onClick={() => navigate('/campaign/' + activeRoom.id)}
+              style={{
+                display:      'flex',
+                alignItems:   'center',
+                gap:          '6px',
+                padding:      '5px 14px',
+                borderRadius: '20px',
+                border:       '1.5px solid var(--color-primary)',
+                background:   'var(--accent-bg)',
+                color:        'var(--color-primary)',
+                fontFamily:   'var(--font-sans)',
+                fontSize:     '12px',
+                fontWeight:   '500',
+                cursor:       'pointer',
+                transition:   'all 0.15s ease',
+                animation:    'pulse 2s infinite',
+                maxWidth:     '180px',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'var(--color-primary)';
+                e.currentTarget.style.color      = '#ffffff';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'var(--accent-bg)';
+                e.currentTarget.style.color      = 'var(--color-primary)';
+              }}
+              title={'Return to ' + activeRoom.name}
+            >
+              <span>▶</span>
+              <span style={{
+                overflow:     'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace:   'nowrap',
+              }}>
+                {activeRoom.name}
+              </span>
+            </button>
+          )}
 
           {/* Import button */}
           {onImport && (
@@ -444,8 +489,9 @@ function MainMenuPanel({
 
 // ── Preferences panel ──────────────────────────────────────
 function PreferencesPanel({ theme, toggleTheme, setPanel }) {
-  const { skillSize, setSkillSize } = useTheme();
-  const [savedMsg, setSavedMsg]     = useState('');
+  const { skillSize, setSkillSize }  = useTheme();
+  const { enabled, toggleEnabled }   = useNotifications();
+  const [savedMsg, setSavedMsg]      = useState('');
 
   // Flash "Saved" confirmation when a setting changes
   const applySetting = (fn) => {
@@ -616,6 +662,52 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
                     fontWeight: isActive ? '500' : '400',
                     cursor:     isActive ? 'default' : 'pointer',
                     transition: 'all 0.15s ease',
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Notifications ── */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{
+            fontFamily:    'var(--font-sans)',
+            fontSize:      '11px',
+            fontWeight:    '500',
+            textTransform: 'uppercase',
+            letterSpacing: '0.07em',
+            color:         'var(--text-muted)',
+            marginBottom:  '8px',
+          }}>
+            Message Notifications
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[
+              { value: true,  label: '🔔 On'  },
+              { value: false, label: '🔕 Off' },
+            ].map(opt => {
+              const isActive = enabled === opt.value;
+              return (
+                <button
+                  key={String(opt.value)}
+                  onClick={() => applySetting(toggleEnabled)}
+                  style={{
+                    flex:         1,
+                    padding:      '6px 8px',
+                    borderRadius: '8px',
+                    border:       isActive
+                      ? '1.5px solid var(--color-primary)'
+                      : '1.5px solid var(--border-main)',
+                    background:   isActive ? 'var(--accent-bg)' : 'transparent',
+                    color:        isActive ? 'var(--color-primary)' : 'var(--text-secondary)',
+                    fontFamily:   'var(--font-sans)',
+                    fontSize:     '12px',
+                    fontWeight:   isActive ? '500' : '400',
+                    cursor:       isActive ? 'default' : 'pointer',
+                    transition:   'all 0.15s ease',
                   }}
                 >
                   {opt.label}

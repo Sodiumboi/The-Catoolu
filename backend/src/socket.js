@@ -67,10 +67,13 @@ function setupSocket(httpServer) {
     // Client emits this when navigating into a campaign room.
     socket.on(EVENTS.JOIN_CAMPAIGN, async (campaignId) => {
       try {
-        // Verify the user is actually a member of this campaign
+        // Verify membership and fetch campaign name + user avatar in one query
         const memberCheck = await pool.query(
-          `SELECT role FROM campaign_members
-           WHERE campaign_id = $1 AND user_id = $2`,
+          `SELECT cm.role, c.name AS campaign_name, u.avatar_url
+           FROM campaign_members cm
+           JOIN campaigns c ON c.id = cm.campaign_id
+           JOIN users u ON u.id = cm.user_id
+           WHERE cm.campaign_id = $1 AND cm.user_id = $2`,
           [campaignId, socket.user.id]
         );
 
@@ -80,7 +83,10 @@ function setupSocket(httpServer) {
           });
         }
 
-        const role = memberCheck.rows[0].role;
+        const { role, campaign_name, avatar_url } = memberCheck.rows[0];
+        // Cache on socket so message handlers can include them in payloads
+        socket.currentCampaignName = campaign_name;
+        socket.user.avatar_url     = avatar_url || null;
 
         // Leave any previous campaign room
         // (user can only be in one campaign room at a time)
@@ -153,8 +159,11 @@ function setupSocket(httpServer) {
 
         const message = {
           ...result.rows[0],
-          user_id:  socket.user.id,
-          username: socket.user.username,
+          campaign_id:   campaignId,
+          campaign_name: socket.currentCampaignName,
+          user_id:       socket.user.id,
+          username:      socket.user.username,
+          avatar_url:    socket.user.avatar_url || null,
         };
 
         // Broadcast to everyone in the room (including sender)
@@ -205,8 +214,11 @@ function setupSocket(httpServer) {
 
         const message = {
           ...dbResult.rows[0],
-          user_id:  socket.user.id,
-          username: socket.user.username,
+          campaign_id:   campaignId,
+          campaign_name: socket.currentCampaignName,
+          user_id:       socket.user.id,
+          username:      socket.user.username,
+          avatar_url:    socket.user.avatar_url || null,
           // Send parsed object — client doesn't need to JSON.parse
           content:  result,
         };

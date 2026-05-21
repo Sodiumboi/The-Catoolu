@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
+import ImageCropModal from '../components/ImageCropModal';
 
 // ── Reusable field components ──────────────────────────────
 function FormField({ label, children }) {
@@ -131,10 +132,12 @@ export default function ProfilePage() {
   const avatarInputRef    = useRef(null);
 
   // Profile fields
-  const [username,   setUsername]   = useState('');
-  const [email,      setEmail]      = useState('');
-  const [joinedAt,   setJoinedAt]   = useState('');
-  const [avatarUrl,  setAvatarUrl]  = useState(null); // reserved for future portrait
+  const [username,     setUsername]     = useState('');
+  const [email,        setEmail]        = useState('');
+  const [joinedAt,     setJoinedAt]     = useState('');
+  const [avatarUrl,    setAvatarUrl]    = useState(null);
+  const [cropSrc,      setCropSrc]      = useState(null);
+  const [savingAvatar, setSavingAvatar] = useState(false);
 
   // Password fields
   const [currentPw,  setCurrentPw]  = useState('');
@@ -155,6 +158,7 @@ export default function ProfilePage() {
         const u   = res.data.user;
         setUsername(u.username);
         setEmail(u.email);
+        setAvatarUrl(u.avatar_url || null);
         setJoinedAt(new Date(u.created_at).toLocaleDateString('en-US', {
           year: 'numeric', month: 'long', day: 'numeric'
         }));
@@ -164,6 +168,43 @@ export default function ProfilePage() {
     };
     load();
   }, []);
+
+  const handleAvatarFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setProfileMsg({ text: 'File too large. Maximum size is 2MB.', type: 'error' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (evt) => setCropSrc(evt.target.result);
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleCropSave = async (blob) => {
+    setSavingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', blob, 'avatar.jpg');
+
+      const res = await apiClient.post('/profile/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      setAvatarUrl(res.data.avatar_url + '?t=' + Date.now());
+      setCropSrc(null);
+      setProfileMsg({ text: '✓ Profile picture updated!', type: 'success' });
+
+      const storedUser = JSON.parse(localStorage.getItem('coc_user') || '{}');
+      storedUser.avatar_url = res.data.avatar_url;
+      localStorage.setItem('coc_user', JSON.stringify(storedUser));
+    } catch (err) {
+      setProfileMsg({ text: err.response?.data?.error || 'Upload failed.', type: 'error' });
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
 
   // Save profile
   const handleProfileSave = async () => {
@@ -245,53 +286,86 @@ export default function ProfilePage() {
           {/* ── LEFT COLUMN: Account info + future portrait ── */}
           <div>
             <Card title="Account">
-              {/* Portrait area — prepared for future upload */}
+              {/* Avatar upload area */}
               <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                 <div
                   onClick={() => avatarInputRef.current?.click()}
                   style={{
-                    width:         '96px',
-                    height:        '96px',
-                    borderRadius:  '50%',
-                    background:    'var(--color-primary-light)',
-                    border:        '2px solid var(--border-main)',
-                    display:       'flex',
-                    alignItems:    'center',
-                    justifyContent:'center',
-                    margin:        '0 auto 10px',
-                    cursor:        'pointer',
-                    fontFamily:    'var(--font-serif)',
-                    fontSize:      '32px',
-                    color:         'var(--color-primary-dark)',
-                    position:      'relative',
-                    overflow:      'hidden',
-                    transition:    'border-color 0.15s ease',
+                    width:          '96px',
+                    height:         '96px',
+                    borderRadius:   '50%',
+                    background:     'var(--color-primary-light)',
+                    border:         '2px solid var(--border-main)',
+                    display:        'flex',
+                    alignItems:     'center',
+                    justifyContent: 'center',
+                    margin:         '0 auto 8px',
+                    cursor:         'pointer',
+                    overflow:       'hidden',
+                    transition:     'border-color 0.15s ease',
+                    position:       'relative',
                   }}
-                  title="Profile picture — coming in v1.5"
+                  title="Click to change profile picture"
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-main)'}
                 >
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="Profile"
-                         style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : initials}
+                    <img
+                      src={avatarUrl.startsWith('http') ? avatarUrl : 'http://localhost:3001' + avatarUrl}
+                      alt="Profile"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <span style={{
+                      fontFamily: 'var(--font-serif)',
+                      fontSize:   '32px',
+                      color:      'var(--color-primary-dark)',
+                    }}>
+                      {initials}
+                    </span>
+                  )}
+
+                  {/* Hover overlay */}
+                  <div style={{
+                    position:       'absolute',
+                    inset:          0,
+                    background:     'rgba(0,0,0,0.4)',
+                    display:        'flex',
+                    alignItems:     'center',
+                    justifyContent: 'center',
+                    opacity:        0,
+                    transition:     'opacity 0.15s',
+                    borderRadius:   '50%',
+                    fontSize:       '20px',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '0'}
+                  >
+                    📷
+                  </div>
                 </div>
+
                 <input
                   ref={avatarInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarFileChange}
                   style={{ display: 'none' }}
-                  disabled
                 />
-                <p style={{
-                  fontSize:  '11px',
-                  color:     'var(--text-faint)',
-                  fontStyle: 'italic',
-                  margin:    0,
-                }}>
-                  Profile photo — v1.5
+                <p style={{ fontSize: '11px', color: 'var(--text-faint)', margin: 0 }}>
+                  Click to change · JPG PNG WebP · Max 2MB
                 </p>
               </div>
+
+              {/* Crop modal */}
+              {cropSrc && (
+                <ImageCropModal
+                  imageSrc={cropSrc}
+                  onSave={handleCropSave}
+                  onClose={() => setCropSrc(null)}
+                  saving={savingAvatar}
+                />
+              )}
 
               {/* Account details */}
               <div style={{

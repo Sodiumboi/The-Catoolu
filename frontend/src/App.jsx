@@ -1,8 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { SocketProvider } from './context/SocketContext';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute     from './components/ProtectedRoute';
+import NotificationToast  from './components/NotificationToast';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import CharacterEditorPage from './pages/CharacterEditor';
@@ -29,11 +27,8 @@ function CharacterEditorWithKey() {
 // ── Main App ───────────────────────────────────────────────
 export default function App() {
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <SocketProvider>
-          <Routes>
+    <BrowserRouter>
+      <Routes>
             {/* Public routes */}
             <Route path="/login"            element={<LoginPage />} />
             <Route path="/forgot-password"  element={<ForgotPasswordPage />} />
@@ -84,10 +79,8 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-          </Routes>
-          </SocketProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </ThemeProvider>
+      </Routes>
+      <NotificationToast />
+    </BrowserRouter>
   );
 }

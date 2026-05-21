@@ -131,3 +131,14 @@ CREATE OR REPLACE TRIGGER campaigns_updated_at
   BEFORE UPDATE ON campaigns
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+  -- ── v1.5.1 additions ─────────────────────────────────────────
+
+-- Profile picture URL stored as a file path
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(255) DEFAULT NULL;
+
+-- Which investigator a player registered for a campaign
+ALTER TABLE campaign_members
+  ADD COLUMN IF NOT EXISTS character_id INTEGER DEFAULT NULL
+  REFERENCES characters(id) ON DELETE SET NULL;

@@ -9,6 +9,7 @@
 
 const express = require('express');
 const cors    = require('cors');
+const path    = require('path');
 require('dotenv').config();
 
 // Route handlers
@@ -34,6 +35,9 @@ app.use(cors({
 // Parse incoming JSON request bodies
 // Without this, req.body would be undefined
 app.use(express.json({ limit: '10mb' })); // 10mb to allow base64 portrait images
+
+// Serve uploaded files (avatars etc.) as static
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ── Health Check ───────────────────────────────────────────
 // A simple endpoint to confirm the server is running
