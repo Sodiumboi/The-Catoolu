@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { SocketProvider } from './context/SocketContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -9,29 +10,9 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage  from './pages/ResetPasswordPage';
 import ProfilePage        from './pages/ProfilePage';
 import KeeperPage   from './pages/KeeperPage';
-import CampaignPage from './pages/CampaignPage';
-import InboxPage    from './pages/InboxPage';
-
-// Temporary placeholder — replace in Phase 6
-const CampaignRoomPage = () => (
-  <div style={{
-    minHeight:  '100vh',
-    background: 'var(--bg-page)',
-    display:    'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily: 'var(--font-sans)',
-    color:      'var(--text-muted)',
-  }}>
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🐙</div>
-      <p style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--text-primary)' }}>
-        Campaign Room
-      </p>
-      <p>Coming in Phase 6</p>
-    </div>
-  </div>
-);
+import CampaignPage     from './pages/CampaignPage';
+import InboxPage        from './pages/InboxPage';
+import CampaignRoomPage from './pages/CampaignRoomPage';
 
 // ── Forces full remount when character ID changes ──────────
 function CharacterEditorWithKey() {
@@ -51,6 +32,7 @@ export default function App() {
     <ThemeProvider>
       <BrowserRouter>
         <AuthProvider>
+          <SocketProvider>
           <Routes>
             {/* Public routes */}
             <Route path="/login"            element={<LoginPage />} />
@@ -103,6 +85,7 @@ export default function App() {
               }
             />
           </Routes>
+          </SocketProvider>
         </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>

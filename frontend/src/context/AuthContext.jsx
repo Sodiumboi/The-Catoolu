@@ -6,10 +6,10 @@ const AuthContext = createContext(null);
 
 // 2. Create the Provider — wraps the whole app and shares state
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null);
-  const [loading, setLoading] = useState(true); // true while checking localStorage
+  const [user,    setUser]    = useState(null);
+  const [token,   setToken]   = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // On app load, check if there's a saved token and restore the session
   useEffect(() => {
     const savedToken = localStorage.getItem('coc_token');
     const savedUser  = localStorage.getItem('coc_user');
@@ -17,8 +17,8 @@ export function AuthProvider({ children }) {
     if (savedToken && savedUser) {
       try {
         setUser(JSON.parse(savedUser));
+        setToken(savedToken);
       } catch {
-        // Corrupted data — clear it
         localStorage.removeItem('coc_token');
         localStorage.removeItem('coc_user');
       }
@@ -34,6 +34,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('coc_token', token);
     localStorage.setItem('coc_user', JSON.stringify(userData));
     setUser(userData);
+    setToken(token);
 
     return userData;
   };
@@ -46,6 +47,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('coc_token', token);
     localStorage.setItem('coc_user', JSON.stringify(userData));
     setUser(userData);
+    setToken(token);
 
     return userData;
   };
@@ -55,9 +57,10 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('coc_token');
     localStorage.removeItem('coc_user');
     setUser(null);
+    setToken(null);
   };
 
-  const value = { user, loading, login, register, logout };
+  const value = { user, token, loading, login, register, logout };
 
   return (
     <AuthContext.Provider value={value}>
