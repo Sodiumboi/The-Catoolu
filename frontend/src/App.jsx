@@ -12,6 +12,27 @@ import KeeperPage   from './pages/KeeperPage';
 import CampaignPage from './pages/CampaignPage';
 import InboxPage    from './pages/InboxPage';
 
+// Temporary placeholder — replace in Phase 6
+const CampaignRoomPage = () => (
+  <div style={{
+    minHeight:  '100vh',
+    background: 'var(--bg-page)',
+    display:    'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: 'var(--font-sans)',
+    color:      'var(--text-muted)',
+  }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🐙</div>
+      <p style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--text-primary)' }}>
+        Campaign Room
+      </p>
+      <p>Coming in Phase 6</p>
+    </div>
+  </div>
+);
+
 // ── Forces full remount when character ID changes ──────────
 function CharacterEditorWithKey() {
   const { id } = useParams();
@@ -70,6 +91,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <InboxPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/campaign/:id"
+              element={
+                <ProtectedRoute>
+                  <CampaignRoomPage />
                 </ProtectedRoute>
               }
             />
