@@ -245,71 +245,10 @@ export default function CampaignPage() {
   );
 }
 
-// ── Invite Code Box ────────────────────────────────────────────
-function InviteCodeBox({ code }) {
-  const [copied, setCopied] = useState(false);
-  const [hovered, setHovered] = useState(false);
-
-  const handleCopy = (e) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div
-      onClick={handleCopy}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background:    copied  ? 'var(--accent-bg)'    :
-                       hovered ? 'var(--accent-bg)'    :
-                                 'var(--bg-section-hd)',
-        border:        '1px solid ' + (
-                         copied  ? 'var(--accent)' :
-                         hovered ? 'var(--accent)' :
-                                   'var(--border-main)'
-                       ),
-        borderRadius:  '6px',
-        padding:       '6px 10px',
-        display:       'flex',
-        alignItems:    'center',
-        justifyContent:'space-between',
-        cursor:        'pointer',
-        transition:    'all 0.15s ease',
-        userSelect:    'none',
-        boxShadow:     hovered && !copied
-          ? '0 0 0 3px var(--color-primary-light)'
-          : 'none',
-      }}
-    >
-      <span style={{ fontSize: '11px', color: copied ? 'var(--accent)' : hovered ? 'var(--accent)' : 'var(--text-muted)' }}>
-        {copied ? '✓ Copied!' : hovered ? 'Click to copy' : 'Invite code:'}
-      </span>
-      <span style={{
-        fontFamily:    'monospace',
-        fontSize:      '13px',
-        fontWeight:    '600',
-        color:         'var(--accent)',
-        letterSpacing: '0.1em',
-      }}>
-        {code}
-      </span>
-      <span style={{
-        fontSize:   '12px',
-        color:      copied ? 'var(--accent)' : hovered ? 'var(--accent)' : 'var(--text-faint)',
-        transition: 'color 0.15s ease',
-        fontWeight: hovered ? '600' : '400',
-      }}>
-        {copied ? '✓' : '📋'}
-      </span>
-    </div>
-  );
-}
 
 // ── Campaign Card ──────────────────────────────────────────────
 function CampaignCard({ campaign, onEnter }) {
+  const navigate = useNavigate();
   const isKeeper = campaign.role === 'keeper';
 
   return (
@@ -424,9 +363,20 @@ function CampaignCard({ campaign, onEnter }) {
         </button>
       </div>
 
-      {/* Invite code — only visible to Keeper */}
+      {/* Keeper management link */}
       {isKeeper && (
-        <InviteCodeBox code={campaign.invite_code} />
+        <div
+          onClick={e => { e.stopPropagation(); navigate('/keeper'); }}
+          style={{
+            fontSize:  '11px',
+            color:     'var(--accent)',
+            cursor:    'pointer',
+            textAlign: 'right',
+            marginTop: '4px',
+          }}
+        >
+          Manage in Keeper tab →
+        </div>
       )}
     </div>
   );

@@ -490,4 +490,71 @@ router.post('/:id/roll/hidden', async (req, res) => {
   }
 });
 
+// ── PUT /api/campaigns/:id ────────────────────────────────────
+// Edit campaign name/description. Keeper only. Broadcasts to room.
+router.put('/:id', async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    const campaignId = req.params.id;
+
+    if (!(await isKeeper(campaignId, req.user.id))) {
+      return res.status(403).json({ error: 'Only the Keeper can edit this campaign.' });
+    }
+    if (!name?.trim()) {
+      return res.status(400).json({ error: 'Campaign name is required.' });
+    }
+
+    const result = await pool.query(
+      `UPDATE campaigns
+       SET name = $1, description = $2, updated_at = NOW()
+       WHERE id = $3
+       RETURNING *`,
+      [name.trim(), description?.trim() || '', campaignId]
+    );
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to('campaign:' + campaignId).emit('campaign_updated', {
+        name:        result.rows[0].name,
+        description: result.rows[0].description,
+      });
+    }
+
+    res.json({ campaign: result.rows[0] });
+  } catch (err) {
+    console.error('Edit campaign error:', err);
+    res.status(500).json({ error: 'Failed to update campaign.' });
+  }
+});
+
+// ── DELETE /api/campaigns/:id/members/:userId ─────────────────
+// Remove a player from a campaign. Keeper only.
+router.delete('/:id/members/:userId', async (req, res) => {
+  try {
+    const { id: campaignId, userId } = req.params;
+
+    if (!(await isKeeper(campaignId, req.user.id))) {
+      return res.status(403).json({ error: 'Only the Keeper can remove members.' });
+    }
+
+    const targetRole = await pool.query(
+      'SELECT role FROM campaign_members WHERE campaign_id=$1 AND user_id=$2',
+      [campaignId, userId]
+    );
+    if (targetRole.rows[0]?.role === 'keeper') {
+      return res.status(400).json({ error: "Can't remove the Keeper." });
+    }
+
+    await pool.query(
+      'DELETE FROM campaign_members WHERE campaign_id=$1 AND user_id=$2',
+      [campaignId, userId]
+    );
+
+    res.json({ message: 'Player removed.' });
+  } catch (err) {
+    console.error('Remove member error:', err);
+    res.status(500).json({ error: 'Failed to remove player.' });
+  }
+});
+
 module.exports = router;

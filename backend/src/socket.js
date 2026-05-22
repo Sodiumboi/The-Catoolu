@@ -186,6 +186,35 @@ function setupSocket(httpServer) {
         // Broadcast to everyone in the room (including sender)
         io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, message);
 
+        // Save notification for offline members
+        const membersRes = await pool.query(
+          'SELECT user_id FROM campaign_members WHERE campaign_id = $1',
+          [campaignId]
+        );
+        const socketsInRoom = await io.in(roomName(campaignId)).fetchSockets();
+        const onlineUserIds = new Set(socketsInRoom.map(s => s.user.id));
+
+        for (const member of membersRes.rows) {
+          if (member.user_id === socket.user.id) continue;
+          if (onlineUserIds.has(member.user_id)) continue;
+
+          await pool.query(
+            `INSERT INTO notifications
+               (user_id, type, campaign_id, campaign_name,
+                sender_name, avatar_url, content, is_pinned)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, false)`,
+            [
+              member.user_id,
+              'message',
+              campaignId,
+              socket.currentCampaignName || '',
+              socket.user.username,
+              socket.user.avatar_url || null,
+              content.trim().slice(0, 120),
+            ]
+          ).catch(() => {});
+        }
+
       } catch (err) {
         console.error('send_message error:', err);
         socket.emit(EVENTS.ERROR, { message: 'Failed to send message.' });
@@ -257,6 +286,35 @@ function setupSocket(httpServer) {
 
         // Broadcast to everyone in the room
         io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, message);
+
+        // Save notification for offline members
+        const membersRes = await pool.query(
+          'SELECT user_id FROM campaign_members WHERE campaign_id = $1',
+          [campaignId]
+        );
+        const socketsInRoom = await io.in(roomName(campaignId)).fetchSockets();
+        const onlineUserIds = new Set(socketsInRoom.map(s => s.user.id));
+
+        for (const member of membersRes.rows) {
+          if (member.user_id === socket.user.id) continue;
+          if (onlineUserIds.has(member.user_id)) continue;
+
+          await pool.query(
+            `INSERT INTO notifications
+               (user_id, type, campaign_id, campaign_name,
+                sender_name, avatar_url, content, is_pinned)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, false)`,
+            [
+              member.user_id,
+              'roll',
+              campaignId,
+              socket.currentCampaignName || '',
+              socket.user.username,
+              socket.user.avatar_url || null,
+              '🎲 ' + socket.user.username + ' rolled dice',
+            ]
+          ).catch(() => {});
+        }
 
         console.log(
           `🎲 ${socket.user.username} rolled ${notation}` +

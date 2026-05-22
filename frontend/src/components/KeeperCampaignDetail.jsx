@@ -1,0 +1,516 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import apiClient from '../api/client';
+
+const TABS = [
+  { id: 'info',        label: 'Info'        },
+  { id: 'handouts',    label: 'Handouts'    },
+  { id: 'danger-zone', label: '⚠ Danger Zone' },
+];
+
+export default function KeeperCampaignDetail({ campaign, onBack }) {
+  const navigate = useNavigate();
+  const [activeTab,    setActiveTab]    = useState('info');
+  const [members,      setMembers]      = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [showInvite,   setShowInvite]   = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
+
+  const load = async () => {
+    try {
+      const res = await apiClient.get('/campaigns/' + campaign.id);
+      setMembers(res.data.campaign.members || []);
+    } catch { /* silent */ }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, [campaign.id]);
+
+  const handleRemoveMember = async (userId) => {
+    if (!window.confirm('Remove this player from the campaign?')) return;
+    try {
+      await apiClient.delete('/campaigns/' + campaign.id + '/members/' + userId);
+      setMembers(prev => prev.filter(m => m.id !== userId));
+    } catch { /* silent */ }
+  };
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(campaign.invite_code);
+    setInviteCopied(true);
+    setTimeout(() => setInviteCopied(false), 2000);
+  };
+
+  return (
+    <div style={{
+      display:'flex', flex:1, overflow:'hidden',
+      fontFamily:'var(--font-sans)',
+    }}>
+      {/* Left nav */}
+      <div style={{
+        width:'200px', flexShrink:0,
+        borderRight:'1px solid var(--border-main)',
+        background:'var(--bg-card)',
+        display:'flex', flexDirection:'column',
+        padding:'20px 0',
+      }}>
+        {/* Back button */}
+        <button
+          onClick={onBack}
+          style={{
+            display:'flex', alignItems:'center', gap:'6px',
+            padding:'8px 20px', marginBottom:'12px',
+            background:'none', border:'none', cursor:'pointer',
+            fontSize:'13px', color:'var(--text-muted)',
+            fontFamily:'var(--font-sans)',
+          }}
+        >
+          ← Back
+        </button>
+
+        {/* Campaign name */}
+        <div style={{
+          padding:'0 20px 16px',
+          borderBottom:'1px solid var(--border-main)',
+          marginBottom:'8px',
+        }}>
+          <div style={{
+            fontFamily:'var(--font-serif)', fontSize:'15px',
+            color:'var(--text-primary)', lineHeight:'1.3',
+          }}>
+            {campaign.name}
+          </div>
+        </div>
+
+        {/* Tab nav */}
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding:'9px 20px', textAlign:'left',
+              background:   activeTab === tab.id
+                ? 'var(--accent-bg)' : 'transparent',
+              borderLeft:   '3px solid ' + (activeTab === tab.id
+                ? 'var(--accent)' : 'transparent'),
+              border:       'none',
+              borderLeft:   '3px solid ' + (activeTab === tab.id
+                ? 'var(--color-primary)' : 'transparent'),
+              color:        activeTab === tab.id
+                ? 'var(--color-primary)' : 'var(--text-secondary)',
+              fontFamily:   'var(--font-sans)',
+              fontSize:     '13px',
+              fontWeight:   activeTab === tab.id ? '500' : '400',
+              cursor:       'pointer',
+              transition:   'all 0.1s ease',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+
+        {/* Enter Room button at bottom */}
+        <div style={{ marginTop:'auto', padding:'16px 20px' }}>
+          <button
+            onClick={() => navigate('/campaign/' + campaign.id)}
+            style={{
+              width:'100%', padding:'8px 0',
+              borderRadius:'8px', border:'none',
+              background:'var(--color-primary)', color:'#ffffff',
+              fontFamily:'var(--font-sans)', fontSize:'13px',
+              fontWeight:'500', cursor:'pointer',
+            }}
+          >
+            Enter Room →
+          </button>
+        </div>
+      </div>
+
+      {/* Right content */}
+      <div style={{
+        flex:1, overflowY:'auto',
+        padding:'28px 32px',
+        background:'var(--bg-page)',
+      }}>
+
+        {/* ── INFO TAB ── */}
+        {activeTab === 'info' && (
+          <InfoTab
+            campaign={campaign}
+            members={members}
+            loading={loading}
+            showInvite={showInvite}
+            inviteCopied={inviteCopied}
+            onShowInvite={() => setShowInvite(p => !p)}
+            onCopyCode={handleCopyCode}
+            onRemoveMember={handleRemoveMember}
+          />
+        )}
+
+        {/* ── HANDOUTS TAB ── */}
+        {activeTab === 'handouts' && (
+          <div style={{ textAlign:'center', padding:'60px 20px' }}>
+            <div style={{ fontSize:'48px', marginBottom:'12px', opacity:0.3 }}>📎</div>
+            <p style={{
+              fontFamily:'var(--font-serif)', fontSize:'18px',
+              color:'var(--text-primary)', margin:'0 0 8px',
+            }}>
+              Handouts
+            </p>
+            <p style={{ fontSize:'13px', color:'var(--text-muted)' }}>
+              Coming in v2.0 — Shub-Niggurath
+            </p>
+          </div>
+        )}
+
+        {/* ── DANGER ZONE TAB ── */}
+        {activeTab === 'danger-zone' && (
+          <DangerZoneTab campaign={campaign} onDeleted={onBack} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Info Tab ──────────────────────────────────────────────────
+function InfoTab({
+  campaign, members, loading,
+  showInvite, inviteCopied,
+  onShowInvite, onCopyCode, onRemoveMember,
+}) {
+  const players = members.filter(m => m.role === 'player');
+
+  return (
+    <div style={{ maxWidth:'600px' }}>
+      <h2 style={{
+        fontFamily:'var(--font-serif)', fontSize:'22px',
+        color:'var(--text-primary)', margin:'0 0 6px',
+      }}>
+        {campaign.name}
+      </h2>
+      {campaign.description && (
+        <p style={{
+          fontSize:'14px', color:'var(--text-secondary)',
+          margin:'0 0 28px', lineHeight:'1.6',
+        }}>
+          {campaign.description}
+        </p>
+      )}
+
+      {/* Players section */}
+      <div style={{ marginBottom:'24px' }}>
+        <div style={{
+          display:'flex', alignItems:'center',
+          justifyContent:'space-between', marginBottom:'12px',
+        }}>
+          <div style={{
+            fontSize:'11px', fontWeight:'600',
+            textTransform:'uppercase', letterSpacing:'0.08em',
+            color:'var(--text-muted)',
+          }}>
+            Players ({players.length})
+          </div>
+          <button
+            onClick={onShowInvite}
+            style={{
+              padding:'5px 12px', borderRadius:'7px',
+              border:'1px solid var(--color-primary)',
+              background:'transparent', color:'var(--color-primary)',
+              fontFamily:'var(--font-sans)', fontSize:'12px',
+              cursor:'pointer',
+            }}
+          >
+            + Invite Player
+          </button>
+        </div>
+
+        {/* Invite popup */}
+        {showInvite && (
+          <div style={{
+            background:'var(--bg-card)',
+            border:'1px solid var(--border-main)',
+            borderRadius:'10px', padding:'16px',
+            marginBottom:'16px',
+          }}>
+            <div style={{
+              fontSize:'12px', color:'var(--text-muted)',
+              marginBottom:'10px',
+            }}>
+              Share this invite code with your players:
+            </div>
+            <div
+              onClick={onCopyCode}
+              style={{
+                display:'flex', alignItems:'center',
+                justifyContent:'space-between',
+                padding:'10px 14px', borderRadius:'8px',
+                background: inviteCopied ? 'var(--accent-bg)' : 'var(--bg-section-hd)',
+                border:'1px solid ' + (inviteCopied ? 'var(--accent)' : 'var(--border-main)'),
+                cursor:'pointer', transition:'all 0.15s ease',
+              }}
+            >
+              <span style={{
+                fontFamily:'monospace', fontSize:'18px',
+                fontWeight:'700', color:'var(--accent)',
+                letterSpacing:'0.15em',
+              }}>
+                {campaign.invite_code}
+              </span>
+              <span style={{ fontSize:'13px', color:'var(--text-muted)' }}>
+                {inviteCopied ? '✓ Copied!' : '📋 Click to copy'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Player list */}
+        {loading ? (
+          <div style={{ fontSize:'13px', color:'var(--text-faint)' }}>
+            Loading members...
+          </div>
+        ) : players.length === 0 ? (
+          <div style={{
+            padding:'20px', borderRadius:'10px',
+            border:'1px dashed var(--border-main)',
+            textAlign:'center', fontSize:'13px',
+            color:'var(--text-faint)', fontStyle:'italic',
+          }}>
+            No players yet — share the invite code
+          </div>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+            {players.map(m => (
+              <div key={m.id} style={{
+                display:'flex', alignItems:'center',
+                justifyContent:'space-between',
+                padding:'10px 14px', borderRadius:'10px',
+                background:'var(--bg-card)',
+                border:'1px solid var(--border-main)',
+              }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                  <div style={{
+                    width:'32px', height:'32px', borderRadius:'50%',
+                    background:'var(--color-primary-light)',
+                    display:'flex', alignItems:'center',
+                    justifyContent:'center', flexShrink:0,
+                    fontSize:'12px', fontWeight:'600',
+                    color:'var(--color-primary-dark)',
+                  }}>
+                    {(m.username || '?').slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{ fontSize:'13px', color:'var(--text-primary)', fontWeight:'500' }}>
+                      {m.username}
+                    </div>
+                    {/* Character name — placeholder link */}
+                    {m.character_name ? (
+                      <div
+                        style={{
+                          fontSize:'11px', color:'var(--accent)',
+                          cursor:'pointer', textDecoration:'underline dotted',
+                        }}
+                        title="Character sheet — Phase 9"
+                      >
+                        {m.character_name}
+                        {m.character_occupation && ' · ' + m.character_occupation}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize:'11px', color:'var(--text-faint)', fontStyle:'italic' }}>
+                        No investigator registered
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onRemoveMember(m.id)}
+                  style={{
+                    padding:'4px 10px', borderRadius:'6px',
+                    border:'1px solid var(--danger)',
+                    background:'transparent', color:'var(--danger)',
+                    fontFamily:'var(--font-sans)', fontSize:'11px',
+                    cursor:'pointer', transition:'all 0.15s ease',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Danger Zone Tab ───────────────────────────────────────────
+function DangerZoneTab({ campaign, onDeleted }) {
+  const [name,        setName]        = useState(campaign.name);
+  const [description, setDescription] = useState(campaign.description || '');
+  const [saving,      setSaving]      = useState(false);
+  const [saveMsg,     setSaveMsg]     = useState('');
+  const [deleting,    setDeleting]    = useState(false);
+
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      await apiClient.put('/campaigns/' + campaign.id, {
+        name: name.trim(),
+        description: description.trim(),
+      });
+      setSaveMsg('✓ Saved');
+      setTimeout(() => setSaveMsg(''), 3000);
+    } catch {
+      setSaveMsg('Failed to save.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      'Delete "' + campaign.name + '"?\n\n' +
+      'This will permanently remove the campaign, all messages, and all member data.\n\n' +
+      'This cannot be undone.'
+    );
+    if (!confirmed) return;
+
+    // Second confirmation for destructive action
+    const double = window.confirm(
+      'Are you absolutely sure? Type the campaign name to confirm:\n\n' +
+      '"' + campaign.name + '"'
+    );
+    if (!double) return;
+
+    setDeleting(true);
+    try {
+      await apiClient.delete('/campaigns/' + campaign.id);
+      onDeleted();
+    } catch {
+      setDeleting(false);
+    }
+  };
+
+  const inputStyle = {
+    width:'100%', padding:'9px 12px', borderRadius:'8px',
+    border:'1px solid var(--border-input)',
+    background:'var(--bg-input)', color:'var(--text-primary)',
+    fontFamily:'var(--font-sans)', fontSize:'14px',
+    outline:'none', boxSizing:'border-box',
+    transition:'border-color 0.15s ease',
+  };
+
+  return (
+    <div style={{ maxWidth:'520px' }}>
+
+      {/* Edit section */}
+      <div style={{
+        background:'var(--bg-card)',
+        border:'1px solid var(--border-main)',
+        borderRadius:'12px', padding:'20px',
+        marginBottom:'24px',
+      }}>
+        <h3 style={{
+          fontFamily:'var(--font-serif)', fontSize:'17px',
+          color:'var(--text-primary)', margin:'0 0 16px',
+        }}>
+          Edit Campaign
+        </h3>
+
+        <div style={{ marginBottom:'14px' }}>
+          <label style={{
+            display:'block', fontSize:'11px', fontWeight:'500',
+            textTransform:'uppercase', letterSpacing:'0.07em',
+            color:'var(--text-muted)', marginBottom:'6px',
+          }}>
+            Campaign Name
+          </label>
+          <input
+            type="text" value={name}
+            onChange={e => setName(e.target.value)}
+            style={inputStyle}
+            onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+            onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
+          />
+        </div>
+
+        <div style={{ marginBottom:'16px' }}>
+          <label style={{
+            display:'block', fontSize:'11px', fontWeight:'500',
+            textTransform:'uppercase', letterSpacing:'0.07em',
+            color:'var(--text-muted)', marginBottom:'6px',
+          }}>
+            Description
+          </label>
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            rows={3}
+            style={{ ...inputStyle, resize:'vertical' }}
+            onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+            onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
+          />
+        </div>
+
+        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+          <button
+            onClick={handleSave} disabled={saving}
+            style={{
+              padding:'8px 20px', borderRadius:'8px',
+              border:'none',
+              background: saving ? 'var(--text-muted)' : 'var(--color-primary)',
+              color:'#ffffff', fontFamily:'var(--font-sans)',
+              fontSize:'13px', fontWeight:'500',
+              cursor: saving ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+          {saveMsg && (
+            <span style={{
+              fontSize:'13px',
+              color: saveMsg.startsWith('✓') ? 'var(--success)' : 'var(--danger)',
+            }}>
+              {saveMsg}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Delete section */}
+      <div style={{
+        background:'var(--danger-bg)',
+        border:'1px solid var(--danger)',
+        borderRadius:'12px', padding:'20px',
+      }}>
+        <h3 style={{
+          fontFamily:'var(--font-serif)', fontSize:'17px',
+          color:'var(--danger)', margin:'0 0 8px',
+        }}>
+          Delete Campaign
+        </h3>
+        <p style={{
+          fontSize:'13px', color:'var(--text-secondary)',
+          margin:'0 0 16px', lineHeight:'1.6',
+        }}>
+          Permanently deletes the campaign, all messages, and all
+          member data. This action cannot be undone.
+        </p>
+        <button
+          onClick={handleDelete} disabled={deleting}
+          style={{
+            padding:'8px 20px', borderRadius:'8px',
+            border:'1px solid var(--danger)',
+            background: deleting ? 'var(--danger)' : 'transparent',
+            color: deleting ? '#ffffff' : 'var(--danger)',
+            fontFamily:'var(--font-sans)', fontSize:'13px',
+            fontWeight:'500', cursor: deleting ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {deleting ? 'Deleting...' : 'Delete Campaign'}
+        </button>
+      </div>
+    </div>
+  );
+}

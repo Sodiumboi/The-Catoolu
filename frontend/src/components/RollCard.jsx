@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import wojakRight from '../assets/wojak-point_andy_right.png';
 import wojakLeft  from '../assets/wojak-point_andy_left.png';
 
@@ -108,6 +109,14 @@ function MultiDieDisplay({ rolls, sides, highlighted = true, fumble = false }) {
 
 // ── Main RollCard component ────────────────────────────────────
 export default function RollCard({ msg, isOwn }) {
+  const [revealed, setRevealed] = useState(false);
+  const delay = useRef(Math.floor(Math.random() * 400) + 300);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setRevealed(true), delay.current);
+    return () => clearTimeout(timer);
+  }, []);
+
   const raw = typeof msg.content === 'string'
     ? (() => { try { return JSON.parse(msg.content); } catch { return null; } })()
     : msg.content;
@@ -117,6 +126,7 @@ export default function RollCard({ msg, isOwn }) {
   const memeTotal = raw?.total;
 
   if (!raw) return null;
+  if (!revealed) return <RollCardSkeleton isOwn={isOwn} />;
 
   const sl           = raw.successLevel;
   const severity     = sl?.severity || 'none';
@@ -368,6 +378,37 @@ export default function RollCard({ msg, isOwn }) {
             />
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Roll Card Skeleton ─────────────────────────────────────────
+function RollCardSkeleton({ isOwn }) {
+  return (
+    <div style={{
+      display:        'flex',
+      justifyContent: isOwn ? 'flex-end' : 'flex-start',
+      marginBottom:   '10px',
+      paddingLeft:    isOwn ? '80px' : '0',
+      paddingRight:   isOwn ? '0'    : '80px',
+    }}>
+      <div style={{
+        background:   'var(--bg-card)',
+        border:       '1px solid var(--border-main)',
+        borderRadius: '12px',
+        padding:      '12px 14px',
+        minWidth:     '200px',
+        display:      'flex',
+        flexDirection:'column',
+        gap:          '10px',
+      }}>
+        <div className="skeleton-box" style={{ height: '22px', width: '60%', borderRadius: '20px' }} />
+        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', padding: '8px 0' }}>
+          {[1, 2].map(i => (
+            <div key={i} className="skeleton-box" style={{ width: '48px', height: '56px', borderRadius: '6px' }} />
+          ))}
+        </div>
       </div>
     </div>
   );

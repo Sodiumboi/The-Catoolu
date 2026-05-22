@@ -142,3 +142,24 @@ ALTER TABLE users
 ALTER TABLE campaign_members
   ADD COLUMN IF NOT EXISTS character_id INTEGER DEFAULT NULL
   REFERENCES characters(id) ON DELETE SET NULL;
+
+
+  -- ── Notifications ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS notifications (
+  id           SERIAL PRIMARY KEY,
+  user_id      INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type         VARCHAR(20) NOT NULL DEFAULT 'message'
+               CHECK (type IN ('message', 'roll', 'invite')),
+  campaign_id  INTEGER     REFERENCES campaigns(id) ON DELETE CASCADE,
+  campaign_name VARCHAR(100),
+  sender_name  VARCHAR(100),
+  avatar_url   VARCHAR(255),
+  content      TEXT        NOT NULL,
+  is_read      BOOLEAN     NOT NULL DEFAULT false,
+  -- Invites are pinned — not cleared by bulk clear
+  is_pinned    BOOLEAN     NOT NULL DEFAULT false,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id
+  ON notifications(user_id, created_at DESC);
