@@ -56,6 +56,8 @@ export default function CampaignRoomPage() {
   const [afk,           setAfk]           = useState(false);
   const [rollPopup,     setRollPopup]     = useState(null);
   // rollPopup: { label, value, mode, top, left }
+  const forceMemeNextRollRef  = useRef(false);
+  const historyLoadedRef      = useRef(false);
 
   // ── Load campaign + messages ──────────────────────────────────
   useEffect(() => {
@@ -72,6 +74,7 @@ export default function CampaignRoomPage() {
         setMembers(camp.members || []);
         setMyRole(camp.my_role);
         setMessages(msgRes.data.messages);
+        historyLoadedRef.current = true;
         setMyCharacters(charRes.data.characters || []);
 
         // Check if character already registered
@@ -110,27 +113,31 @@ export default function CampaignRoomPage() {
     };
 
     const onMessage = (msg) => {
-      setMessages(prev => [...prev, msg]);
+      const withMeme = (
+        forceMemeNextRollRef.current && msg.type === 'roll' && msg.user_id === user?.id
+      );
+      if (withMeme) forceMemeNextRollRef.current = false;
+
+      setMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, withMeme ? { ...msg, _forceMeme: true } : msg];
+      });
+
+      if (!historyLoadedRef.current) return;
 
       if (msg.type === 'roll') {
-        const content = typeof msg.content === 'string'
-          ? JSON.parse(msg.content) : msg.content;
-        if (content?.notation?.includes('d100')) {
-          const total = content.total;
-          if (total === 1 || total === 100) {
-            const isFumble = total === 100;
-            const fire = (origin) => confetti({
-              particleCount: 100,
-              spread:        80,
-              origin,
-              colors: isFumble
-                ? ['#7f0000', '#ff6b6b', '#1a0000']
-                : ['#3B6D11', '#C0DD97', '#F59E0B'],
-            });
-            fire({ x: 0.2, y: 0.6 });
-            fire({ x: 0.8, y: 0.6 });
+        try {
+          const raw = JSON.parse(msg.content);
+          if (raw.notation?.toLowerCase().includes('d100') &&
+              (raw.total === 1 || raw.total === 100)) {
+            const colors = raw.total === 100
+              ? ['#7f0000', '#ff6b6b', '#1a0000']
+              : ['#3B6D11', '#C0DD97', '#F59E0B'];
+            [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(origin =>
+              confetti({ particleCount: 100, spread: 80, origin, colors })
+            );
           }
-        }
+        } catch { /* silent */ }
       }
     };
 
@@ -209,13 +216,6 @@ export default function CampaignRoomPage() {
 
     if (afk) handleToggleAfk();
 
-    if (shiftKey) {
-      const fire = (o) => confetti({ particleCount: 100, spread: 80, origin: o });
-      fire({ x: 0.2, y: 0.6 });
-      fire({ x: 0.8, y: 0.6 });
-      return;
-    }
-
     const trimmed = inputText.trim();
     const isRoll  = trimmed.startsWith('/roll');
 
@@ -227,18 +227,31 @@ export default function CampaignRoomPage() {
         if (disMode) notation += 'dis';
       }
 
+      const isD100 = notation.toLowerCase().includes('d100');
+      if (shiftKey && isD100) {
+        [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(o =>
+          confetti({ particleCount: 100, spread: 80, origin: o, colors: ['#3B6D11', '#C0DD97', '#F59E0B'] })
+        );
+        forceMemeNextRollRef.current = true;
+      }
+
       if (rollVisibility === 'only_me') {
         try {
           const res = await apiClient.post(
             '/campaigns/' + id + '/roll/hidden',
             { notation, skillName: null, skillValue: null }
           );
-          setMessages(prev => [...prev, {
+          const msg = {
             ...res.data.message,
             user_id:  user?.id,
             username: user?.username,
             _hidden:  true,
-          }]);
+          };
+          if (shiftKey && isD100) {
+            msg._forceMeme = true;
+            forceMemeNextRollRef.current = false;
+          }
+          setMessages(prev => [...prev, msg]);
         } catch { /* silent */ }
       } else {
         socket.emit('roll_dice', {
@@ -593,24 +606,29 @@ export default function CampaignRoomPage() {
             onChatFilterChange={setChatFilter}
             onToggleVisibility={() => setRollVisibility(p => p === 'everyone' ? 'only_me' : 'everyone')}
             onRoll={(notation, shiftKey) => {
-              if (shiftKey) {
-                const isFumble = Math.random() > 0.5;
+              const isD100 = notation.toLowerCase().includes('d100');
+              if (shiftKey && isD100) {
                 [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(origin =>
                   confetti({ particleCount: 100, spread: 80, origin,
-                    colors: isFumble ? ['#7f0000', '#ff6b6b', '#1a0000'] : ['#3B6D11', '#C0DD97', '#F59E0B'] })
+                    colors: ['#3B6D11', '#C0DD97', '#F59E0B'] })
                 );
-                return;
+                forceMemeNextRollRef.current = true;
               }
               if (!socket || !inRoom) return;
               if (rollVisibility === 'only_me') {
                 apiClient.post('/campaigns/' + id + '/roll/hidden', { notation })
                   .then(res => {
-                    setMessages(prev => [...prev, {
+                    const msg = {
                       ...res.data.message,
                       user_id:  user?.id,
                       username: user?.username,
                       _hidden:  true,
-                    }]);
+                    };
+                    if (shiftKey && isD100) {
+                      msg._forceMeme = true;
+                      forceMemeNextRollRef.current = false;
+                    }
+                    setMessages(prev => [...prev, msg]);
                   })
                   .catch(() => {});
               } else {

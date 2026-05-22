@@ -1,4 +1,5 @@
-import wojak from '../assets/wojak-pointing.png';
+import wojakRight from '../assets/wojak-point_andy_right.png';
+import wojakLeft  from '../assets/wojak-point_andy_left.png';
 
 // ── Digit helpers ─────────────────────────────────────────────
 
@@ -106,6 +107,10 @@ export default function RollCard({ msg, isOwn }) {
     ? (() => { try { return JSON.parse(msg.content); } catch { return null; } })()
     : msg.content;
 
+  const showMeme  = (raw?.notation?.toLowerCase().includes('d100') &&
+    (raw?.total === 1 || raw?.total === 100)) || !!msg._forceMeme;
+  const memeTotal = raw?.total;
+
   if (!raw) return null;
 
   const sl           = raw.successLevel;
@@ -211,39 +216,60 @@ export default function RollCard({ msg, isOwn }) {
             display:        'flex',
             alignItems:     'center',
             justifyContent: 'center',
-            gap:            '8px',
-            flexWrap:       'wrap',
+            gap:            '10px',
             padding:        '12px 0',
           }}>
-            {hasAdvDis && raw.advDisRolls ? (
-              <>
-                <RollDigits
-                  value={raw.advDisRolls[0].reduce((a, b) => a + b, 0)}
+            {showMeme && (
+              <img src={wojakLeft} alt="" style={{
+                height: '80px', width: 'auto',
+                opacity: 0.85, pointerEvents: 'none', flexShrink: 0,
+              }} />
+            )}
+
+            <div style={{
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'center',
+              gap:            '8px',
+              flexWrap:       'wrap',
+            }}>
+              {hasAdvDis && raw.advDisRolls ? (
+                <>
+                  <RollDigits
+                    value={raw.advDisRolls[0].reduce((a, b) => a + b, 0)}
+                    sides={sides}
+                    highlighted={isAdv
+                      ? raw.advDisRolls[0][0] <= raw.advDisRolls[1][0]
+                      : raw.advDisRolls[0][0] >= raw.advDisRolls[1][0]}
+                  />
+                  <div style={{
+                    width:        '2px',
+                    height:       '56px',
+                    background:   'var(--border-main)',
+                    borderRadius: '2px',
+                  }} />
+                  <RollDigits
+                    value={raw.advDisRolls[1].reduce((a, b) => a + b, 0)}
+                    sides={sides}
+                    highlighted={isDis
+                      ? raw.advDisRolls[1][0] >= raw.advDisRolls[0][0]
+                      : raw.advDisRolls[1][0] <= raw.advDisRolls[0][0]}
+                  />
+                </>
+              ) : (
+                <MultiDieDisplay
+                  rolls={raw.rolls || [raw.total]}
                   sides={sides}
-                  highlighted={isAdv
-                    ? raw.advDisRolls[0][0] <= raw.advDisRolls[1][0]
-                    : raw.advDisRolls[0][0] >= raw.advDisRolls[1][0]}
+                  highlighted
                 />
-                <div style={{
-                  width:        '2px',
-                  height:       '56px',
-                  background:   'var(--border-main)',
-                  borderRadius: '2px',
-                }} />
-                <RollDigits
-                  value={raw.advDisRolls[1].reduce((a, b) => a + b, 0)}
-                  sides={sides}
-                  highlighted={isDis
-                    ? raw.advDisRolls[1][0] >= raw.advDisRolls[0][0]
-                    : raw.advDisRolls[1][0] <= raw.advDisRolls[0][0]}
-                />
-              </>
-            ) : (
-              <MultiDieDisplay
-                rolls={raw.rolls || [raw.total]}
-                sides={sides}
-                highlighted
-              />
+              )}
+            </div>
+
+            {showMeme && (
+              <img src={wojakRight} alt="" style={{
+                height: '80px', width: 'auto',
+                opacity: 0.85, pointerEvents: 'none', flexShrink: 0,
+              }} />
             )}
           </div>
 
@@ -267,20 +293,6 @@ export default function RollCard({ msg, isOwn }) {
             </div>
           )}
 
-          {/* Wojak — Nat 1 or fumble on d100 */}
-          {(raw.total === 1 || raw.total === 100) && (
-            <div style={{
-              display:        'flex',
-              justifyContent: 'center',
-              margin:         '8px 0',
-            }}>
-              <img
-                src={wojak}
-                alt={raw.total === 1 ? 'Nat One!' : 'Fumble!'}
-                style={{ width: '120px', height: 'auto', objectFit: 'contain', opacity: 0.9 }}
-              />
-            </div>
-          )}
 
           {/* Result label */}
           <div style={{

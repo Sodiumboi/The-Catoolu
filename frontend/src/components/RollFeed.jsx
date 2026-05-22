@@ -19,10 +19,14 @@ function SystemMessage({ msg }) {
 }
 
 export default function RollFeed({ messages, currentUserId, chatFilter }) {
-  const bottomRef = useRef(null);
+  const bottomRef     = useRef(null);
+  const prevLengthRef = useRef(0);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > prevLengthRef.current) {
+      prevLengthRef.current = messages.length;
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   const visible = chatFilter === 'text'

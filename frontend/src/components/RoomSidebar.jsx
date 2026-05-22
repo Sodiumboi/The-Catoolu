@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import FairnessTester from './FairnessTester';
 
 const TABS = [
   { id: 'chat',     icon: '💬', label: 'Chat',     hasPanel: false },
@@ -216,6 +217,10 @@ function HelpPanel() {
 
   return (
     <div>
+      <FairnessTester />
+
+      <div style={{ borderTop: '1px solid var(--border-main)', margin: '16px 0 12px' }} />
+
       <SectionLabel>How Rolls Work</SectionLabel>
       <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.6' }}>
         In Call of Cthulhu 7e, lower rolls are better. You want to roll

@@ -25,10 +25,10 @@ export default function ChatInput({
     }, 1500);
   };
 
-  const handleSend = () => {
+  const handleSend = (shiftKey = false) => {
     const trimmed = text.trim();
     if (!trimmed || disabled) return;
-    onSend(trimmed);
+    onSend(trimmed, shiftKey);
     setText('');
     clearTimeout(typingRef.current);
     isTypingRef.current = false;
@@ -120,7 +120,7 @@ export default function ChatInput({
         </div>
 
         <button
-          onClick={handleSend}
+          onClick={e => handleSend(e.shiftKey)}
           disabled={disabled || !text.trim()}
           style={{
             padding:      '10px 20px',
