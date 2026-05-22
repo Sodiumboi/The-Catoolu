@@ -22,31 +22,36 @@ function formatDie(value, sides) {
 }
 
 // ── Digit Box ─────────────────────────────────────────────────
-function DigitBox({ digit, highlighted }) {
+function DigitBox({ digit, highlighted, fumble }) {
+  const borderColor = fumble
+    ? 'var(--roll-fumble-border)'
+    : highlighted ? 'var(--color-primary)' : 'var(--border-main)';
+  const bg = fumble
+    ? 'var(--bg-input)'
+    : highlighted ? 'var(--accent-bg)' : 'var(--bg-input)';
+  const color = fumble
+    ? 'var(--roll-fumble-text)'
+    : highlighted ? 'var(--color-primary)' : 'var(--text-primary)';
+  const shadow = fumble
+    ? '0 0 0 2px rgba(127, 0, 0, 0.2)'
+    : highlighted ? '0 0 0 2px var(--color-primary-light)' : 'none';
+
   return (
     <div style={{
       width:         '48px',
       minWidth:      '48px',
       height:        '56px',
       borderRadius:  '6px',
-      border:        highlighted
-        ? '2px solid var(--color-primary)'
-        : '1.5px solid var(--border-main)',
-      background:    highlighted
-        ? 'var(--accent-bg)'
-        : 'var(--bg-input)',
+      border:        `2px solid ${borderColor}`,
+      background:    bg,
       display:       'flex',
       alignItems:    'center',
       justifyContent:'center',
       fontFamily:    'var(--font-serif)',
       fontSize:      '28px',
       fontWeight:    '700',
-      color:         highlighted
-        ? 'var(--color-primary)'
-        : 'var(--text-primary)',
-      boxShadow:     highlighted
-        ? '0 0 0 2px var(--color-primary-light)'
-        : 'none',
+      color,
+      boxShadow:     shadow,
     }}>
       {digit}
     </div>
@@ -54,18 +59,18 @@ function DigitBox({ digit, highlighted }) {
 }
 
 // ── Single die → digit boxes (adv/dis path) ───────────────────
-function RollDigits({ value, sides, highlighted = true }) {
+function RollDigits({ value, sides, highlighted = true, fumble = false }) {
   return (
     <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
       {formatDie(value, sides).map((d, i) => (
-        <DigitBox key={i} digit={d} highlighted={highlighted} />
+        <DigitBox key={i} digit={d} highlighted={highlighted} fumble={fumble} />
       ))}
     </div>
   );
 }
 
 // ── Multiple dice → per-die groups with separator bars ────────
-function MultiDieDisplay({ rolls, sides, highlighted = true }) {
+function MultiDieDisplay({ rolls, sides, highlighted = true, fumble = false }) {
   const items = [];
   rolls.forEach((dieValue, dieIndex) => {
     if (dieIndex > 0) {
@@ -82,7 +87,7 @@ function MultiDieDisplay({ rolls, sides, highlighted = true }) {
     items.push(
       <div key={'die-' + dieIndex} style={{ display: 'flex', gap: '4px' }}>
         {formatDie(dieValue, sides).map((digit, digitIndex) => (
-          <DigitBox key={digitIndex} digit={digit} highlighted={highlighted} />
+          <DigitBox key={digitIndex} digit={digit} highlighted={highlighted} fumble={fumble} />
         ))}
       </div>
     );
@@ -116,6 +121,7 @@ export default function RollCard({ msg, isOwn }) {
   const sl           = raw.successLevel;
   const severity     = sl?.severity || 'none';
   const sides        = getSides(raw.notation);
+  const isFumble     = sides === 100 && raw.total === 100;
   const showPortrait = msg.portrait || msg.avatar_url;
   const isAdv        = raw.advantage;
   const isDis        = raw.disadvantage;
@@ -241,6 +247,7 @@ export default function RollCard({ msg, isOwn }) {
                     highlighted={isAdv
                       ? raw.advDisRolls[0][0] <= raw.advDisRolls[1][0]
                       : raw.advDisRolls[0][0] >= raw.advDisRolls[1][0]}
+                    fumble={isFumble}
                   />
                   <div style={{
                     width:        '2px',
@@ -254,6 +261,7 @@ export default function RollCard({ msg, isOwn }) {
                     highlighted={isDis
                       ? raw.advDisRolls[1][0] >= raw.advDisRolls[0][0]
                       : raw.advDisRolls[1][0] <= raw.advDisRolls[0][0]}
+                    fumble={isFumble}
                   />
                 </>
               ) : (
@@ -261,6 +269,7 @@ export default function RollCard({ msg, isOwn }) {
                   rolls={raw.rolls || [raw.total]}
                   sides={sides}
                   highlighted
+                  fumble={isFumble}
                 />
               )}
             </div>

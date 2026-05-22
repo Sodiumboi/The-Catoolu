@@ -126,18 +126,18 @@ export default function CampaignRoomPage() {
       if (!historyLoadedRef.current) return;
 
       if (msg.type === 'roll') {
-        try {
-          const raw = JSON.parse(msg.content);
-          if (raw.notation?.toLowerCase().includes('d100') &&
-              (raw.total === 1 || raw.total === 100)) {
-            const colors = raw.total === 100
-              ? ['#7f0000', '#ff6b6b', '#1a0000']
-              : ['#3B6D11', '#C0DD97', '#F59E0B'];
-            [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(origin =>
-              confetti({ particleCount: 100, spread: 80, origin, colors })
-            );
-          }
-        } catch { /* silent */ }
+        const raw = typeof msg.content === 'string'
+          ? (() => { try { return JSON.parse(msg.content); } catch { return null; } })()
+          : msg.content;
+        if (raw?.notation?.toLowerCase().includes('d100') &&
+            (raw.total === 1 || raw.total === 100)) {
+          const colors = raw.total === 100
+            ? ['#7f0000', '#ff6b6b', '#1a0000']
+            : ['#3B6D11', '#C0DD97', '#F59E0B'];
+          [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(origin =>
+            confetti({ particleCount: 100, spread: 80, origin, colors })
+          );
+        }
       }
     };
 
