@@ -55,6 +55,8 @@ function setupSocket(httpServer) {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       socket.user = { id: decoded.id, username: decoded.username };
+      // socket.data is preserved by io.fetchSockets(); socket.user is not.
+      socket.data.userId = decoded.id;
       next();
     } catch {
       next(new Error('Authentication failed.'));
@@ -64,6 +66,10 @@ function setupSocket(httpServer) {
   // ── Connection handler ────────────────────────────────────────
   io.on('connection', (socket) => {
     console.log(`🔌 Socket connected: ${socket.id}`);
+
+    // Personal room — used to push new_notification events to a specific user
+    // regardless of which campaign room (if any) they are in.
+    socket.join('user:' + socket.user.id);
 
     // ── JOIN_CAMPAIGN ──────────────────────────────────────────
     // Client emits this when navigating into a campaign room.
@@ -186,19 +192,20 @@ function setupSocket(httpServer) {
         // Broadcast to everyone in the room (including sender)
         io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, message);
 
-        // Save notification for offline members
+        // Save notification for all other members and push a live ping so their
+        // bell updates immediately on any page (not just inside a campaign room).
         const membersRes = await pool.query(
           'SELECT user_id FROM campaign_members WHERE campaign_id = $1',
           [campaignId]
         );
-        const socketsInRoom = await io.in(roomName(campaignId)).fetchSockets();
-        const onlineUserIds = new Set(socketsInRoom.map(s => s.user.id));
+
+        const senderName = charRes.rows[0]?.character_name || socket.user.username;
+        const senderAvatar = userRes.rows[0]?.avatar_url || null;
 
         for (const member of membersRes.rows) {
           if (member.user_id === socket.user.id) continue;
-          if (onlineUserIds.has(member.user_id)) continue;
 
-          await pool.query(
+          pool.query(
             `INSERT INTO notifications
                (user_id, type, campaign_id, campaign_name,
                 sender_name, avatar_url, content, is_pinned)
@@ -208,11 +215,20 @@ function setupSocket(httpServer) {
               'message',
               campaignId,
               socket.currentCampaignName || '',
-              socket.user.username,
-              socket.user.avatar_url || null,
+              senderName,
+              senderAvatar,
               content.trim().slice(0, 120),
             ]
-          ).catch(() => {});
+          ).then(() => {
+            io.to('user:' + member.user_id).emit('new_notification', {
+              campaign_id:   campaignId,
+              campaign_name: socket.currentCampaignName || '',
+              sender_name:   senderName,
+              avatar_url:    senderAvatar,
+              type:          'message',
+              content:       content.trim().slice(0, 120),
+            });
+          }).catch(err => console.error('Notification save failed (msg):', err));
         }
 
       } catch (err) {
@@ -287,19 +303,20 @@ function setupSocket(httpServer) {
         // Broadcast to everyone in the room
         io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, message);
 
-        // Save notification for offline members
+        // Save notification for all other members and push live ping
         const membersRes = await pool.query(
           'SELECT user_id FROM campaign_members WHERE campaign_id = $1',
           [campaignId]
         );
-        const socketsInRoom = await io.in(roomName(campaignId)).fetchSockets();
-        const onlineUserIds = new Set(socketsInRoom.map(s => s.user.id));
+
+        const senderName  = charRes.rows[0]?.character_name || socket.user.username;
+        const senderAvatar = userRes.rows[0]?.avatar_url || null;
+        const rollContent  = '🎲 ' + senderName + ' rolled dice';
 
         for (const member of membersRes.rows) {
           if (member.user_id === socket.user.id) continue;
-          if (onlineUserIds.has(member.user_id)) continue;
 
-          await pool.query(
+          pool.query(
             `INSERT INTO notifications
                (user_id, type, campaign_id, campaign_name,
                 sender_name, avatar_url, content, is_pinned)
@@ -309,11 +326,20 @@ function setupSocket(httpServer) {
               'roll',
               campaignId,
               socket.currentCampaignName || '',
-              socket.user.username,
-              socket.user.avatar_url || null,
-              '🎲 ' + socket.user.username + ' rolled dice',
+              senderName,
+              senderAvatar,
+              rollContent,
             ]
-          ).catch(() => {});
+          ).then(() => {
+            io.to('user:' + member.user_id).emit('new_notification', {
+              campaign_id:   campaignId,
+              campaign_name: socket.currentCampaignName || '',
+              sender_name:   senderName,
+              avatar_url:    senderAvatar,
+              type:          'roll',
+              content:       rollContent,
+            });
+          }).catch(err => console.error('Notification save failed (roll):', err));
         }
 
         console.log(

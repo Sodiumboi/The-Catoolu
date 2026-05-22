@@ -171,30 +171,133 @@ export default function KeeperCampaignDetail({ campaign, onBack }) {
   );
 }
 
+// ── Shared input style ────────────────────────────────────────
+const inputStyle = {
+  width:'100%', padding:'9px 12px', borderRadius:'8px',
+  border:'1px solid var(--border-input)',
+  background:'var(--bg-input)', color:'var(--text-primary)',
+  fontFamily:'var(--font-sans)', fontSize:'14px',
+  outline:'none', boxSizing:'border-box',
+  transition:'border-color 0.15s ease',
+  display:'block',
+};
+
 // ── Info Tab ──────────────────────────────────────────────────
 function InfoTab({
   campaign, members, loading,
   showInvite, inviteCopied,
   onShowInvite, onCopyCode, onRemoveMember,
 }) {
-  const players = members.filter(m => m.role === 'player');
+  const [editing,     setEditing]     = useState(false);
+  const [name,        setName]        = useState(campaign.name);
+  const [description, setDescription] = useState(campaign.description || '');
+  const [saving,      setSaving]      = useState(false);
+  const [saveMsg,     setSaveMsg]     = useState('');
+  const [sheetModal,  setSheetModal]  = useState(null); // null | { name, occupation }
+
+  const handleSave = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      await apiClient.put('/campaigns/' + campaign.id, {
+        name: name.trim(), description: description.trim(),
+      });
+      setSaveMsg('✓ Saved');
+      setEditing(false);
+      setTimeout(() => setSaveMsg(''), 2000);
+    } catch {
+      setSaveMsg('Failed.');
+    } finally { setSaving(false); }
+  };
+
+  const API_BASE = import.meta.env.VITE_API_URL || '';
+  const players  = members.filter(m => m.role === 'player');
 
   return (
     <div style={{ maxWidth:'600px' }}>
-      <h2 style={{
-        fontFamily:'var(--font-serif)', fontSize:'22px',
-        color:'var(--text-primary)', margin:'0 0 6px',
-      }}>
-        {campaign.name}
-      </h2>
-      {campaign.description && (
-        <p style={{
-          fontSize:'14px', color:'var(--text-secondary)',
-          margin:'0 0 28px', lineHeight:'1.6',
-        }}>
-          {campaign.description}
-        </p>
-      )}
+
+      {/* Campaign name + description — editable */}
+      <div style={{ marginBottom:'28px' }}>
+        {editing ? (
+          <div>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              style={{ ...inputStyle, fontSize:'18px', fontFamily:'var(--font-serif)', marginBottom:'10px' }}
+            />
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rows={3}
+              style={{ ...inputStyle, resize:'vertical' }}
+            />
+            <div style={{ display:'flex', gap:'8px', marginTop:'10px' }}>
+              <button
+                onClick={handleSave} disabled={saving}
+                style={{
+                  padding:'6px 16px', borderRadius:'7px',
+                  border:'none', background:'var(--color-primary)',
+                  color:'#ffffff', fontSize:'12px',
+                  cursor:'pointer', fontFamily:'var(--font-sans)',
+                }}
+              >
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                style={{
+                  padding:'6px 16px', borderRadius:'7px',
+                  border:'1px solid var(--border-main)',
+                  background:'transparent', color:'var(--text-muted)',
+                  fontSize:'12px', cursor:'pointer',
+                  fontFamily:'var(--font-sans)',
+                }}
+              >
+                Cancel
+              </button>
+              {saveMsg && (
+                <span style={{
+                  fontSize:'12px', alignSelf:'center',
+                  color: saveMsg.startsWith('✓') ? 'var(--success)' : 'var(--danger)',
+                }}>
+                  {saveMsg}
+                </span>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'12px' }}>
+              <h2 style={{
+                fontFamily:'var(--font-serif)', fontSize:'22px',
+                color:'var(--text-primary)', margin:'0 0 6px',
+              }}>
+                {campaign.name}
+              </h2>
+              <button
+                onClick={() => setEditing(true)}
+                style={{
+                  padding:'4px 10px', borderRadius:'6px',
+                  border:'1px solid var(--border-main)',
+                  background:'transparent', color:'var(--text-muted)',
+                  fontSize:'11px', cursor:'pointer', flexShrink:0,
+                  fontFamily:'var(--font-sans)',
+                }}
+              >
+                ✏ Edit
+              </button>
+            </div>
+            {campaign.description && (
+              <p style={{
+                fontSize:'14px', color:'var(--text-secondary)',
+                margin:0, lineHeight:'1.6',
+              }}>
+                {campaign.description}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Players section */}
       <div style={{ marginBottom:'24px' }}>
@@ -292,23 +395,40 @@ function InfoTab({
                     background:'var(--color-primary-light)',
                     display:'flex', alignItems:'center',
                     justifyContent:'center', flexShrink:0,
-                    fontSize:'12px', fontWeight:'600',
-                    color:'var(--color-primary-dark)',
+                    overflow:'hidden',
+                    border:'1px solid var(--border-main)',
                   }}>
-                    {(m.username || '?').slice(0, 2).toUpperCase()}
+                    {m.avatar_url ? (
+                      <img
+                        src={API_BASE + m.avatar_url}
+                        alt={m.username}
+                        style={{ width:'100%', height:'100%', objectFit:'cover' }}
+                      />
+                    ) : (
+                      <span style={{
+                        fontSize:'12px', fontWeight:'600',
+                        color:'var(--color-primary-dark)',
+                        fontFamily:'var(--font-sans)',
+                      }}>
+                        {(m.username || '?').slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <div style={{ fontSize:'13px', color:'var(--text-primary)', fontWeight:'500' }}>
                       {m.username}
                     </div>
-                    {/* Character name — placeholder link */}
+                    {/* Character name — opens placeholder modal */}
                     {m.character_name ? (
                       <div
+                        onClick={() => setSheetModal({
+                          name:       m.character_name,
+                          occupation: m.character_occupation,
+                        })}
                         style={{
                           fontSize:'11px', color:'var(--accent)',
                           cursor:'pointer', textDecoration:'underline dotted',
                         }}
-                        title="Character sheet — Phase 9"
                       >
                         {m.character_name}
                         {m.character_occupation && ' · ' + m.character_occupation}
@@ -339,50 +459,81 @@ function InfoTab({
           </div>
         )}
       </div>
+
+      {/* Character sheet floating placeholder */}
+      {sheetModal && (
+        <div
+          onClick={() => setSheetModal(null)}
+          style={{
+            position:'fixed', inset:0,
+            background:'rgba(0,0,0,0.5)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            zIndex:400, padding:'24px',
+            backdropFilter:'blur(4px)',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background:'var(--bg-card)',
+              border:'1px solid var(--border-main)',
+              borderRadius:'16px',
+              padding:'28px',
+              maxWidth:'400px', width:'100%',
+              boxShadow:'var(--shadow-dropdown)',
+              textAlign:'center',
+            }}
+          >
+            <div style={{
+              fontFamily:'var(--font-serif)', fontSize:'22px',
+              color:'var(--text-primary)', marginBottom:'6px',
+            }}>
+              {sheetModal.name}
+            </div>
+            <div style={{
+              fontSize:'13px', color:'var(--accent)',
+              marginBottom:'24px',
+            }}>
+              {sheetModal.occupation}
+            </div>
+            <div style={{
+              padding:'20px', borderRadius:'10px',
+              border:'1px dashed var(--border-main)',
+              background:'var(--bg-section-hd)',
+              fontSize:'13px', color:'var(--text-faint)',
+              fontStyle:'italic', marginBottom:'20px',
+            }}>
+              🐙 Full character sheet<br/>coming in Phase 9
+            </div>
+            <button
+              onClick={() => setSheetModal(null)}
+              style={{
+                padding:'8px 24px', borderRadius:'8px',
+                border:'1px solid var(--border-main)',
+                background:'transparent', color:'var(--text-secondary)',
+                fontFamily:'var(--font-sans)', fontSize:'13px',
+                cursor:'pointer',
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // ── Danger Zone Tab ───────────────────────────────────────────
 function DangerZoneTab({ campaign, onDeleted }) {
-  const [name,        setName]        = useState(campaign.name);
-  const [description, setDescription] = useState(campaign.description || '');
-  const [saving,      setSaving]      = useState(false);
-  const [saveMsg,     setSaveMsg]     = useState('');
-  const [deleting,    setDeleting]    = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [typedName,  setTypedName]  = useState('');
+  const [deleting,   setDeleting]   = useState(false);
 
-  const handleSave = async () => {
-    if (!name.trim()) return;
-    setSaving(true);
-    try {
-      await apiClient.put('/campaigns/' + campaign.id, {
-        name: name.trim(),
-        description: description.trim(),
-      });
-      setSaveMsg('✓ Saved');
-      setTimeout(() => setSaveMsg(''), 3000);
-    } catch {
-      setSaveMsg('Failed to save.');
-    } finally {
-      setSaving(false);
-    }
-  };
+  const nameMatches = typedName.trim() === campaign.name.trim();
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(
-      'Delete "' + campaign.name + '"?\n\n' +
-      'This will permanently remove the campaign, all messages, and all member data.\n\n' +
-      'This cannot be undone.'
-    );
-    if (!confirmed) return;
-
-    // Second confirmation for destructive action
-    const double = window.confirm(
-      'Are you absolutely sure? Type the campaign name to confirm:\n\n' +
-      '"' + campaign.name + '"'
-    );
-    if (!double) return;
-
+    if (!nameMatches) return;
     setDeleting(true);
     try {
       await apiClient.delete('/campaigns/' + campaign.id);
@@ -392,93 +543,13 @@ function DangerZoneTab({ campaign, onDeleted }) {
     }
   };
 
-  const inputStyle = {
-    width:'100%', padding:'9px 12px', borderRadius:'8px',
-    border:'1px solid var(--border-input)',
-    background:'var(--bg-input)', color:'var(--text-primary)',
-    fontFamily:'var(--font-sans)', fontSize:'14px',
-    outline:'none', boxSizing:'border-box',
-    transition:'border-color 0.15s ease',
+  const handleCancel = () => {
+    setConfirming(false);
+    setTypedName('');
   };
 
   return (
     <div style={{ maxWidth:'520px' }}>
-
-      {/* Edit section */}
-      <div style={{
-        background:'var(--bg-card)',
-        border:'1px solid var(--border-main)',
-        borderRadius:'12px', padding:'20px',
-        marginBottom:'24px',
-      }}>
-        <h3 style={{
-          fontFamily:'var(--font-serif)', fontSize:'17px',
-          color:'var(--text-primary)', margin:'0 0 16px',
-        }}>
-          Edit Campaign
-        </h3>
-
-        <div style={{ marginBottom:'14px' }}>
-          <label style={{
-            display:'block', fontSize:'11px', fontWeight:'500',
-            textTransform:'uppercase', letterSpacing:'0.07em',
-            color:'var(--text-muted)', marginBottom:'6px',
-          }}>
-            Campaign Name
-          </label>
-          <input
-            type="text" value={name}
-            onChange={e => setName(e.target.value)}
-            style={inputStyle}
-            onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
-            onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
-          />
-        </div>
-
-        <div style={{ marginBottom:'16px' }}>
-          <label style={{
-            display:'block', fontSize:'11px', fontWeight:'500',
-            textTransform:'uppercase', letterSpacing:'0.07em',
-            color:'var(--text-muted)', marginBottom:'6px',
-          }}>
-            Description
-          </label>
-          <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            rows={3}
-            style={{ ...inputStyle, resize:'vertical' }}
-            onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
-            onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
-          />
-        </div>
-
-        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-          <button
-            onClick={handleSave} disabled={saving}
-            style={{
-              padding:'8px 20px', borderRadius:'8px',
-              border:'none',
-              background: saving ? 'var(--text-muted)' : 'var(--color-primary)',
-              color:'#ffffff', fontFamily:'var(--font-sans)',
-              fontSize:'13px', fontWeight:'500',
-              cursor: saving ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-          {saveMsg && (
-            <span style={{
-              fontSize:'13px',
-              color: saveMsg.startsWith('✓') ? 'var(--success)' : 'var(--danger)',
-            }}>
-              {saveMsg}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Delete section */}
       <div style={{
         background:'var(--danger-bg)',
         border:'1px solid var(--danger)',
@@ -497,19 +568,76 @@ function DangerZoneTab({ campaign, onDeleted }) {
           Permanently deletes the campaign, all messages, and all
           member data. This action cannot be undone.
         </p>
-        <button
-          onClick={handleDelete} disabled={deleting}
-          style={{
-            padding:'8px 20px', borderRadius:'8px',
-            border:'1px solid var(--danger)',
-            background: deleting ? 'var(--danger)' : 'transparent',
-            color: deleting ? '#ffffff' : 'var(--danger)',
-            fontFamily:'var(--font-sans)', fontSize:'13px',
-            fontWeight:'500', cursor: deleting ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {deleting ? 'Deleting...' : 'Delete Campaign'}
-        </button>
+
+        {!confirming ? (
+          <button
+            onClick={() => setConfirming(true)}
+            style={{
+              padding:'8px 20px', borderRadius:'8px',
+              border:'1px solid var(--danger)',
+              background:'transparent', color:'var(--danger)',
+              fontFamily:'var(--font-sans)', fontSize:'13px',
+              fontWeight:'500', cursor:'pointer',
+            }}
+          >
+            Delete Campaign
+          </button>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+            <p style={{
+              fontSize:'12px', color:'var(--danger)',
+              margin:0, fontFamily:'var(--font-sans)',
+            }}>
+              Type <strong>{campaign.name}</strong> to confirm:
+            </p>
+            <input
+              autoFocus
+              value={typedName}
+              onChange={e => setTypedName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleDelete(); if (e.key === 'Escape') handleCancel(); }}
+              placeholder={campaign.name}
+              style={{
+                padding:'8px 12px', borderRadius:'8px',
+                border:'1px solid var(--danger)',
+                background:'var(--bg-input)',
+                color:'var(--text-primary)',
+                fontFamily:'var(--font-sans)', fontSize:'13px',
+                outline:'none', width:'100%', boxSizing:'border-box',
+              }}
+            />
+            <div style={{ display:'flex', gap:'8px' }}>
+              <button
+                onClick={handleDelete}
+                disabled={!nameMatches || deleting}
+                style={{
+                  padding:'7px 18px', borderRadius:'8px',
+                  border:'none',
+                  background: nameMatches ? 'var(--danger)' : 'var(--border-main)',
+                  color: nameMatches ? '#ffffff' : 'var(--text-faint)',
+                  fontFamily:'var(--font-sans)', fontSize:'13px',
+                  fontWeight:'500',
+                  cursor: nameMatches && !deleting ? 'pointer' : 'not-allowed',
+                  transition:'all 0.15s ease',
+                }}
+              >
+                {deleting ? 'Deleting…' : 'Confirm Delete'}
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={deleting}
+                style={{
+                  padding:'7px 18px', borderRadius:'8px',
+                  border:'1px solid var(--border-main)',
+                  background:'transparent', color:'var(--text-secondary)',
+                  fontFamily:'var(--font-sans)', fontSize:'13px',
+                  cursor:'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useCampaign } from '../context/CampaignContext';
 import { useNotifications } from '../context/NotificationContext';
 import logo from '../assets/vault-logo.png';
+import NotificationDropdown from './NotificationDropdown';
 
 // ── Tab definitions ────────────────────────────────────────
 // 'available' tabs are clickable, 'soon' tabs are greyed out
@@ -12,7 +13,6 @@ const TABS = [
   { id: 'investigators', label: 'Investigators', path: '/dashboard', status: 'available' },
   { id: 'keeper',        label: 'Keeper',        path: '/keeper',   status: 'available' },
   { id: 'campaign',      label: 'Campaign',      path: '/campaign', status: 'available' },
-  { id: 'inbox',         label: 'Inbox',         path: '/inbox',    status: 'available' },
 ];
 
 export default function NavBar({ activeTab = 'investigators', onImport, investigatorCount }) {
@@ -231,6 +231,9 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
           marginLeft: 'auto',
           flexShrink: 0,
         }}>
+
+          {/* Notification bell */}
+          <NotificationDropdown />
 
           {/* Return to Room pill — only shown when in a session */}
           {activeRoom && (

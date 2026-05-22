@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import NavBar    from '../components/NavBar';
 import Footer    from '../components/Footer';
 import apiClient from '../api/client';
-import KeeperCampaignDetail from '../components/KeeperCampaignDetail';
+import KeeperCampaignDetail  from '../components/KeeperCampaignDetail';
+import CreateCampaignModal   from '../components/CreateCampaignModal';
 
 export default function KeeperPage() {
-  const [campaigns,  setCampaigns]  = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [selected,   setSelected]   = useState(null); // campaign object
+  const [campaigns,   setCampaigns]  = useState([]);
+  const [loading,     setLoading]    = useState(true);
+  const [selected,    setSelected]   = useState(null); // campaign object
+  const [showCreate,  setShowCreate] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -51,19 +53,35 @@ export default function KeeperPage() {
         maxWidth:'1200px', margin:'0 auto',
         padding:'32px 24px', flex:1, width:'100%',
       }}>
-        <div style={{ marginBottom:'28px' }}>
-          <h1 style={{
-            fontFamily:'var(--font-serif)', fontSize:'28px',
-            color:'var(--text-primary)', margin:'0 0 4px',
-          }}>
-            Keeper
-          </h1>
-          <p style={{ fontSize:'13px', color:'var(--text-muted)', margin:0 }}>
-            {loading ? 'Loading...' :
-             campaigns.length === 0
-               ? 'No campaigns yet — create one from the Campaign tab'
-               : campaigns.length + ' campaign' + (campaigns.length !== 1 ? 's' : '')}
-          </p>
+        <div style={{
+          marginBottom:'28px', display:'flex',
+          justifyContent:'space-between', alignItems:'flex-end',
+        }}>
+          <div>
+            <h1 style={{
+              fontFamily:'var(--font-serif)', fontSize:'28px',
+              color:'var(--text-primary)', margin:'0 0 4px',
+            }}>
+              Keeper
+            </h1>
+            <p style={{ fontSize:'13px', color:'var(--text-muted)', margin:0 }}>
+              {loading ? 'Loading...' :
+               campaigns.length === 0
+                 ? 'No campaigns yet — create one below'
+                 : campaigns.length + ' campaign' + (campaigns.length !== 1 ? 's' : '')}
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCreate(true)}
+            style={{
+              padding:'8px 18px', borderRadius:'8px',
+              border:'none', background:'var(--color-primary)',
+              color:'#ffffff', fontFamily:'var(--font-sans)',
+              fontSize:'13px', fontWeight:'500', cursor:'pointer',
+            }}
+          >
+            + Create Campaign
+          </button>
         </div>
 
         {/* Empty state */}
@@ -77,7 +95,7 @@ export default function KeeperPage() {
               No campaigns to keep
             </p>
             <p style={{ fontSize:'13px', color:'var(--text-muted)', margin:0 }}>
-              Create a campaign from the Campaign tab to see it here.
+              Create a campaign using the button above.
             </p>
           </div>
         )}
@@ -148,6 +166,13 @@ export default function KeeperPage() {
         )}
       </main>
       <Footer />
+
+      {showCreate && (
+        <CreateCampaignModal
+          onClose={() => setShowCreate(false)}
+          onSuccess={() => { setShowCreate(false); load(); }}
+        />
+      )}
     </div>
   );
 }

@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import NavBar  from '../components/NavBar';
 import Footer  from '../components/Footer';
 import apiClient from '../api/client';
-import CreateCampaignModal from '../components/CreateCampaignModal';
-import JoinCampaignModal   from '../components/JoinCampaignModal';
+import JoinCampaignModal from '../components/JoinCampaignModal';
 
 export default function CampaignPage() {
   const navigate = useNavigate();
@@ -12,7 +11,7 @@ export default function CampaignPage() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState('');
-  const [modal,     setModal]     = useState(null); // 'create' | 'join' | null
+  const [modal,     setModal]     = useState(null); // 'join' | null
 
   // ── Load campaigns ──────────────────────────────────────────
   const loadCampaigns = async () => {
@@ -74,7 +73,7 @@ export default function CampaignPage() {
             </h1>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
               {loading ? 'Loading...' :
-               campaigns.length === 0 ? 'No campaigns yet — create one or join with a code' :
+               campaigns.length === 0 ? 'No campaigns yet — join one with an invite code' :
                campaigns.length + ' campaign' + (campaigns.length !== 1 ? 's' : '')}
             </p>
           </div>
@@ -104,25 +103,6 @@ export default function CampaignPage() {
               }}
             >
               🔑 Join
-            </button>
-            <button
-              onClick={() => setModal('create')}
-              style={{
-                padding:      '8px 18px',
-                borderRadius: '8px',
-                border:       'none',
-                background:   'var(--color-primary)',
-                color:        '#ffffff',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '13px',
-                fontWeight:   '500',
-                cursor:       'pointer',
-                transition:   'background 0.15s ease',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--color-primary-dark)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'var(--color-primary)'}
-            >
-              + Create
             </button>
           </div>
         </div>
@@ -170,7 +150,7 @@ export default function CampaignPage() {
               No Investigations Yet
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '0 0 28px' }}>
-              Create a campaign as Keeper, or join one with an invite code.
+              Join a campaign with an invite code, or create one from the Keeper tab.
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <button
@@ -187,22 +167,6 @@ export default function CampaignPage() {
                 }}
               >
                 🔑 Join with Code
-              </button>
-              <button
-                onClick={() => setModal('create')}
-                style={{
-                  padding:      '10px 24px',
-                  borderRadius: '8px',
-                  border:       'none',
-                  background:   'var(--color-primary)',
-                  color:        '#ffffff',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '14px',
-                  fontWeight:   '500',
-                  cursor:       'pointer',
-                }}
-              >
-                + Create Campaign
               </button>
             </div>
           </div>
@@ -229,12 +193,6 @@ export default function CampaignPage() {
       <Footer />
 
       {/* Modals */}
-      {modal === 'create' && (
-        <CreateCampaignModal
-          onClose={() => setModal(null)}
-          onSuccess={handleSuccess}
-        />
-      )}
       {modal === 'join' && (
         <JoinCampaignModal
           onClose={() => setModal(null)}
