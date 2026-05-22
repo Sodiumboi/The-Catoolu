@@ -1,29 +1,49 @@
 import wojak from '../assets/wojak-pointing.png';
 
+// ── Digit helpers ─────────────────────────────────────────────
+
+function getSides(notation) {
+  if (!notation) return null;
+  const m = notation.match(/d(\d+)/i);
+  return m ? parseInt(m[1]) : null;
+}
+
+function digitCount(sides) {
+  if (!sides) return 1;
+  if (sides === 100) return 2;
+  return String(sides).length;
+}
+
+function formatDie(value, sides) {
+  const count   = digitCount(sides);
+  const display = (value === sides && sides === 100) ? 0 : value;
+  return String(display).padStart(count, '0').split('');
+}
+
 // ── Digit Box ─────────────────────────────────────────────────
 function DigitBox({ digit, highlighted }) {
   return (
     <div style={{
-      width:        '48px',
-      minWidth:     '48px',
-      height:       '56px',
-      borderRadius: '6px',
-      border:       highlighted
+      width:         '48px',
+      minWidth:      '48px',
+      height:        '56px',
+      borderRadius:  '6px',
+      border:        highlighted
         ? '2px solid var(--color-primary)'
         : '1.5px solid var(--border-main)',
-      background:   highlighted
+      background:    highlighted
         ? 'var(--accent-bg)'
         : 'var(--bg-input)',
-      display:      'flex',
-      alignItems:   'center',
+      display:       'flex',
+      alignItems:    'center',
       justifyContent:'center',
-      fontFamily:   'var(--font-serif)',
-      fontSize:     '28px',
-      fontWeight:   '700',
-      color:        highlighted
+      fontFamily:    'var(--font-serif)',
+      fontSize:      '28px',
+      fontWeight:    '700',
+      color:         highlighted
         ? 'var(--color-primary)'
         : 'var(--text-primary)',
-      boxShadow:    highlighted
+      boxShadow:     highlighted
         ? '0 0 0 2px var(--color-primary-light)'
         : 'none',
     }}>
@@ -32,22 +52,50 @@ function DigitBox({ digit, highlighted }) {
   );
 }
 
-// ── Render a roll value as digit boxes ────────────────────────
+// ── Single die → digit boxes (adv/dis path) ───────────────────
 function RollDigits({ value, sides, highlighted = true }) {
-  let digits;
-
-  if (sides === 100) {
-    const str = value === 100 ? '00' : String(value).padStart(2, '0');
-    digits = str.split('');
-  } else {
-    digits = String(value).split('');
-  }
-
   return (
-    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-      {digits.map((d, i) => (
+    <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+      {formatDie(value, sides).map((d, i) => (
         <DigitBox key={i} digit={d} highlighted={highlighted} />
       ))}
+    </div>
+  );
+}
+
+// ── Multiple dice → per-die groups with separator bars ────────
+function MultiDieDisplay({ rolls, sides, highlighted = true }) {
+  const items = [];
+  rolls.forEach((dieValue, dieIndex) => {
+    if (dieIndex > 0) {
+      items.push(
+        <div key={'sep-' + dieIndex} style={{
+          width:        '2px',
+          height:       '56px',
+          background:   'var(--border-main)',
+          borderRadius: '2px',
+          flexShrink:   0,
+        }} />
+      );
+    }
+    items.push(
+      <div key={'die-' + dieIndex} style={{ display: 'flex', gap: '4px' }}>
+        {formatDie(dieValue, sides).map((digit, digitIndex) => (
+          <DigitBox key={digitIndex} digit={digit} highlighted={highlighted} />
+        ))}
+      </div>
+    );
+  });
+
+  return (
+    <div style={{
+      display:        'flex',
+      alignItems:     'center',
+      gap:            '6px',
+      justifyContent: 'center',
+      flexWrap:       'wrap',
+    }}>
+      {items}
     </div>
   );
 }
@@ -60,17 +108,19 @@ export default function RollCard({ msg, isOwn }) {
 
   if (!raw) return null;
 
-  const sl          = raw.successLevel;
-  const severity    = sl?.severity || 'none';
-  const sides       = raw.notation?.includes('d100') ? 100 : null;
+  const sl           = raw.successLevel;
+  const severity     = sl?.severity || 'none';
+  const sides        = getSides(raw.notation);
   const showPortrait = msg.portrait || msg.avatar_url;
+  const isAdv        = raw.advantage;
+  const isDis        = raw.disadvantage;
+  const hasAdvDis    = isAdv || isDis;
 
-  // Full name (up to two words) for the header; first name elsewhere
+  // Full name (up to two words) for header
   const displayName = msg.character_name
     ? msg.character_name.split(' ')[0] + ' ' + (msg.character_name.split(' ')[1] || '')
     : (msg.username || 'Someone');
 
-  // Build the header phrase based on context
   let header;
   if (raw.skillName) {
     const weaponSkills = ['brawl', 'handgun', 'rifle', 'shotgun', 'fighting'];
@@ -90,10 +140,6 @@ export default function RollCard({ msg, isOwn }) {
     hour: '2-digit', minute: '2-digit',
   });
 
-  const isAdv     = raw.advantage;
-  const isDis     = raw.disadvantage;
-  const hasAdvDis = isAdv || isDis;
-
   return (
     <div style={{
       display:        'flex',
@@ -112,7 +158,7 @@ export default function RollCard({ msg, isOwn }) {
           : '1px solid var(--roll-' + severity + '-border)',
         background:   'var(--roll-' + severity + '-bg)',
         maxWidth:     '100%',
-        minWidth:     '200px',
+        minWidth:     '260px',
       }}>
 
         {/* Left colour bar */}
@@ -125,20 +171,27 @@ export default function RollCard({ msg, isOwn }) {
         {/* Main content */}
         <div style={{ flex: 1, padding: '12px 14px' }}>
 
-          {/* Header */}
+          {/* Header pill */}
           <div style={{
-            fontFamily:    'var(--font-sans)',
-            fontSize:      '13px',
-            fontWeight:    '700',
-            color:         'var(--roll-' + severity + '-text)',
-            marginBottom:  '8px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.03em',
+            display:      'inline-flex',
+            alignItems:   'center',
+            background:   severity === 'none'
+              ? 'var(--bg-section-hd)'
+              : 'var(--roll-' + severity + '-border)',
+            color:        severity === 'none' ? 'var(--text-secondary)' : '#ffffff',
+            border:       severity === 'none' ? '1px solid var(--border-main)' : 'none',
+            borderRadius: '20px',
+            padding:      '3px 12px',
+            fontSize:     '11px',
+            fontWeight:   '700',
+            letterSpacing:'0.05em',
+            marginBottom: '10px',
+            maxWidth:     '100%',
           }}>
             {header}
           </div>
 
-          {/* Skill/notation label */}
+          {/* Skill / notation label */}
           {raw.skillName && (
             <div style={{
               fontFamily:   'var(--font-serif)',
@@ -186,15 +239,35 @@ export default function RollCard({ msg, isOwn }) {
                 />
               </>
             ) : (
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {(raw.rolls || [raw.total]).map((die, i) => (
-                  <RollDigits key={i} value={die} sides={sides} highlighted />
-                ))}
-              </div>
+              <MultiDieDisplay
+                rolls={raw.rolls || [raw.total]}
+                sides={sides}
+                highlighted
+              />
             )}
           </div>
 
-          {/* Wojak — only for Nat 1 (Critical) or 100 (Fumble) */}
+          {/* Sum line for multi-die rolls */}
+          {raw.rolls && raw.rolls.length > 1 && !hasAdvDis && (
+            <div style={{
+              textAlign:  'center',
+              fontSize:   '12px',
+              color:      'var(--text-muted)',
+              marginTop:  '6px',
+              fontFamily: 'var(--font-sans)',
+            }}>
+              {raw.rolls.join(' + ')}
+              {raw.modifier !== 0
+                ? (raw.modifier > 0 ? ' + ' : ' − ') + Math.abs(raw.modifier)
+                : ''}
+              {' = '}
+              <strong style={{ color: 'var(--roll-' + severity + '-text)' }}>
+                {raw.total}
+              </strong>
+            </div>
+          )}
+
+          {/* Wojak — Nat 1 or fumble on d100 */}
           {(raw.total === 1 || raw.total === 100) && (
             <div style={{
               display:        'flex',
@@ -226,7 +299,12 @@ export default function RollCard({ msg, isOwn }) {
             )}
           </div>
 
-          <div style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '4px' }}>
+          <div style={{
+            fontSize:  '10px',
+            color:     'var(--text-faint)',
+            marginTop: '4px',
+            textAlign: 'center',
+          }}>
             {time}
           </div>
 
@@ -237,13 +315,14 @@ export default function RollCard({ msg, isOwn }) {
               color:     'var(--text-faint)',
               fontStyle: 'italic',
               marginTop: '4px',
+              textAlign: 'center',
             }}>
               🔒 Only visible to you
             </div>
           )}
         </div>
 
-        {/* Portrait — right column, never overlaps content */}
+        {/* Portrait — right column */}
         {showPortrait && (
           <div style={{
             width:          '80px',
