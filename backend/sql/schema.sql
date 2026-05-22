@@ -6,6 +6,7 @@ CREATE TABLE users (
     username    VARCHAR(50)  UNIQUE NOT NULL,
     email       VARCHAR(255) UNIQUE NOT NULL,
     password    VARCHAR(255) NOT NULL,
+    avatar_url  VARCHAR(255) DEFAULT NULL,
     created_at  TIMESTAMP DEFAULT NOW(),
     updated_at  TIMESTAMP DEFAULT NOW()
 );
@@ -81,6 +82,7 @@ CREATE TABLE IF NOT EXISTS campaign_members (
   user_id      INTEGER     NOT NULL REFERENCES users(id)     ON DELETE CASCADE,
   role         VARCHAR(10) NOT NULL DEFAULT 'player'
                            CHECK (role IN ('keeper', 'player')),
+  character_id INTEGER     DEFAULT NULL REFERENCES characters(id) ON DELETE SET NULL,
   joined_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
   UNIQUE (campaign_id, user_id)

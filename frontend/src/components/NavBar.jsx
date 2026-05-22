@@ -740,7 +740,7 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
             fontStyle:  'italic',
             textAlign:  'center',
           }}>
-            More settings coming in v1.5
+            More settings coming in v2.0
           </div>
         </div>
       </div>
