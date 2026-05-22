@@ -12,7 +12,8 @@ const EVENTS = {
   ROLL_DICE:       'roll_dice',
   TYPING:          'typing',
   STOP_TYPING:     'stop_typing',
-  AFK_CHANGE:      'afk_change',
+  AFK_CHANGE:        'afk_change',
+  CHARACTER_CHANGE:  'character_change',
 
   // Server → Client
   JOINED:          'joined',
@@ -158,13 +159,28 @@ function setupSocket(httpServer) {
           [campaignId, socket.user.id, content.trim()]
         );
 
+        const [userRes, charRes] = await Promise.all([
+          pool.query('SELECT avatar_url FROM users WHERE id = $1', [socket.user.id]),
+          pool.query(
+            `SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Portrait' AS portrait,
+                    sheet_data->'Investigator'->'PersonalDetails'->>'Name'      AS character_name
+             FROM characters c
+             JOIN campaign_members cm ON cm.character_id = c.id
+             WHERE cm.campaign_id = $1 AND cm.user_id = $2
+             LIMIT 1`,
+            [campaignId, socket.user.id]
+          ),
+        ]);
+
         const message = {
           ...result.rows[0],
           campaign_id:   campaignId,
           campaign_name: socket.currentCampaignName,
           user_id:       socket.user.id,
           username:      socket.user.username,
-          avatar_url:    socket.user.avatar_url || null,
+          avatar_url:     userRes.rows[0]?.avatar_url        || null,
+          portrait:       charRes.rows[0]?.portrait          || null,
+          character_name: charRes.rows[0]?.character_name    || null,
         };
 
         // Broadcast to everyone in the room (including sender)
@@ -213,13 +229,28 @@ function setupSocket(httpServer) {
           [campaignId, socket.user.id, content]
         );
 
+        const [userRes, charRes] = await Promise.all([
+          pool.query('SELECT avatar_url FROM users WHERE id = $1', [socket.user.id]),
+          pool.query(
+            `SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Portrait' AS portrait,
+                    sheet_data->'Investigator'->'PersonalDetails'->>'Name'      AS character_name
+             FROM characters c
+             JOIN campaign_members cm ON cm.character_id = c.id
+             WHERE cm.campaign_id = $1 AND cm.user_id = $2
+             LIMIT 1`,
+            [campaignId, socket.user.id]
+          ),
+        ]);
+
         const message = {
           ...dbResult.rows[0],
           campaign_id:   campaignId,
           campaign_name: socket.currentCampaignName,
           user_id:       socket.user.id,
           username:      socket.user.username,
-          avatar_url:    socket.user.avatar_url || null,
+          avatar_url:     userRes.rows[0]?.avatar_url        || null,
+          portrait:       charRes.rows[0]?.portrait          || null,
+          character_name: charRes.rows[0]?.character_name    || null,
           // Send parsed object — client doesn't need to JSON.parse
           content:  result,
         };
@@ -238,6 +269,21 @@ function setupSocket(httpServer) {
       }
     });
 
+    // ── LEAVE_CAMPAIGN ────────────────────────────────────────
+    socket.on('leave_campaign', ({ campaignId }) => {
+      const room = roomName(campaignId);
+
+      socket.to(room).emit(EVENTS.USER_LEFT, {
+        id:       socket.user.id,
+        username: socket.user.username,
+      });
+
+      socket.leave(room);
+      socket.currentCampaignId = null;
+
+      console.log(socket.user.username + ' left campaign ' + campaignId);
+    });
+
     // ── TYPING ─────────────────────────────────────────────────
     // Broadcast typing indicator to other room members.
     socket.on(EVENTS.TYPING, ({ campaignId }) => {
@@ -253,14 +299,52 @@ function setupSocket(httpServer) {
     });
 
     // ── AFK_CHANGE ─────────────────────────────────────────────
-    // Client toggles AFK status; broadcast to other room members.
+    // Client toggles AFK status; broadcast to ALL room members
+    // including the sender so their own Players panel dot updates.
     socket.on(EVENTS.AFK_CHANGE, ({ campaignId, afk }) => {
       socket.afk = afk;
-      socket.to(roomName(campaignId)).emit(EVENTS.AFK_CHANGE, {
+      io.to(roomName(campaignId)).emit(EVENTS.AFK_CHANGE, {
         userId:   socket.user.id,
         username: socket.user.username,
         afk,
       });
+    });
+
+    // ── CHARACTER_CHANGE ───────────────────────────────────────
+    // Client emits when they change their active investigator.
+    // Broadcasts the update to all room members so the Players panel stays live.
+    socket.on(EVENTS.CHARACTER_CHANGE, async ({ campaignId, characterId }) => {
+      try {
+        const memberCheck = await pool.query(
+          'SELECT id FROM campaign_members WHERE campaign_id=$1 AND user_id=$2',
+          [campaignId, socket.user.id]
+        );
+        if (memberCheck.rows.length === 0) return;
+
+        let characterData = null;
+        if (characterId) {
+          const charRes = await pool.query(
+            `SELECT
+               id,
+               sheet_data->'Investigator'->'PersonalDetails'->>'Name'       AS name,
+               sheet_data->'Investigator'->'PersonalDetails'->>'Occupation'  AS occupation
+             FROM characters
+             WHERE id = $1 AND user_id = $2`,
+            [characterId, socket.user.id]
+          );
+          if (charRes.rows.length > 0) {
+            characterData = charRes.rows[0];
+          }
+        }
+
+        io.to(roomName(campaignId)).emit(EVENTS.CHARACTER_CHANGE, {
+          userId:    socket.user.id,
+          username:  socket.user.username,
+          character: characterData,
+        });
+      } catch (err) {
+        console.error('character_change error:', err);
+      }
     });
 
     // ── DISCONNECT ─────────────────────────────────────────────

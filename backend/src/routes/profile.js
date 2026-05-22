@@ -27,7 +27,7 @@ const avatarStorage = multer.diskStorage({
 
 const avatarUpload = multer({
   storage: avatarStorage,
-  limits:  { fileSize: 2 * 1024 * 1024 },
+  limits:  { fileSize: 20 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (allowed.includes(file.mimetype)) {
@@ -161,7 +161,8 @@ router.post('/avatar', avatarUpload.single('avatar'), async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded.' });
     }
 
-    const avatarUrl = '/uploads/avatars/' + req.user.id + '.jpg';
+    const avatarBase = '/uploads/avatars/' + req.user.id + '.jpg';
+    const avatarUrl  = avatarBase + '?v=' + Date.now();
 
     await pool.query(
       'UPDATE users SET avatar_url = $1 WHERE id = $2',
@@ -171,7 +172,7 @@ router.post('/avatar', avatarUpload.single('avatar'), async (req, res) => {
     res.json({ avatar_url: avatarUrl });
   } catch (err) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ error: 'File too large. Maximum size is 2MB.' });
+      return res.status(400).json({ error: 'File too large. Maximum size is 20MB.' });
     }
     console.error('Avatar upload error:', err);
     res.status(500).json({ error: err.message || 'Failed to upload avatar.' });

@@ -314,10 +314,24 @@ router.get('/:id/messages', async (req, res) => {
     let query;
     let params;
 
+    const characterSubquery = (col, alias) => `(
+      SELECT sheet_data->'Investigator'->'PersonalDetails'->>'${col}'
+      FROM characters c
+      JOIN campaign_members cm ON cm.character_id = c.id
+      WHERE cm.campaign_id = m.campaign_id
+        AND cm.user_id = m.user_id
+      LIMIT 1
+    ) AS ${alias}`;
+
+    const portraitSubquery   = characterSubquery('Portrait', 'portrait');
+    const charNameSubquery   = characterSubquery('Name',     'character_name');
+
     if (before) {
       query = `
         SELECT m.id, m.type, m.content, m.created_at,
-               u.id AS user_id, u.username
+               u.id AS user_id, u.username, u.avatar_url,
+               ${portraitSubquery},
+               ${charNameSubquery}
         FROM messages m
         LEFT JOIN users u ON m.user_id = u.id
         WHERE m.campaign_id = $1 AND m.id < $2
@@ -328,7 +342,9 @@ router.get('/:id/messages', async (req, res) => {
     } else {
       query = `
         SELECT m.id, m.type, m.content, m.created_at,
-               u.id AS user_id, u.username
+               u.id AS user_id, u.username, u.avatar_url,
+               ${portraitSubquery},
+               ${charNameSubquery}
         FROM messages m
         LEFT JOIN users u ON m.user_id = u.id
         WHERE m.campaign_id = $1
@@ -418,6 +434,59 @@ router.put('/:id/character', async (req, res) => {
   } catch (err) {
     console.error('Register character error:', err);
     res.status(500).json({ error: 'Failed to register investigator.' });
+  }
+});
+
+// ── POST /api/campaigns/:id/roll/hidden ───────────────────────
+// Rolls dice server-side and returns result WITHOUT broadcasting.
+// Used when a player has "Hide Results" toggled on.
+const { roll } = require('../utils/dice');
+
+router.post('/:id/roll/hidden', async (req, res) => {
+  try {
+    const { notation, skillName, skillValue } = req.body;
+
+    if (!(await isMember(req.params.id, req.user.id))) {
+      return res.status(403).json({ error: 'Not a campaign member.' });
+    }
+
+    const result = roll(notation, skillValue, skillName);
+    if (result.error) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    // Save to DB (for history) but DON'T broadcast
+    const dbResult = await pool.query(
+      `INSERT INTO messages (campaign_id, user_id, type, content)
+       VALUES ($1, $2, 'roll', $3)
+       RETURNING id, type, content, created_at`,
+      [req.params.id, req.user.id, JSON.stringify(result)]
+    );
+
+    const [userRes, charRes] = await Promise.all([
+      pool.query('SELECT avatar_url FROM users WHERE id=$1', [req.user.id]),
+      pool.query(
+        `SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Portrait' AS portrait
+         FROM characters c
+         JOIN campaign_members cm ON cm.character_id = c.id
+         WHERE cm.campaign_id=$1 AND cm.user_id=$2 LIMIT 1`,
+        [req.params.id, req.user.id]
+      ),
+    ]);
+
+    res.json({
+      message: {
+        ...dbResult.rows[0],
+        user_id:    req.user.id,
+        username:   req.user.username,
+        avatar_url: userRes.rows[0]?.avatar_url || null,
+        portrait:   charRes.rows[0]?.portrait   || null,
+        content:    result,
+      }
+    });
+  } catch (err) {
+    console.error('Hidden roll error:', err);
+    res.status(500).json({ error: 'Failed to roll.' });
   }
 });
 

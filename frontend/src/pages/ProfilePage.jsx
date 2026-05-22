@@ -127,7 +127,7 @@ function StatusMsg({ msg }) {
 
 // ══════════════════════════════════════════════════════════
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate          = useNavigate();
   const avatarInputRef    = useRef(null);
 
@@ -172,10 +172,6 @@ export default function ProfilePage() {
   const handleAvatarFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setProfileMsg({ text: 'File too large. Maximum size is 2MB.', type: 'error' });
-      return;
-    }
     const reader = new FileReader();
     reader.onload = (evt) => setCropSrc(evt.target.result);
     reader.readAsDataURL(file);
@@ -192,13 +188,10 @@ export default function ProfilePage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      setAvatarUrl(res.data.avatar_url + '?t=' + Date.now());
+      setAvatarUrl(res.data.avatar_url);
       setCropSrc(null);
       setProfileMsg({ text: '✓ Profile picture updated!', type: 'success' });
-
-      const storedUser = JSON.parse(localStorage.getItem('coc_user') || '{}');
-      storedUser.avatar_url = res.data.avatar_url;
-      localStorage.setItem('coc_user', JSON.stringify(storedUser));
+      updateUser({ avatar_url: res.data.avatar_url });
     } catch (err) {
       setProfileMsg({ text: err.response?.data?.error || 'Upload failed.', type: 'error' });
     } finally {
@@ -311,7 +304,7 @@ export default function ProfilePage() {
                 >
                   {avatarUrl ? (
                     <img
-                      src={avatarUrl.startsWith('http') ? avatarUrl : 'http://localhost:3001' + avatarUrl}
+                      src={avatarUrl.startsWith('http') ? avatarUrl : (import.meta.env.VITE_API_URL || '') + avatarUrl}
                       alt="Profile"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />

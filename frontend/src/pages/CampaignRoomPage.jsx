@@ -5,7 +5,8 @@ import RollFeed            from '../components/RollFeed';
 import ChatInput           from '../components/ChatInput';
 import DiceRow             from '../components/DiceRow';
 import RoomSidebar         from '../components/RoomSidebar';
-import CelebrationOverlay  from '../components/CelebrationOverlay';
+import KeeperPlayerCard    from '../components/KeeperPlayerCard';
+import confetti            from 'canvas-confetti';
 import SkillRollPopup      from '../components/SkillRollPopup';
 import { useSocket }       from '../context/SocketContext';
 import { useAuth }         from '../context/AuthContext';
@@ -48,10 +49,11 @@ export default function CampaignRoomPage() {
   const [text,          setText]          = useState('');
   const [advMode,       setAdvMode]       = useState(false);
   const [disMode,       setDisMode]       = useState(false);
-  const [hideResults,   setHideResults]   = useState(false);
+  const [chatFilter,     setChatFilter]     = useState('all');
+  const [rollVisibility, setRollVisibility] = useState('everyone');
   const [sidebarTab,    setSidebarTab]    = useState('chat');
+  const [sidebarOpen,   setSidebarOpen]   = useState(false);
   const [afk,           setAfk]           = useState(false);
-  const [celebration,   setCelebration]   = useState(null); // 'critical' | 'fumble' | null
   const [rollPopup,     setRollPopup]     = useState(null);
   // rollPopup: { label, value, mode, top, left }
 
@@ -110,14 +112,24 @@ export default function CampaignRoomPage() {
     const onMessage = (msg) => {
       setMessages(prev => [...prev, msg]);
 
-      // Trigger celebration for Nat 1 / 00 (100) on d100 rolls
       if (msg.type === 'roll') {
         const content = typeof msg.content === 'string'
           ? JSON.parse(msg.content) : msg.content;
         if (content?.notation?.includes('d100')) {
           const total = content.total;
-          if (total === 1)   setCelebration('critical');
-          if (total === 100) setCelebration('fumble');
+          if (total === 1 || total === 100) {
+            const isFumble = total === 100;
+            const fire = (origin) => confetti({
+              particleCount: 100,
+              spread:        80,
+              origin,
+              colors: isFumble
+                ? ['#7f0000', '#ff6b6b', '#1a0000']
+                : ['#3B6D11', '#C0DD97', '#F59E0B'],
+            });
+            fire({ x: 0.2, y: 0.6 });
+            fire({ x: 0.8, y: 0.6 });
+          }
         }
       }
     };
@@ -144,22 +156,37 @@ export default function CampaignRoomPage() {
       ));
     };
 
-    socket.on('joined',        onJoined);
-    socket.on('receive_message', onMessage);
-    socket.on('user_joined',   onUserJoined);
-    socket.on('user_left',     onUserLeft);
-    socket.on('typing_start',  onTypingStart);
-    socket.on('typing_stop',   onTypingStop);
-    socket.on('afk_change',    onAfkChange);
+    const onCharacterChange = ({ userId, character }) => {
+      setMembers(prev => prev.map(m =>
+        m.id === userId
+          ? {
+              ...m,
+              character_id:         character?.id   || null,
+              character_name:       character?.name || null,
+              character_occupation: character?.occupation || null,
+            }
+          : m
+      ));
+    };
+
+    socket.on('joined',           onJoined);
+    socket.on('receive_message',  onMessage);
+    socket.on('user_joined',      onUserJoined);
+    socket.on('user_left',        onUserLeft);
+    socket.on('typing_start',     onTypingStart);
+    socket.on('typing_stop',      onTypingStop);
+    socket.on('afk_change',       onAfkChange);
+    socket.on('character_change', onCharacterChange);
 
     return () => {
-      socket.off('joined',          onJoined);
-      socket.off('receive_message', onMessage);
-      socket.off('user_joined',     onUserJoined);
-      socket.off('user_left',       onUserLeft);
-      socket.off('typing_start',    onTypingStart);
-      socket.off('typing_stop',     onTypingStop);
-      socket.off('afk_change',      onAfkChange);
+      socket.off('joined',           onJoined);
+      socket.off('receive_message',  onMessage);
+      socket.off('user_joined',      onUserJoined);
+      socket.off('user_left',        onUserLeft);
+      socket.off('typing_start',     onTypingStart);
+      socket.off('typing_stop',      onTypingStop);
+      socket.off('afk_change',       onAfkChange);
+      socket.off('character_change', onCharacterChange);
     };
   }, [socket, connected, loading, error, id, campaign]);
 
@@ -177,15 +204,15 @@ export default function CampaignRoomPage() {
   }, []);
 
   // ── Send handler ──────────────────────────────────────────────
-  const handleSend = (inputText, shiftKey = false) => {
+  const handleSend = async (inputText, shiftKey = false) => {
     if (!socket || !inRoom) return;
 
-    // Auto-clear AFK on send
     if (afk) handleToggleAfk();
 
-    // Easter egg: shift key triggers celebration
     if (shiftKey) {
-      setCelebration(Math.random() > 0.5 ? 'critical' : 'fumble');
+      const fire = (o) => confetti({ particleCount: 100, spread: 80, origin: o });
+      fire({ x: 0.2, y: 0.6 });
+      fire({ x: 0.8, y: 0.6 });
       return;
     }
 
@@ -200,13 +227,28 @@ export default function CampaignRoomPage() {
         if (disMode) notation += 'dis';
       }
 
-      socket.emit('roll_dice', {
-        campaignId:  parseInt(id),
-        notation,
-        skillName:   null,
-        skillValue:  null,
-        characterName: myCharacter?.name || null,
-      });
+      if (rollVisibility === 'only_me') {
+        try {
+          const res = await apiClient.post(
+            '/campaigns/' + id + '/roll/hidden',
+            { notation, skillName: null, skillValue: null }
+          );
+          setMessages(prev => [...prev, {
+            ...res.data.message,
+            user_id:  user?.id,
+            username: user?.username,
+            _hidden:  true,
+          }]);
+        } catch { /* silent */ }
+      } else {
+        socket.emit('roll_dice', {
+          campaignId:    parseInt(id),
+          notation,
+          skillName:     null,
+          skillValue:    null,
+          characterName: myCharacter?.name || null,
+        });
+      }
     } else {
       socket.emit('send_message', {
         campaignId:    parseInt(id),
@@ -276,12 +318,27 @@ export default function CampaignRoomPage() {
     socket?.emit('leave_campaign', { campaignId: parseInt(id) });
     leaveRoom();
     clearCurrentRoom();
-    navigate('/campaign');
+    setTimeout(() => {
+      navigate('/campaign');
+    }, 100);
   };
 
   // ── Adv/Dis toggle ────────────────────────────────────────────
   const handleToggleAdv = () => { setAdvMode(p => !p); setDisMode(false); };
   const handleToggleDis = () => { setDisMode(p => !p); setAdvMode(false); };
+
+  // ── Sidebar tab toggle ────────────────────────────────────────
+  const handleTabChange = (tab) => {
+    if (tab === 'chat') {
+      setSidebarTab('chat');
+      setSidebarOpen(false);
+    } else if (sidebarOpen && sidebarTab === tab) {
+      setSidebarOpen(false);
+    } else {
+      setSidebarTab(tab);
+      setSidebarOpen(true);
+    }
+  };
 
   // ── Character change (from sidebar) ──────────────────────────
   const handleChangeCharacter = async (character) => {
@@ -290,6 +347,10 @@ export default function CampaignRoomPage() {
         character_id: character?.id || null,
       });
       setMyCharacter(character || null);
+      socket?.emit('character_change', {
+        campaignId:  parseInt(id),
+        characterId: character?.id || null,
+      });
     } catch { /* silent */ }
   };
 
@@ -335,15 +396,8 @@ export default function CampaignRoomPage() {
       overflow:      'hidden',
     }}>
 
-      {/* Celebration overlay */}
-      {celebration && (
-        <CelebrationOverlay
-          type={celebration}
-          onDone={() => setCelebration(null)}
-        />
-      )}
 
-      {/* Skill roll popup */}
+{/* Skill roll popup */}
       {rollPopup && (
         <div style={{
           position: 'fixed',
@@ -441,17 +495,47 @@ export default function CampaignRoomPage() {
       {/* Main content */}
       <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
 
-        {/* Left: character sheet */}
-        {myCharData && (
-          <div style={{
-            width:        '420px',
-            flexShrink:   0,
-            overflowY:    'auto',
-            borderRight:  '1px solid var(--border-main)',
-            background:   'var(--bg-page)',
-          }}>
-            {/* RoomSheet renders a session-mode sheet */}
-            {/* Implemented in next step */}
+        {/* Left: character sheet OR Keeper player cards */}
+        <div style={{
+          width:       '340px',
+          flexShrink:  0,
+          overflowY:   'auto',
+          borderRight: '1px solid var(--border-main)',
+          background:  'var(--bg-page)',
+          padding:     '12px',
+        }}>
+          {myRole === 'keeper' ? (
+            <>
+              <div style={{
+                fontSize:      '11px',
+                fontWeight:    '600',
+                textTransform: 'uppercase',
+                letterSpacing: '0.07em',
+                color:         'var(--text-muted)',
+                marginBottom:  '10px',
+                fontFamily:    'var(--font-sans)',
+              }}>
+                Investigators ({members.filter(m => m.role === 'player').length})
+              </div>
+              {members
+                .filter(m => m.role === 'player')
+                .map(member => (
+                  <KeeperPlayerCard key={member.id} member={member} />
+                ))
+              }
+              {members.filter(m => m.role === 'player').length === 0 && (
+                <div style={{
+                  fontSize:  '13px',
+                  color:     'var(--text-faint)',
+                  fontStyle: 'italic',
+                  textAlign: 'center',
+                  padding:   '24px 0',
+                }}>
+                  No players have joined yet.
+                </div>
+              )}
+            </>
+          ) : myCharData ? (
             <SessionSheet
               charData={myCharData}
               characterId={myCharacter?.id}
@@ -460,8 +544,19 @@ export default function CampaignRoomPage() {
               onElementClick={handleElementClick}
               onStatBlur={handleStatBlur}
             />
-          </div>
-        )}
+          ) : (
+            <div style={{
+              fontSize:  '13px',
+              color:     'var(--text-faint)',
+              fontStyle: 'italic',
+              textAlign: 'center',
+              padding:   '24px 16px',
+            }}>
+              No investigator registered.<br/>
+              Select one in the Players tab →
+            </div>
+          )}
+        </div>
 
         {/* Middle: roll feed */}
         <div style={{
@@ -474,7 +569,7 @@ export default function CampaignRoomPage() {
           <RollFeed
             messages={messages}
             currentUserId={user?.id}
-            hideResults={hideResults}
+            chatFilter={chatFilter}
           />
 
           {/* Typing indicator */}
@@ -491,18 +586,40 @@ export default function CampaignRoomPage() {
           {/* Dice row */}
           <DiceRow
             advMode={advMode} disMode={disMode}
-            hideResults={hideResults}
+            chatFilter={chatFilter}
+            rollVisibility={rollVisibility}
             onToggleAdv={handleToggleAdv}
             onToggleDis={handleToggleDis}
-            onToggleHide={() => setHideResults(p => !p)}
+            onChatFilterChange={setChatFilter}
+            onToggleVisibility={() => setRollVisibility(p => p === 'everyone' ? 'only_me' : 'everyone')}
             onRoll={(notation, shiftKey) => {
-              if (shiftKey) { setCelebration(Math.random() > 0.5 ? 'critical' : 'fumble'); return; }
+              if (shiftKey) {
+                const isFumble = Math.random() > 0.5;
+                [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(origin =>
+                  confetti({ particleCount: 100, spread: 80, origin,
+                    colors: isFumble ? ['#7f0000', '#ff6b6b', '#1a0000'] : ['#3B6D11', '#C0DD97', '#F59E0B'] })
+                );
+                return;
+              }
               if (!socket || !inRoom) return;
-              socket.emit('roll_dice', {
-                campaignId:    parseInt(id),
-                notation,
-                characterName: myCharacter?.name || null,
-              });
+              if (rollVisibility === 'only_me') {
+                apiClient.post('/campaigns/' + id + '/roll/hidden', { notation })
+                  .then(res => {
+                    setMessages(prev => [...prev, {
+                      ...res.data.message,
+                      user_id:  user?.id,
+                      username: user?.username,
+                      _hidden:  true,
+                    }]);
+                  })
+                  .catch(() => {});
+              } else {
+                socket.emit('roll_dice', {
+                  campaignId:    parseInt(id),
+                  notation,
+                  characterName: myCharacter?.name || null,
+                });
+              }
             }}
           />
 
@@ -523,8 +640,8 @@ export default function CampaignRoomPage() {
 
         {/* Right: vertical tab sidebar */}
         <RoomSidebar
-          activeTab={sidebarTab}
-          onTabChange={setSidebarTab}
+          activeTab={sidebarOpen ? sidebarTab : 'chat'}
+          onTabChange={handleTabChange}
           members={members}
           onlineUsers={onlineUsers}
           myRole={myRole}

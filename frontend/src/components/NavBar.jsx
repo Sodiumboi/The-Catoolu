@@ -333,6 +333,8 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
                 alignItems:    'center',
                 justifyContent:'center',
                 transition:    'border-color 0.15s ease',
+                overflow:      'hidden',
+                padding:       0,
               }}
               onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
               onMouseLeave={e => {
@@ -340,7 +342,13 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
                   e.currentTarget.style.borderColor = 'var(--border-main)';
               }}
             >
-              {initials}
+              {user?.avatar_url ? (
+                <img
+                  src={(import.meta.env.VITE_API_URL || '') + user.avatar_url}
+                  alt={user.username}
+                  style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
+                />
+              ) : initials}
             </button>
 
             {/* Dropdown */}

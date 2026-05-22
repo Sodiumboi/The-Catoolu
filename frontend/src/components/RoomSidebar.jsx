@@ -1,11 +1,9 @@
 import { useState } from 'react';
 
-// Google Material Symbols (loaded via index.html or a link tag)
-// For now using emoji — SVG icons swap in when Google Fonts are integrated
 const TABS = [
-  { id: 'chat',     icon: '💬', label: 'Chat'     },
-  { id: 'players',  icon: '👥', label: 'Players'  },
-  { id: 'settings', icon: '⚙️', label: 'Settings' },
+  { id: 'chat',     icon: '💬', label: 'Chat',     hasPanel: false },
+  { id: 'players',  icon: '👥', label: 'Players',  hasPanel: true  },
+  { id: 'settings', icon: '⚙️', label: 'Settings', hasPanel: true  },
 ];
 
 export default function RoomSidebar({
@@ -20,9 +18,6 @@ export default function RoomSidebar({
       display:      'flex',
       flexDirection:'row',
       borderLeft:   '1px solid var(--border-main)',
-      background:   'var(--bg-card)',
-      width:        '280px',
-      flexShrink:   0,
     }}>
 
       {/* Icon tab strip */}
@@ -30,11 +25,12 @@ export default function RoomSidebar({
         display:        'flex',
         flexDirection:  'column',
         alignItems:     'center',
-        borderRight:    '1px solid var(--border-main)',
+        borderLeft:     '1px solid var(--border-main)',
         padding:        '8px 0',
         gap:            '4px',
         width:          '44px',
         flexShrink:     0,
+        background:     'var(--bg-card)',
       }}>
         {TABS.map(tab => (
           <button
@@ -46,23 +42,25 @@ export default function RoomSidebar({
               height:       '36px',
               borderRadius: '8px',
               border:       'none',
-              background:   activeTab === tab.id ? 'var(--accent-bg)' : 'transparent',
+              background:   activeTab === tab.id && tab.hasPanel
+                ? 'var(--accent-bg)'
+                : 'transparent',
               cursor:       'pointer',
               fontSize:     '16px',
               display:      'flex',
               alignItems:   'center',
               justifyContent:'center',
               transition:   'background 0.1s ease',
-              outline:      activeTab === tab.id
+              outline:      activeTab === tab.id && tab.hasPanel
                 ? '1.5px solid var(--accent)'
                 : 'none',
             }}
             onMouseEnter={e => {
-              if (activeTab !== tab.id)
+              if (!(activeTab === tab.id && tab.hasPanel))
                 e.currentTarget.style.background = 'var(--row-hover)';
             }}
             onMouseLeave={e => {
-              if (activeTab !== tab.id)
+              if (!(activeTab === tab.id && tab.hasPanel))
                 e.currentTarget.style.background = 'transparent';
             }}
           >
@@ -92,83 +90,64 @@ export default function RoomSidebar({
         </button>
       </div>
 
-      {/* Tab content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-        {activeTab === 'chat'    && <ChatPanel members={members} onlineUsers={onlineUsers} />}
-        {activeTab === 'players' && (
-          <PlayersPanel
-            members={members}
-            onlineUsers={onlineUsers}
-            myRole={myRole}
-            myCharacter={myCharacter}
-            myCharacters={myCharacters}
-            onChangeCharacter={onChangeCharacter}
-          />
-        )}
-        {activeTab === 'settings' && <SettingsPanel campaignId={campaignId} />}
-        {activeTab === 'help'     && <HelpPanel />}
-      </div>
-    </div>
-  );
-}
-
-// ── Chat panel — online members list ──────────────────────────
-function ChatPanel({ members, onlineUsers }) {
-  const onlineIds = new Set(onlineUsers.map(u => u.id));
-  return (
-    <div>
-      <SectionLabel>Online ({onlineUsers.length})</SectionLabel>
-      {onlineUsers.map(u => (
-        <MemberRow key={u.id} member={u} isOnline status={u.afk ? 'afk' : 'online'} />
-      ))}
-      <SectionLabel style={{ marginTop: '12px' }}>All Members ({members.length})</SectionLabel>
-      {members.map(m => (
-        <MemberRow key={m.id} member={m} isOnline={onlineIds.has(m.id)} />
-      ))}
+      {/* Panel — only rendered when a panel tab is active */}
+      {activeTab !== 'chat' && (
+        <div style={{
+          width:     '236px',
+          flexShrink:0,
+          overflowY: 'auto',
+          padding:   '12px',
+          borderLeft:'1px solid var(--border-main)',
+          background:'var(--bg-card)',
+        }}>
+          {activeTab === 'players'  && (
+            <PlayersPanel
+              members={members}
+              onlineUsers={onlineUsers}
+              myRole={myRole}
+              myCharacter={myCharacter}
+              myCharacters={myCharacters}
+              onChangeCharacter={onChangeCharacter}
+            />
+          )}
+          {activeTab === 'settings' && <SettingsPanel campaignId={campaignId} />}
+          {activeTab === 'help'     && <HelpPanel />}
+        </div>
+      )}
     </div>
   );
 }
 
 // ── Players panel ─────────────────────────────────────────────
 function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters, onChangeCharacter }) {
+  const onlineIds = new Set(onlineUsers.map(u => u.id));
+
   return (
     <div>
-      <SectionLabel>Investigators</SectionLabel>
+      <SectionLabel>Online ({onlineUsers.length})</SectionLabel>
+      {onlineUsers.map(u => (
+        <MemberRow
+          key={u.id}
+          member={u}
+          isOnline={true}
+          status={u.afk ? 'afk' : 'online'}
+        />
+      ))}
+
+      <SectionLabel style={{ marginTop: '12px' }}>
+        All Members ({members.length})
+      </SectionLabel>
       {members.map(m => (
-        <div key={m.id} style={{ marginBottom: '12px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-            {m.username} {m.role === 'keeper' && '(Keeper)'}
-          </div>
-          {m.character_name ? (
-            <div style={{
-              padding:    '8px 10px',
-              borderRadius:'8px',
-              border:     '1px solid var(--border-main)',
-              background: 'var(--bg-input)',
-              fontSize:   '13px',
-              color:      'var(--text-primary)',
-              fontFamily: 'var(--font-serif)',
-            }}>
-              {m.character_name}
-              <div style={{ fontSize: '11px', color: 'var(--accent)', fontFamily: 'var(--font-sans)' }}>
-                {m.character_occupation}
-              </div>
-            </div>
-          ) : (
-            <div style={{
-              fontSize:  '12px',
-              color:     'var(--text-faint)',
-              fontStyle: 'italic',
-              padding:   '4px 0',
-            }}>
-              No investigator registered
-            </div>
-          )}
-        </div>
+        <MemberRow
+          key={m.id}
+          member={m}
+          isOnline={onlineIds.has(m.id)}
+          status={onlineUsers.find(u => u.id === m.id)?.afk ? 'afk' : 'online'}
+        />
       ))}
 
       {/* Change my character */}
-      <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '12px', marginTop: '8px' }}>
+      <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '12px', marginTop: '12px' }}>
         <SectionLabel>Playing as</SectionLabel>
         <select
           value={myCharacter?.id || ''}
@@ -191,8 +170,13 @@ function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters,
         >
           <option value="">— Decide later —</option>
           {myCharacters.map(c => {
-            const name = c.sheet_data?.Investigator?.PersonalDetails?.Name || 'Unnamed';
-            return <option key={c.id} value={c.id}>{name}</option>;
+            const name = c.name || 'Unnamed';
+            const occ  = c.occupation || '';
+            return (
+              <option key={c.id} value={c.id}>
+                {name}{occ ? ' — ' + occ : ''}
+              </option>
+            );
           })}
         </select>
       </div>

@@ -18,14 +18,14 @@ function SystemMessage({ msg }) {
   );
 }
 
-export default function RollFeed({ messages, currentUserId, hideResults }) {
+export default function RollFeed({ messages, currentUserId, chatFilter }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const visible = hideResults
+  const visible = chatFilter === 'text'
     ? messages.filter(m => m.type !== 'roll')
     : messages;
 
@@ -38,7 +38,7 @@ export default function RollFeed({ messages, currentUserId, hideResults }) {
       {visible.map((msg, i) => {
         const isOwn = msg.user_id === currentUserId;
         if (msg.type === 'system')    return <SystemMessage  key={msg.id || i} msg={msg} />;
-        if (msg.type === 'roll')      return <RollCard       key={msg.id || i} msg={msg} />;
+        if (msg.type === 'roll')      return <RollCard       key={msg.id || i} msg={msg} isOwn={isOwn} />;
         if (msg.type === 'stat_change') return <StatValueCard key={msg.id || i} msg={msg} />;
         return <ChatBubble key={msg.id || i} msg={msg} isOwn={isOwn} />;
       })}

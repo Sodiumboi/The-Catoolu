@@ -58,7 +58,7 @@ router.post('/register', async (req, res) => {
     const result = await pool.query(
       `INSERT INTO users (username, email, password)
        VALUES ($1, $2, $3)
-       RETURNING id, username, email, created_at`,
+       RETURNING id, username, email, avatar_url, created_at`,
       [username, email.toLowerCase(), hashedPassword]
     );
 
@@ -69,9 +69,10 @@ router.post('/register', async (req, res) => {
       message: 'Account created successfully!',
       token,
       user: {
-        id:       newUser.id,
-        username: newUser.username,
-        email:    newUser.email
+        id:         newUser.id,
+        username:   newUser.username,
+        email:      newUser.email,
+        avatar_url: newUser.avatar_url || null,
       }
     });
 
@@ -92,7 +93,7 @@ router.post('/login', async (req, res) => {
 
     // ── Find user by email or username ──
     const result = await pool.query(
-      'SELECT id, username, email, password FROM users WHERE email = $1 OR username = $2',
+      'SELECT id, username, email, password, avatar_url FROM users WHERE email = $1 OR username = $2',
       [identifier.toLowerCase(), identifier]
     );
 
@@ -114,9 +115,10 @@ router.post('/login', async (req, res) => {
       message: 'Logged in successfully!',
       token,
       user: {
-        id:       user.id,
-        username: user.username,
-        email:    user.email
+        id:         user.id,
+        username:   user.username,
+        email:      user.email,
+        avatar_url: user.avatar_url || null,
       }
     });
 

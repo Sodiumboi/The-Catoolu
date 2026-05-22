@@ -4,28 +4,27 @@ import 'react-image-crop/dist/ReactCrop.css';
 
 // ── Helper: get cropped canvas ────────────────────────────────
 function getCroppedCanvas(image, crop) {
-  const canvas  = document.createElement('canvas');
-  const scaleX  = image.naturalWidth  / image.width;
-  const scaleY  = image.naturalHeight / image.height;
-  const size    = 256; // output size 256x256
+  const scaleX   = image.naturalWidth  / image.width;
+  const scaleY   = image.naturalHeight / image.height;
+  const naturalW = crop.width  * scaleX;
+  const naturalH = crop.height * scaleY;
 
-  canvas.width  = size;
-  canvas.height = size;
+  // Scale down to max 800px on the longest side; never upscale
+  const maxPx  = 800;
+  const scale  = Math.min(1, maxPx / Math.max(naturalW, naturalH));
+  const outW   = Math.round(naturalW * scale);
+  const outH   = Math.round(naturalH * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width  = outW;
+  canvas.height = outH;
 
   const ctx = canvas.getContext('2d');
-
-  // Draw circle clip
-  ctx.beginPath();
-  ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
-  ctx.clip();
-
   ctx.drawImage(
     image,
-    crop.x * scaleX,
-    crop.y * scaleY,
-    crop.width  * scaleX,
-    crop.height * scaleY,
-    0, 0, size, size
+    crop.x * scaleX, crop.y * scaleY,
+    naturalW, naturalH,
+    0, 0, outW, outH
   );
 
   return canvas;
@@ -34,7 +33,7 @@ function getCroppedCanvas(image, crop) {
 // ── Helper: canvas to Blob ─────────────────────────────────────
 function canvasToBlob(canvas) {
   return new Promise(resolve => {
-    canvas.toBlob(resolve, 'image/jpeg', 0.92);
+    canvas.toBlob(resolve, 'image/jpeg', 0.85);
   });
 }
 
@@ -116,7 +115,6 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
             onChange={c => setCrop(c)}
             onComplete={c => setCompletedCrop(c)}
             aspect={1}
-            circularCrop
             minWidth={60}
           >
             <img
@@ -146,7 +144,7 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
           <CropPreview imgRef={imgRef} crop={completedCrop} size={36} />
           <CropPreview imgRef={imgRef} crop={completedCrop} size={24} />
           <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
-            Saved at 256×256px
+            Saved at up to 800px
           </span>
         </div>
 

@@ -38,7 +38,7 @@ export default function ChatBubble({ msg, isOwn }) {
             />
           ) : msg.avatar_url ? (
             <img
-              src={msg.avatar_url}
+              src={(import.meta.env.VITE_API_URL || '') + msg.avatar_url}
               alt={displayName}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />

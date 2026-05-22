@@ -60,7 +60,14 @@ export function AuthProvider({ children }) {
     setToken(null);
   };
 
-  const value = { user, token, loading, login, register, logout };
+  // ── Update user fields in state + localStorage ────────────
+  const updateUser = (fields) => {
+    const updated = { ...user, ...fields };
+    setUser(updated);
+    localStorage.setItem('coc_user', JSON.stringify(updated));
+  };
+
+  const value = { user, token, loading, login, register, logout, updateUser };
 
   return (
     <AuthContext.Provider value={value}>
