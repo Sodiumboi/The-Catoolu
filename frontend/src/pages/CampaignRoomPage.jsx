@@ -13,6 +13,7 @@ import { useAuth }         from '../context/AuthContext';
 import { useCampaign }     from '../context/CampaignContext';
 import { useNotifications } from '../context/NotificationContext';
 import apiClient           from '../api/client';
+import SessionSheet        from '../components/SessionSheet';
 
 // ── Roll context label builder ─────────────────────────────────
 function getRollLabel(skillName, statName) {
@@ -55,9 +56,17 @@ export default function CampaignRoomPage() {
   const [sidebarOpen,   setSidebarOpen]   = useState(false);
   const [afk,           setAfk]           = useState(false);
   const [rollPopup,     setRollPopup]     = useState(null);
+  const [myCharFullData, setMyCharFullData] = useState(null);
+  const [leftWidth,     setLeftWidth]     = useState(() => {
+    const saved = parseInt(localStorage.getItem('sheet-panel-width'));
+    return saved && saved >= 280 && saved <= 640 ? saved : 400;
+  });
   // rollPopup: { label, value, mode, top, left }
   const forceMemeNextRollRef  = useRef(false);
   const historyLoadedRef      = useRef(false);
+  const isDraggingRef         = useRef(false);
+  const dragStartXRef         = useRef(0);
+  const dragStartWidthRef     = useRef(400);
 
   // ── Load campaign + messages ──────────────────────────────────
   useEffect(() => {
@@ -124,6 +133,22 @@ export default function CampaignRoomPage() {
       });
 
       if (!historyLoadedRef.current) return;
+
+      // Live-update keeper's player cards when a stat changes
+      if (msg.type === 'chat') {
+        try {
+          const parsed = typeof msg.content === 'string' ? JSON.parse(msg.content) : null;
+          if (parsed?.stat && parsed?.newVal !== undefined) {
+            const fieldMap = { HitPts: 'hit_pts', MagicPts: 'magic_pts', Sanity: 'sanity' };
+            const field = fieldMap[parsed.stat];
+            if (field) {
+              setMembers(prev => prev.map(m =>
+                m.id === msg.user_id ? { ...m, [field]: String(parsed.newVal) } : m
+              ));
+            }
+          }
+        } catch {}
+      }
 
       if (msg.type === 'roll') {
         const raw = typeof msg.content === 'string'
@@ -205,10 +230,49 @@ export default function CampaignRoomPage() {
     }
   }, [campaign, inRoom]);
 
+  // Fetch full sheet data whenever the active character changes
+  useEffect(() => {
+    if (!myCharacter?.id) { setMyCharFullData(null); return; }
+    apiClient.get('/characters/' + myCharacter.id)
+      .then(res => setMyCharFullData(res.data.character))
+      .catch(() => setMyCharFullData(null));
+  }, [myCharacter?.id]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => { clearCurrentRoom(); };
   }, []);
+
+  // ── Left-panel resize ─────────────────────────────────────────
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!isDraggingRef.current) return;
+      const next = Math.max(280, Math.min(640, dragStartWidthRef.current + (e.clientX - dragStartXRef.current)));
+      setLeftWidth(next);
+    };
+    const onUp = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current        = false;
+      document.body.style.cursor      = '';
+      document.body.style.userSelect  = '';
+      setLeftWidth(w => { localStorage.setItem('sheet-panel-width', w); return w; });
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+    };
+  }, []);
+
+  const handlePanelDragStart = (e) => {
+    isDraggingRef.current       = true;
+    dragStartXRef.current       = e.clientX;
+    dragStartWidthRef.current   = leftWidth;
+    document.body.style.cursor      = 'col-resize';
+    document.body.style.userSelect  = 'none';
+    e.preventDefault();
+  };
 
   // ── Send handler ──────────────────────────────────────────────
   const handleSend = async (inputText, shiftKey = false) => {
@@ -286,13 +350,27 @@ export default function CampaignRoomPage() {
     if (!socket || !inRoom) return;
     const suffix   = mode === 'adv' ? 'adv' : mode === 'dis' ? 'dis' : '';
     const notation = '1d100' + suffix;
-    socket.emit('roll_dice', {
-      campaignId:    parseInt(id),
-      notation,
-      skillName:     label,
-      skillValue:    value,
-      characterName: myCharacter?.name || null,
-    });
+
+    if (rollVisibility === 'only_me') {
+      apiClient.post('/campaigns/' + id + '/roll/hidden', {
+        notation, skillName: label, skillValue: value,
+      }).then(res => {
+        setMessages(prev => [...prev, {
+          ...res.data.message,
+          user_id:  user?.id,
+          username: user?.username,
+          _hidden:  true,
+        }]);
+      }).catch(() => {});
+    } else {
+      socket.emit('roll_dice', {
+        campaignId:    parseInt(id),
+        notation,
+        skillName:     label,
+        skillValue:    value,
+        characterName: myCharacter?.name || null,
+      });
+    }
     setRollPopup(null);
   };
 
@@ -300,11 +378,9 @@ export default function CampaignRoomPage() {
   const handleStatBlur = async (statKey, oldVal, newVal, characterId) => {
     if (oldVal === newVal || !characterId) return;
     try {
-      // Save to DB
       await apiClient.put('/characters/' + characterId + '/stat', {
         stat: statKey, value: newVal,
       });
-      // Broadcast to room
       socket?.emit('send_message', {
         campaignId:    parseInt(id),
         content:       JSON.stringify({
@@ -316,7 +392,45 @@ export default function CampaignRoomPage() {
         type:          'stat_change',
         characterName: myCharacter?.name || null,
       });
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error('[stat save] failed:', statKey, characterId, err?.response?.data || err?.message);
+    }
+  };
+
+  // ── Weapon attack handler ─────────────────────────────────────
+  const handleWeaponAttack = (weapon, matchedSkill, mode) => {
+    if (!socket || !inRoom) return;
+
+    const suffix   = mode === 'adv' ? 'adv' : mode === 'dis' ? 'dis' : '';
+    const notation = '1d100' + suffix;
+    const skillVal = weapon.regular
+      ? parseInt(weapon.regular)
+      : matchedSkill ? parseInt(matchedSkill.value) : null;
+
+    if (rollVisibility === 'only_me') {
+      apiClient.post('/campaigns/' + id + '/roll/hidden', {
+        notation,
+        skillName:  'Attack — ' + weapon.name,
+        skillValue: skillVal,
+      }).then(res => {
+        setMessages(prev => [...prev, {
+          ...res.data.message,
+          user_id:  user?.id,
+          username: user?.username,
+          _hidden:  true,
+        }]);
+      }).catch(() => {});
+    } else {
+      socket.emit('roll_dice', {
+        campaignId:    parseInt(id),
+        notation,
+        skillName:     'Attack — ' + weapon.name,
+        skillValue:    skillVal,
+        characterName: myCharacter?.name || null,
+        weaponDamage:  weapon.damage || null,
+        weaponName:    weapon.name,
+      });
+    }
   };
 
   // ── AFK toggle ────────────────────────────────────────────────
@@ -397,8 +511,7 @@ export default function CampaignRoomPage() {
     </div>
   );
 
-  // ── My character's sheet data ─────────────────────────────────
-  const myCharData = myCharacters.find(c => c.id === myCharacter?.id);
+  // myCharFullData is populated by the effect above whenever myCharacter changes
 
   return (
     <div style={{
@@ -510,12 +623,12 @@ export default function CampaignRoomPage() {
 
         {/* Left: character sheet OR Keeper player cards */}
         <div style={{
-          width:       '340px',
-          flexShrink:  0,
-          overflowY:   'auto',
-          borderRight: '1px solid var(--border-main)',
-          background:  'var(--bg-page)',
-          padding:     '12px',
+          width:      leftWidth + 'px',
+          minWidth:   '280px',
+          flexShrink: 0,
+          overflowY:  'auto',
+          background: 'var(--bg-page)',
+          padding:    '12px',
         }}>
           {myRole === 'keeper' ? (
             <>
@@ -548,13 +661,14 @@ export default function CampaignRoomPage() {
                 </div>
               )}
             </>
-          ) : myCharData ? (
+          ) : myCharFullData ? (
             <SessionSheet
-              charData={myCharData}
+              charData={myCharFullData}
               characterId={myCharacter?.id}
               advMode={advMode}
               disMode={disMode}
-              onElementClick={handleElementClick}
+              onStatRoll={(label, value, mode) => handlePopupRoll(mode, label, value)}
+              onWeaponAttack={handleWeaponAttack}
               onStatBlur={handleStatBlur}
             />
           ) : (
@@ -570,6 +684,21 @@ export default function CampaignRoomPage() {
             </div>
           )}
         </div>
+
+        {/* Resize handle */}
+        <div
+          onMouseDown={handlePanelDragStart}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--accent)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--border-main)'}
+          style={{
+            width:      '4px',
+            flexShrink: 0,
+            background: 'var(--border-main)',
+            cursor:     'col-resize',
+            transition: 'background 0.15s ease',
+            zIndex:     10,
+          }}
+        />
 
         {/* Middle: roll feed */}
         <div style={{
@@ -668,43 +797,6 @@ export default function CampaignRoomPage() {
           onChangeCharacter={handleChangeCharacter}
           campaignId={id}
         />
-      </div>
-    </div>
-  );
-}
-
-// ── SessionSheet placeholder ───────────────────────────────────
-// This is a thin wrapper — the full session-mode sheet rendering
-// (clickable skills, editable HP etc.) is scope for a follow-up.
-// For now it renders the character name and occupation as a stub.
-function SessionSheet({ charData, characterId, advMode, disMode, onElementClick, onStatBlur }) {
-  const inv     = charData?.sheet_data?.Investigator;
-  const details = inv?.PersonalDetails || {};
-
-  return (
-    <div style={{ padding: '16px', fontFamily: 'var(--font-sans)' }}>
-      <div style={{
-        fontFamily:   'var(--font-serif)',
-        fontSize:     '18px',
-        color:        'var(--text-primary)',
-        marginBottom: '4px',
-      }}>
-        {details.Name || 'Investigator'}
-      </div>
-      <div style={{ fontSize: '13px', color: 'var(--accent)', marginBottom: '16px' }}>
-        {details.Occupation}
-      </div>
-      <div style={{
-        padding:    '12px',
-        borderRadius:'8px',
-        border:     '1px solid var(--border-main)',
-        background: 'var(--bg-section-hd)',
-        fontSize:   '12px',
-        color:      'var(--text-faint)',
-        fontStyle:  'italic',
-        textAlign:  'center',
-      }}>
-        Full session sheet — Phase 9
       </div>
     </div>
   );

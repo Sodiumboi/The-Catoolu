@@ -211,16 +211,24 @@ router.get('/:id', async (req, res) => {
          cm.role,
          cm.joined_at,
          cm.character_id,
-         (
-           SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Name'
-           FROM characters
-           WHERE id = cm.character_id
-         ) AS character_name,
-         (
-           SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Occupation'
-           FROM characters
-           WHERE id = cm.character_id
-         ) AS character_occupation
+         (SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Name'
+          FROM characters WHERE id = cm.character_id) AS character_name,
+         (SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Occupation'
+          FROM characters WHERE id = cm.character_id) AS character_occupation,
+         (SELECT sheet_data->'Investigator'->'Characteristics'->>'HitPts'
+          FROM characters WHERE id = cm.character_id) AS hit_pts,
+         (SELECT sheet_data->'Investigator'->'Characteristics'->>'HitPtsMax'
+          FROM characters WHERE id = cm.character_id) AS hit_pts_max,
+         (SELECT sheet_data->'Investigator'->'Characteristics'->>'MagicPts'
+          FROM characters WHERE id = cm.character_id) AS magic_pts,
+         (SELECT sheet_data->'Investigator'->'Characteristics'->>'MagicPtsMax'
+          FROM characters WHERE id = cm.character_id) AS magic_pts_max,
+         (SELECT sheet_data->'Investigator'->'Characteristics'->>'Sanity'
+          FROM characters WHERE id = cm.character_id) AS sanity,
+         (SELECT sheet_data->'Investigator'->'Characteristics'->>'SanityStart'
+          FROM characters WHERE id = cm.character_id) AS sanity_max,
+         (SELECT portrait_data
+          FROM characters WHERE id = cm.character_id) AS portrait
        FROM campaign_members cm
        JOIN users u ON cm.user_id = u.id
        WHERE cm.campaign_id = $1
@@ -314,17 +322,23 @@ router.get('/:id/messages', async (req, res) => {
     let query;
     let params;
 
-    const characterSubquery = (col, alias) => `(
-      SELECT sheet_data->'Investigator'->'PersonalDetails'->>'${col}'
+    const portraitSubquery = `(
+      SELECT c.portrait_data
       FROM characters c
       JOIN campaign_members cm ON cm.character_id = c.id
       WHERE cm.campaign_id = m.campaign_id
         AND cm.user_id = m.user_id
       LIMIT 1
-    ) AS ${alias}`;
+    ) AS portrait`;
 
-    const portraitSubquery   = characterSubquery('Portrait', 'portrait');
-    const charNameSubquery   = characterSubquery('Name',     'character_name');
+    const charNameSubquery = `(
+      SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Name'
+      FROM characters c
+      JOIN campaign_members cm ON cm.character_id = c.id
+      WHERE cm.campaign_id = m.campaign_id
+        AND cm.user_id = m.user_id
+      LIMIT 1
+    ) AS character_name`;
 
     if (before) {
       query = `
@@ -466,7 +480,7 @@ router.post('/:id/roll/hidden', async (req, res) => {
     const [userRes, charRes] = await Promise.all([
       pool.query('SELECT avatar_url FROM users WHERE id=$1', [req.user.id]),
       pool.query(
-        `SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Portrait' AS portrait
+        `SELECT c.portrait_data AS portrait
          FROM characters c
          JOIN campaign_members cm ON cm.character_id = c.id
          WHERE cm.campaign_id=$1 AND cm.user_id=$2 LIMIT 1`,

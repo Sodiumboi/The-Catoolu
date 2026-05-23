@@ -43,7 +43,14 @@ export default function RollFeed({ messages, currentUserId, chatFilter }) {
         const isOwn = msg.user_id === currentUserId;
         if (msg.type === 'system')    return <SystemMessage  key={msg.id || i} msg={msg} />;
         if (msg.type === 'roll')      return <RollCard       key={msg.id || i} msg={msg} isOwn={isOwn} />;
-        if (msg.type === 'stat_change') return <StatValueCard key={msg.id || i} msg={msg} />;
+        if (msg.type === 'stat_change') return <StatValueCard key={msg.id || i} msg={msg} isOwn={isOwn} />;
+        // Chat messages that carry stat-change JSON (stored as 'chat' due to DB constraint)
+        if (msg.type === 'chat') {
+          try {
+            const d = JSON.parse(msg.content);
+            if (d?.stat) return <StatValueCard key={msg.id || i} msg={msg} isOwn={isOwn} />;
+          } catch {}
+        }
         return <ChatBubble key={msg.id || i} msg={msg} isOwn={isOwn} />;
       })}
       <div ref={bottomRef} />

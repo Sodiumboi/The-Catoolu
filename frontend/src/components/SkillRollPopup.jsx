@@ -1,12 +1,25 @@
 export default function SkillRollPopup({
   label, value, defaultMode,
   onRoll, onClose,
+  buttonRect,
 }) {
   const modes = [
     { key: 'normal', label: 'Normal' },
     { key: 'adv',    label: 'Adv'    },
     { key: 'dis',    label: 'Dis'    },
   ];
+
+  const fixedStyle = buttonRect ? {
+    position:  'fixed',
+    top:       buttonRect.bottom + 8,
+    left:      buttonRect.left + buttonRect.width / 2,
+    transform: 'translateX(-50%)',
+  } : {
+    position:  'absolute',
+    bottom:    'calc(100% + 8px)',
+    left:      '50%',
+    transform: 'translateX(-50%)',
+  };
 
   return (
     <>
@@ -20,10 +33,7 @@ export default function SkillRollPopup({
 
       {/* Popup */}
       <div style={{
-        position:     'absolute',
-        bottom:       'calc(100% + 8px)',
-        left:         '50%',
-        transform:    'translateX(-50%)',
+        ...fixedStyle,
         background:   'var(--bg-card)',
         border:       '1px solid var(--border-main)',
         borderRadius: '10px',

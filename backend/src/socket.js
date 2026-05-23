@@ -168,8 +168,8 @@ function setupSocket(httpServer) {
         const [userRes, charRes] = await Promise.all([
           pool.query('SELECT avatar_url FROM users WHERE id = $1', [socket.user.id]),
           pool.query(
-            `SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Portrait' AS portrait,
-                    sheet_data->'Investigator'->'PersonalDetails'->>'Name'      AS character_name
+            `SELECT c.portrait_data AS portrait,
+                    sheet_data->'Investigator'->'PersonalDetails'->>'Name' AS character_name
              FROM characters c
              JOIN campaign_members cm ON cm.character_id = c.id
              WHERE cm.campaign_id = $1 AND cm.user_id = $2
@@ -277,8 +277,8 @@ function setupSocket(httpServer) {
         const [userRes, charRes] = await Promise.all([
           pool.query('SELECT avatar_url FROM users WHERE id = $1', [socket.user.id]),
           pool.query(
-            `SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Portrait' AS portrait,
-                    sheet_data->'Investigator'->'PersonalDetails'->>'Name'      AS character_name
+            `SELECT c.portrait_data AS portrait,
+                    sheet_data->'Investigator'->'PersonalDetails'->>'Name' AS character_name
              FROM characters c
              JOIN campaign_members cm ON cm.character_id = c.id
              WHERE cm.campaign_id = $1 AND cm.user_id = $2
@@ -302,6 +302,59 @@ function setupSocket(httpServer) {
 
         // Broadcast to everyone in the room
         io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, message);
+
+        // Auto-roll damage when a weapon attack hits
+        const isAttack   = payload.weaponDamage && payload.weaponName;
+        const sl         = result.successLevel;
+        const isHit      = sl && (
+          sl.severity === 'critical' ||
+          sl.severity === 'extreme'  ||
+          sl.severity === 'hard'     ||
+          sl.severity === 'regular'
+        );
+        console.log('isAttack:', isAttack, 'isHit:', isHit, 'severity:', sl?.severity, 'weaponDamage:', payload.weaponDamage);
+
+        if (isAttack && isHit) {
+          const damageNotation = payload.weaponDamage
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/db/g, '')
+            .replace(/\+$/, '')
+            .trim();
+
+          if (damageNotation && damageNotation !== '—') {
+            const damageResult = roll(damageNotation);
+
+            if (!damageResult.error) {
+              const damageContent = JSON.stringify({
+                ...damageResult,
+                isDamage:   true,
+                weaponName: payload.weaponName,
+              });
+
+              const dmgDbResult = await pool.query(
+                `INSERT INTO messages (campaign_id, user_id, type, content)
+                 VALUES ($1, $2, 'roll', $3)
+                 RETURNING id, type, content, created_at`,
+                [campaignId, socket.user.id, damageContent]
+              );
+
+              const damageMessage = {
+                ...dmgDbResult.rows[0],
+                user_id:        socket.user.id,
+                username:       socket.user.username,
+                avatar_url:     userRes.rows[0]?.avatar_url     || null,
+                portrait:       charRes.rows[0]?.portrait       || null,
+                content:        { ...damageResult, isDamage: true, weaponName: payload.weaponName },
+                character_name: charRes.rows[0]?.character_name || null,
+              };
+
+              setTimeout(() => {
+                io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, damageMessage);
+              }, 300);
+            }
+          }
+        }
 
         // Save notification for all other members and push live ping
         const membersRes = await pool.query(

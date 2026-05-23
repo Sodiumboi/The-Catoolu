@@ -256,7 +256,7 @@ router.put('/:id/stat', async (req, res) => {
       `UPDATE characters
        SET sheet_data = jsonb_set(
          sheet_data,
-         '{Investigator,Characteristics,' || $1 || '}',
+         ARRAY['Investigator', 'Characteristics', $1],
          to_jsonb($2::text)
        )
        WHERE id = $3 AND user_id = $4`,

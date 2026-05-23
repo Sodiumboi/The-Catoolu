@@ -23,36 +23,26 @@ function formatDie(value, sides) {
 }
 
 // ── Digit Box ─────────────────────────────────────────────────
-function DigitBox({ digit, highlighted, fumble }) {
-  const borderColor = fumble
-    ? 'var(--roll-fumble-border)'
-    : highlighted ? 'var(--color-primary)' : 'var(--border-main)';
-  const bg = fumble
-    ? 'var(--bg-input)'
-    : highlighted ? 'var(--accent-bg)' : 'var(--bg-input)';
-  const color = fumble
-    ? 'var(--roll-fumble-text)'
-    : highlighted ? 'var(--color-primary)' : 'var(--text-primary)';
-  const shadow = fumble
-    ? '0 0 0 2px rgba(127, 0, 0, 0.2)'
-    : highlighted ? '0 0 0 2px var(--color-primary-light)' : 'none';
-
+function DigitBox({ digit, severity = 'none' }) {
+  const isNone = severity === 'none';
   return (
     <div style={{
-      width:         '48px',
-      minWidth:      '48px',
-      height:        '56px',
+      width:         '42px',
+      minWidth:      '42px',
+      height:        '50px',
       borderRadius:  '6px',
-      border:        `2px solid ${borderColor}`,
-      background:    bg,
+      border:        isNone
+        ? '2px solid var(--text-muted)'
+        : `2px solid var(--roll-${severity}-border)`,
+      background:    'var(--bg-input)',
       display:       'flex',
       alignItems:    'center',
       justifyContent:'center',
       fontFamily:    'var(--font-serif)',
-      fontSize:      '28px',
+      fontSize:      '24px',
       fontWeight:    '700',
-      color,
-      boxShadow:     shadow,
+      color:         isNone ? 'var(--text-primary)' : `var(--roll-${severity}-text)`,
+      boxShadow:     !isNone ? `0 0 2px var(--roll-${severity}-border)` : 'none',
     }}>
       {digit}
     </div>
@@ -60,18 +50,18 @@ function DigitBox({ digit, highlighted, fumble }) {
 }
 
 // ── Single die → digit boxes (adv/dis path) ───────────────────
-function RollDigits({ value, sides, highlighted = true, fumble = false }) {
+function RollDigits({ value, sides, severity = 'none' }) {
   return (
-    <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+    <div style={{ display: 'flex', gap: '2px', justifyContent: 'center' }}>
       {formatDie(value, sides).map((d, i) => (
-        <DigitBox key={i} digit={d} highlighted={highlighted} fumble={fumble} />
+        <DigitBox key={i} digit={d} severity={severity} />
       ))}
     </div>
   );
 }
 
 // ── Multiple dice → per-die groups with separator bars ────────
-function MultiDieDisplay({ rolls, sides, highlighted = true, fumble = false }) {
+function MultiDieDisplay({ rolls, sides, severity = 'none' }) {
   const items = [];
   rolls.forEach((dieValue, dieIndex) => {
     if (dieIndex > 0) {
@@ -86,9 +76,9 @@ function MultiDieDisplay({ rolls, sides, highlighted = true, fumble = false }) {
       );
     }
     items.push(
-      <div key={'die-' + dieIndex} style={{ display: 'flex', gap: '4px' }}>
+      <div key={'die-' + dieIndex} style={{ display: 'flex', gap: '2px' }}>
         {formatDie(dieValue, sides).map((digit, digitIndex) => (
-          <DigitBox key={digitIndex} digit={digit} highlighted={highlighted} fumble={fumble} />
+          <DigitBox key={digitIndex} digit={digit} severity={severity} />
         ))}
       </div>
     );
@@ -130,8 +120,9 @@ export default function RollCard({ msg, isOwn }) {
 
   const sl           = raw.successLevel;
   const severity     = sl?.severity || 'none';
+  const isHit        = ['critical', 'extreme', 'hard', 'regular'].includes(severity);
   const sides        = getSides(raw.notation);
-  const isFumble     = sides === 100 && raw.total === 100;
+
   const showPortrait = msg.portrait || msg.avatar_url;
   const isAdv        = raw.advantage;
   const isDis        = raw.disadvantage;
@@ -143,7 +134,9 @@ export default function RollCard({ msg, isOwn }) {
     : (msg.username || 'Someone');
 
   let header;
-  if (raw.skillName) {
+  if (raw.isDamage) {
+    header = (displayName || msg.username).trim() + ' deals damage';
+  } else if (raw.skillName) {
     const weaponSkills = ['brawl', 'handgun', 'rifle', 'shotgun', 'fighting'];
     const isAttack = weaponSkills.some(w => raw.skillName.toLowerCase().includes(w));
     if (isAttack) {
@@ -220,6 +213,7 @@ export default function RollCard({ msg, isOwn }) {
               color:        'var(--roll-' + severity + '-text)',
               fontWeight:   '700',
               marginBottom: '8px',
+              textAlign:    'center',
             }}>
               {raw.skillName}
               {raw.advantage    && ' (Advantage)'}
@@ -254,10 +248,9 @@ export default function RollCard({ msg, isOwn }) {
                   <RollDigits
                     value={raw.advDisRolls[0].reduce((a, b) => a + b, 0)}
                     sides={sides}
-                    highlighted={isAdv
-                      ? raw.advDisRolls[0][0] <= raw.advDisRolls[1][0]
-                      : raw.advDisRolls[0][0] >= raw.advDisRolls[1][0]}
-                    fumble={isFumble}
+                    severity={isAdv
+                      ? (raw.advDisRolls[0][0] <= raw.advDisRolls[1][0] ? severity : 'none')
+                      : (raw.advDisRolls[0][0] >= raw.advDisRolls[1][0] ? severity : 'none')}
                   />
                   <div style={{
                     width:        '2px',
@@ -268,18 +261,16 @@ export default function RollCard({ msg, isOwn }) {
                   <RollDigits
                     value={raw.advDisRolls[1].reduce((a, b) => a + b, 0)}
                     sides={sides}
-                    highlighted={isDis
-                      ? raw.advDisRolls[1][0] >= raw.advDisRolls[0][0]
-                      : raw.advDisRolls[1][0] <= raw.advDisRolls[0][0]}
-                    fumble={isFumble}
+                    severity={isDis
+                      ? (raw.advDisRolls[1][0] >= raw.advDisRolls[0][0] ? severity : 'none')
+                      : (raw.advDisRolls[1][0] <= raw.advDisRolls[0][0] ? severity : 'none')}
                   />
                 </>
               ) : (
                 <MultiDieDisplay
                   rolls={raw.rolls || [raw.total]}
                   sides={sides}
-                  highlighted
-                  fumble={isFumble}
+                  severity={severity}
                 />
               )}
             </div>
@@ -312,6 +303,23 @@ export default function RollCard({ msg, isOwn }) {
             </div>
           )}
 
+          {/* Damage total */}
+          {raw.isDamage && (
+            <div style={{
+              textAlign:  'center',
+              fontSize:   '12px',
+              color:      'var(--roll-none-text)',
+              marginTop:  '4px',
+              fontFamily: 'var(--font-sans)',
+            }}>
+              {raw.weaponName} · {raw.rolls.join(' + ')}
+              {raw.modifier !== 0
+                ? (raw.modifier > 0 ? ' + ' : ' − ') + Math.abs(raw.modifier)
+                : ''}
+              {' = '}
+              <strong>{raw.total}</strong>
+            </div>
+          )}
 
           {/* Result label */}
           <div style={{
@@ -329,6 +337,35 @@ export default function RollCard({ msg, isOwn }) {
               </span>
             )}
           </div>
+
+          {/* Reg success threshold */}
+          {sl && raw.skillValue && (
+            <div style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize:   '11px',
+              color:      'var(--text-faint)',
+              textAlign:  'center',
+              marginTop:  '2px',
+            }}>
+              Reg ({raw.skillValue})
+            </div>
+          )}
+
+          {/* Hit / miss label for weapon attack rolls */}
+          {!raw.isDamage && raw.skillName?.startsWith('Attack') && sl && (
+            <div style={{
+              fontSize:   '12px',
+              fontWeight: '700',
+              textAlign:  'center',
+              color:      isHit ? 'var(--roll-regular-text)' : 'var(--roll-failure-text)',
+              marginTop:  '2px',
+              fontFamily: 'var(--font-sans)',
+            }}>
+              {isHit
+                ? 'Hit! (' + raw.skillValue + ')'
+                : 'Not Hit! (' + raw.skillValue + ')'}
+            </div>
+          )}
 
           <div style={{
             fontSize:  '10px',

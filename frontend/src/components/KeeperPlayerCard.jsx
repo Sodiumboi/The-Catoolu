@@ -18,7 +18,7 @@ export default function KeeperPlayerCard({ member }) {
         paddingBottom: '10px',
         borderBottom:  '1px solid var(--border-main)',
       }}>
-        {/* Portrait placeholder */}
+        {/* Portrait */}
         <div style={{
           width:          '44px',
           height:         '44px',
@@ -34,7 +34,15 @@ export default function KeeperPlayerCard({ member }) {
           overflow:       'hidden',
           border:         '1px solid var(--border-main)',
         }}>
-          {(character_name || username || '?').slice(0, 1).toUpperCase()}
+          {member.portrait ? (
+            <img
+              src={'data:image/jpeg;base64,' + member.portrait}
+              alt={character_name || username}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            (character_name || username || '?').slice(0, 1).toUpperCase()
+          )}
         </div>
 
         <div>
@@ -63,11 +71,11 @@ export default function KeeperPlayerCard({ member }) {
         gap:                 '6px',
       }}>
         {[
-          { label: 'HP',  key: 'HitPts',   color: 'var(--danger)'  },
-          { label: 'MP',  key: 'MagicPts', color: '#3B82F6'        },
-          { label: 'SAN', key: 'Sanity',   color: 'var(--warning)' },
+          { label: 'HP',  cur: member.hit_pts,   max: member.hit_pts_max,   color: 'var(--danger)'  },
+          { label: 'MP',  cur: member.magic_pts,  max: member.magic_pts_max, color: '#3B82F6'        },
+          { label: 'SAN', cur: member.sanity,     max: member.sanity_max,    color: 'var(--warning)' },
         ].map(stat => (
-          <div key={stat.key} style={{
+          <div key={stat.label} style={{
             textAlign:  'center',
             background: 'var(--bg-section-hd)',
             borderRadius:'6px',
@@ -85,11 +93,11 @@ export default function KeeperPlayerCard({ member }) {
             </div>
             <div style={{
               fontFamily: 'var(--font-serif)',
-              fontSize:   '18px',
+              fontSize:   '16px',
               fontWeight: '700',
               color:      stat.color,
             }}>
-              {member[stat.key] ?? '—'}
+              {stat.cur ?? '—'}{stat.max ? '/' + stat.max : ''}
             </div>
           </div>
         ))}
