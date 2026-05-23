@@ -51,6 +51,9 @@ services:
     expose:
       - "3001"
 
+    volumes:
+      - uploads_data:/app/uploads
+
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/health || exit 1"]
       interval: 30s
@@ -78,3 +81,4 @@ volumes:
   postgres_data:
     # This volume lives at /var/lib/docker/volumes/coc-manager_postgres_data
     # on your ZimaOS server — data survives container restarts
+  uploads_data:
