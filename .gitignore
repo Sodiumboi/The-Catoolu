@@ -10,3 +10,4 @@ docker-compose.yml
 docker-compose copy.yml
 .gitignore
 Srec
+package.json
