@@ -385,7 +385,7 @@ export default function RollCard({ msg, isOwn }) {
               marginTop: '4px',
               textAlign: 'center',
             }}>
-              🔒 Only visible to you
+              <span className="icon icon-sm">lock</span>{' '}Only visible to you
             </div>
           )}
         </div>

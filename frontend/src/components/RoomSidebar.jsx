@@ -2,9 +2,9 @@ import { useState } from 'react';
 import FairnessTester from './FairnessTester';
 
 const TABS = [
-  { id: 'chat',     icon: '💬', label: 'Chat',     hasPanel: false },
-  { id: 'players',  icon: '👥', label: 'Players',  hasPanel: true  },
-  { id: 'settings', icon: '⚙️', label: 'Settings', hasPanel: true  },
+  { id: 'chat',     icon: 'chat',     label: 'Chat',     hasPanel: false },
+  { id: 'players',  icon: 'group',    label: 'Players',  hasPanel: true  },
+  { id: 'settings', icon: 'settings', label: 'Settings', hasPanel: true  },
 ];
 
 export default function RoomSidebar({
@@ -65,7 +65,7 @@ export default function RoomSidebar({
                 e.currentTarget.style.background = 'transparent';
             }}
           >
-            {tab.icon}
+            <span className="icon icon-md">{tab.icon}</span>
           </button>
         ))}
 
@@ -87,7 +87,7 @@ export default function RoomSidebar({
             marginTop:    'auto',
           }}
         >
-          ❓
+          <span className="icon icon-md">help</span>
         </button>
       </div>
 

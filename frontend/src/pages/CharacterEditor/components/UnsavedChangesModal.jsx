@@ -22,7 +22,7 @@ export default function UnsavedChangesModal({ changedSections, onCancel, onDisca
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <span style={{ fontSize: '22px' }}>⚠️</span>
+          <span className="icon" style={{ fontSize: '22px' }}>warning</span>
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--text-primary)', margin: 0 }}>
             Unsaved Changes
           </h2>
@@ -64,7 +64,7 @@ export default function UnsavedChangesModal({ changedSections, onCancel, onDisca
             style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: saving ? 'var(--text-muted)' : 'var(--color-primary)', color: '#ffffff', fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: '500', cursor: saving ? 'not-allowed' : 'pointer', transition: 'background 0.15s ease' }}
             onMouseEnter={e => { if (!saving) e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
             onMouseLeave={e => { if (!saving) e.currentTarget.style.background = 'var(--color-primary)'; }}>
-            {saving ? 'Saving...' : '💾 Save & Leave'}
+            {saving ? 'Saving...' : <><span className="icon icon-sm">save</span>{' '}Save & Leave</>}
           </button>
         </div>
       </div>

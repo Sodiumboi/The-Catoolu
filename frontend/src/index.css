@@ -294,3 +294,26 @@ input[type='number'] {
   animation: shimmer 1.2s ease-in-out infinite;
   border-radius: 6px;
 }
+
+
+.icon {
+  font-family:             'Material Symbols Outlined';
+  font-weight:             normal;
+  font-style:              normal;
+  font-size:               20px;
+  line-height:             1;
+  letter-spacing:          normal;
+  text-transform:          none;
+  display:                 inline-block;
+  white-space:             nowrap;
+  word-wrap:               normal;
+  direction:               ltr;
+  -webkit-font-smoothing:  antialiased;
+  user-select:             none;
+  vertical-align:          middle;
+}
+
+/* Size variants */
+.icon-sm { font-size: 16px; }
+.icon-md { font-size: 20px; }
+.icon-lg { font-size: 24px; }

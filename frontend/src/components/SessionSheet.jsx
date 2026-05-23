@@ -158,10 +158,8 @@ export default function SessionSheet({
 
   return (
     <div style={{
-      height:        '100%',
-      overflowY:     'auto',
-      fontFamily:    'var(--font-sans)',
-      background:    'var(--bg-page)',
+      fontFamily: 'var(--font-sans)',
+      background: 'var(--bg-page)',
     }}>
 
       {/* ── Personal Details ── */}
@@ -222,34 +220,38 @@ export default function SessionSheet({
 
       {/* ── Tracked Stats ── */}
       <div style={{
-        display:     'flex',
-        gap:         '8px',
         padding:     '10px 12px',
         borderBottom:'1px solid var(--border-main)',
-        flexWrap:    'wrap',
-        justifyContent:'center',
       }}>
-        <SessionTrackedStat
-          label="HP" statKey="HitPts"
-          maxVal={chars.HitPtsMax}   currentVal={chars.HitPts}
-          onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
-        />
-        <SessionTrackedStat
-          label="MP" statKey="MagicPts"
-          maxVal={chars.MagicPtsMax} currentVal={chars.MagicPts}
-          onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
-        />
-        <SessionTrackedStat
-          label="Luck" statKey="Luck"
-          maxVal={chars.LuckMax}     currentVal={chars.Luck}
-          onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
-        />
-        <SessionTrackedStat
-          label="Sanity" statKey="Sanity"
-          maxVal={chars.SanityStart} currentVal={chars.Sanity}
-          insaneVal={chars.SanityMax}
-          onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
-        />
+        {/* HP / MP / Luck / Sanity — single row */}
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'flex-start' }}>
+          <SessionTrackedStat
+            label="HP" statKey="HitPts"
+            maxVal={chars.HitPtsMax}   currentVal={chars.HitPts}
+            onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
+          />
+          <div style={{ width: '1px', background: 'var(--border-main)', alignSelf: 'stretch', margin: '4px 0' }} />
+          <SessionTrackedStat
+            label="MP" statKey="MagicPts"
+            maxVal={chars.MagicPtsMax} currentVal={chars.MagicPts}
+            onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
+          />
+          <div style={{ width: '1px', background: 'var(--border-main)', alignSelf: 'stretch', margin: '4px 0' }} />
+          <SessionTrackedStat
+            label="Luck" statKey="Luck"
+            maxVal={chars.LuckMax}     currentVal={chars.Luck}
+            onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
+          />
+          <div style={{ width: '1px', background: 'var(--border-main)', alignSelf: 'stretch', margin: '4px 0' }} />
+          <SessionTrackedStat
+            label="Sanity" statKey="Sanity"
+            maxVal={chars.SanityStart} currentVal={chars.Sanity}
+            insaneVal={chars.SanityMax}
+            onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
+            rollable
+            onRoll={() => onStatRoll('Sanity', parseInt(chars.Sanity) || parseInt(chars.SanityStart) || 0, advMode ? 'adv' : disMode ? 'dis' : 'normal')}
+          />
+        </div>
       </div>
 
       {/* ── Characteristics ── */}

@@ -9,10 +9,16 @@ export default function SkillRollPopup({
     { key: 'dis',    label: 'Dis'    },
   ];
 
+  const POPUP_W = 180;
+  const rawCenter = buttonRect ? buttonRect.left + buttonRect.width / 2 : 0;
+  const clampedLeft = buttonRect
+    ? Math.max(POPUP_W / 2 + 8, Math.min(window.innerWidth - POPUP_W / 2 - 8, rawCenter))
+    : 0;
+
   const fixedStyle = buttonRect ? {
     position:  'fixed',
     top:       buttonRect.bottom + 8,
-    left:      buttonRect.left + buttonRect.width / 2,
+    left:      clampedLeft,
     transform: 'translateX(-50%)',
   } : {
     position:  'absolute',

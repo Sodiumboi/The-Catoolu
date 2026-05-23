@@ -164,10 +164,9 @@ export default function DashboardPage() {
                   left:          '10px',
                   top:           '50%',
                   transform:     'translateY(-50%)',
-                  fontSize:      '14px',
                   pointerEvents: 'none',
                 }}>
-                  🔍
+                  <span className="icon icon-sm">search</span>
                 </span>
                 <input
                   type="text"
@@ -200,13 +199,12 @@ export default function DashboardPage() {
                       background: 'none',
                       border:     'none',
                       cursor:     'pointer',
-                      fontSize:   '12px',
                       color:      'var(--text-muted)',
                       padding:    '2px',
                       lineHeight: 1,
                     }}
                   >
-                    ✕
+                    <span className="icon icon-sm">close</span>
                   </button>
                 )}
               </div>
@@ -218,8 +216,8 @@ export default function DashboardPage() {
         {error && (
           <div className="mb-6 px-4 py-3 rounded text-sm flex items-center justify-between"
                style={{ background: 'var(--danger)22', color: 'var(--danger)', border: '1px solid var(--danger)' }}>
-            <span>⚠ {error}</span>
-            <button onClick={() => setError('')} style={{ color: 'var(--danger)', opacity: 0.7 }}>✕</button>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:'4px' }}><span className="icon icon-sm">warning</span>{error}</span>
+            <button onClick={() => setError('')} style={{ color: 'var(--danger)', opacity: 0.7 }}><span className="icon icon-sm">close</span></button>
           </div>
         )}
 
@@ -237,7 +235,7 @@ export default function DashboardPage() {
         /* Empty state */
         ) : characters.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="text-6xl mb-6 opacity-30">📜</div>
+            <div className="mb-6 opacity-30"><span className="icon" style={{ fontSize:'56px' }}>history_edu</span></div>
             <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
               The vault is empty
             </h3>
@@ -251,14 +249,14 @@ export default function DashboardPage() {
                 background: 'var(--accent)',
                 color: 'var(--bg-input)',
               }}>
-              📂 Import Your First Character
+              <span className="icon icon-sm">folder_open</span>{' '}Import Your First Character
             </button>
           </div>
 
         /* No search results */
         ) : filteredCharacters.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.3 }}>🔍</div>
+            <div style={{ marginBottom: '12px', opacity: 0.3 }}><span className="icon" style={{ fontSize:'40px' }}>search</span></div>
             <p style={{
               fontFamily: 'var(--font-sans)',
               fontSize:   '15px',

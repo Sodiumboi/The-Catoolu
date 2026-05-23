@@ -47,7 +47,7 @@ export default function Weapons({
             color:      showPresets ? 'var(--bg-page)' : 'var(--accent)',
             border:     '1.5px solid var(--border-input)',
           }}>
-          📋 {showPresets ? 'Hide Presets' : 'Add from Preset List'}
+          <span className="icon icon-sm">content_copy</span>{' '}{showPresets ? 'Hide Presets' : 'Add from Preset List'}
         </button>
       </div>
 

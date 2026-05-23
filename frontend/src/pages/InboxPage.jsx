@@ -117,7 +117,9 @@ export default function InboxPage() {
         {/* Empty */}
         {!loading && notifications.length === 0 && (
           <div style={{ textAlign:'center', padding:'80px 20px' }}>
-            <div style={{ fontSize:'48px', marginBottom:'12px', opacity:0.3 }}>🔔</div>
+            <div style={{ marginBottom:'12px', opacity:0.3 }}>
+              <span className="icon" style={{ fontSize:'48px' }}>notifications</span>
+            </div>
             <p style={{
               fontFamily:'var(--font-serif)', fontSize:'18px',
               color:'var(--text-primary)', margin:'0 0 8px',
@@ -143,7 +145,7 @@ export default function InboxPage() {
                   textTransform:'uppercase', letterSpacing:'0.08em',
                   color:'var(--accent)', marginBottom:'4px',
                 }}>
-                  📌 Invites
+                  <span className="icon icon-sm">push_pin</span>{' '}Invites
                 </div>
                 {notifications
                   .filter(n => n.is_pinned)
@@ -278,8 +280,10 @@ function NotifCard({ notif, onDismiss, onClick }) {
             fontSize:'11px', color:'var(--accent)',
             marginBottom:'3px',
           }}>
-            {notif.type === 'roll' ? '🎲 ' : '💬 '}
-            {notif.campaign_name}
+            {notif.type === 'roll'
+              ? <span className="icon icon-sm">casino</span>
+              : <span className="icon icon-sm">chat</span>
+            }{' '}{notif.campaign_name}
           </div>
         )}
         <p style={{
@@ -300,7 +304,7 @@ function NotifCard({ notif, onDismiss, onClick }) {
           padding:'0', lineHeight:1, flexShrink:0,
         }}
       >
-        ✕
+        <span className="icon icon-sm">close</span>
       </button>
     </div>
   );

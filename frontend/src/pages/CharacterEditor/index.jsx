@@ -161,8 +161,8 @@ export default function CharacterEditorPage() {
 
         {/* Right */}
         <div className="flex items-center gap-3">
-          {error && <span style={{ fontSize: '12px', color: 'var(--danger)' }}>⚠ {error}</span>}
-          {saved && <span style={{ fontSize: '12px', color: 'var(--success)' }}>✓ Saved!</span>}
+          {error && <span style={{ fontSize: '12px', color: 'var(--danger)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">warning</span>{error}</span>}
+          {saved && <span style={{ fontSize: '12px', color: 'var(--success)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">check</span>Saved!</span>}
           <button onClick={handleExport}
                   style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '13px', border: '1px solid var(--success)', background: 'transparent', color: 'var(--success)', cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
@@ -178,7 +178,10 @@ export default function CharacterEditorPage() {
                     cursor:      saving ? 'not-allowed' : 'pointer',
                     transition:  'all 0.2s ease',
                   }}>
-            {saving ? 'Saving...' : isDirty ? '💾 Save*' : '✓ Saved'}
+            {saving ? 'Saving...' : isDirty
+              ? <><span className="icon icon-sm">save</span>{' '}Save*</>
+              : <><span className="icon icon-sm">check</span>{' '}Saved</>
+            }
           </button>
         </div>
       </div>
@@ -237,7 +240,7 @@ export default function CharacterEditorPage() {
           <button onClick={handleSave} disabled={saving}
                   className="px-6 py-3 rounded text-sm font-bold"
                   style={{ background: saving ? '#6b5000' : 'var(--accent)', color: 'var(--bg-input)' }}>
-            {saving ? 'Saving...' : '💾 Save Character'}
+            {saving ? 'Saving...' : <><span className="icon icon-sm">save</span>{' '}Save Character</>}
           </button>
         </div>
       </div>
@@ -259,8 +262,8 @@ export default function CharacterEditorPage() {
               Character UUID
             </span>
             <button onClick={() => setShowUuid(false)}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: '0 2px' }}>
-              ✕
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', lineHeight: 1, padding: '0 2px' }}>
+              <span className="icon icon-sm">close</span>
             </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

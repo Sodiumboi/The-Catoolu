@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
+import ReadOnlySheet from './ReadOnlySheet';
 
 const TABS = [
   { id: 'info',        label: 'Info'        },
   { id: 'handouts',    label: 'Handouts'    },
-  { id: 'danger-zone', label: '⚠ Danger Zone' },
+  { id: 'danger-zone', label: 'Danger Zone', icon: 'warning' },
 ];
 
 export default function KeeperCampaignDetail({ campaign, onBack }) {
@@ -64,7 +65,7 @@ export default function KeeperCampaignDetail({ campaign, onBack }) {
             fontFamily:'var(--font-sans)',
           }}
         >
-          ← Back
+          <span className="icon icon-sm">arrow_back</span>{' '}Back
         </button>
 
         {/* Campaign name */}
@@ -104,6 +105,7 @@ export default function KeeperCampaignDetail({ campaign, onBack }) {
               transition:   'all 0.1s ease',
             }}
           >
+            {tab.icon && <span className="icon icon-sm" style={{ marginRight: '4px' }}>{tab.icon}</span>}
             {tab.label}
           </button>
         ))}
@@ -193,7 +195,26 @@ function InfoTab({
   const [description, setDescription] = useState(campaign.description || '');
   const [saving,      setSaving]      = useState(false);
   const [saveMsg,     setSaveMsg]     = useState('');
-  const [sheetModal,  setSheetModal]  = useState(null); // null | { name, occupation }
+  const [sheetModal,  setSheetModal]  = useState(null);
+
+  const handleOpenSheet = async (member) => {
+    try {
+      const res = await apiClient.get('/characters/' + member.character_id);
+      setSheetModal({
+        name:        member.character_name,
+        occupation:  member.character_occupation,
+        characterId: member.character_id,
+        charData:    res.data.character,
+      });
+    } catch {
+      setSheetModal({
+        name:        member.character_name,
+        occupation:  member.character_occupation,
+        characterId: member.character_id,
+        charData:    null,
+      });
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) return;
@@ -284,7 +305,7 @@ function InfoTab({
                   fontFamily:'var(--font-sans)',
                 }}
               >
-                ✏ Edit
+                <span className="icon icon-sm">edit</span>{' '}Edit
               </button>
             </div>
             {campaign.description && (
@@ -358,8 +379,11 @@ function InfoTab({
               }}>
                 {campaign.invite_code}
               </span>
-              <span style={{ fontSize:'13px', color:'var(--text-muted)' }}>
-                {inviteCopied ? '✓ Copied!' : '📋 Click to copy'}
+              <span style={{ fontSize:'13px', color:'var(--text-muted)', display:'inline-flex', alignItems:'center', gap:'4px' }}>
+                {inviteCopied
+                  ? <><span className="icon icon-sm">check</span>Copied!</>
+                  : <><span className="icon icon-sm">content_copy</span>Click to copy</>
+                }
               </span>
             </div>
           </div>
@@ -421,10 +445,7 @@ function InfoTab({
                     {/* Character name — opens placeholder modal */}
                     {m.character_name ? (
                       <div
-                        onClick={() => setSheetModal({
-                          name:       m.character_name,
-                          occupation: m.character_occupation,
-                        })}
+                        onClick={() => handleOpenSheet(m)}
                         style={{
                           fontSize:'11px', color:'var(--accent)',
                           cursor:'pointer', textDecoration:'underline dotted',
@@ -478,45 +499,56 @@ function InfoTab({
               background:'var(--bg-card)',
               border:'1px solid var(--border-main)',
               borderRadius:'16px',
-              padding:'28px',
-              maxWidth:'400px', width:'100%',
+              padding:'20px',
+              maxWidth:'780px', width:'100%',
+              maxHeight:'90vh',
               boxShadow:'var(--shadow-dropdown)',
-              textAlign:'center',
+              display:'flex', flexDirection:'column', gap:'12px',
             }}
           >
-            <div style={{
-              fontFamily:'var(--font-serif)', fontSize:'22px',
-              color:'var(--text-primary)', marginBottom:'6px',
-            }}>
-              {sheetModal.name}
+            {/* Header */}
+            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'12px' }}>
+              <div>
+                <div style={{ fontFamily:'var(--font-serif)', fontSize:'20px', color:'var(--text-primary)' }}>
+                  {sheetModal.name}
+                </div>
+                {sheetModal.occupation && (
+                  <div style={{ fontSize:'12px', color:'var(--accent)' }}>
+                    {sheetModal.occupation}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setSheetModal(null)}
+                style={{
+                  background:'none', border:'none', cursor:'pointer',
+                  color:'var(--text-muted)', padding:'2px', flexShrink:0,
+                }}
+              >
+                <span className="icon icon-md">close</span>
+              </button>
             </div>
-            <div style={{
-              fontSize:'13px', color:'var(--accent)',
-              marginBottom:'24px',
-            }}>
-              {sheetModal.occupation}
-            </div>
-            <div style={{
-              padding:'20px', borderRadius:'10px',
-              border:'1px dashed var(--border-main)',
-              background:'var(--bg-section-hd)',
-              fontSize:'13px', color:'var(--text-faint)',
-              fontStyle:'italic', marginBottom:'20px',
-            }}>
-              🐙 Full character sheet<br/>coming in Phase 9
-            </div>
-            <button
-              onClick={() => setSheetModal(null)}
-              style={{
-                padding:'8px 24px', borderRadius:'8px',
-                border:'1px solid var(--border-main)',
-                background:'transparent', color:'var(--text-secondary)',
-                fontFamily:'var(--font-sans)', fontSize:'13px',
-                cursor:'pointer',
-              }}
-            >
-              Close
-            </button>
+
+            {/* Sheet or error */}
+            {sheetModal.charData ? (
+              <div style={{
+                flex:1, overflowY:'auto', maxHeight:'72vh',
+                borderRadius:'10px', border:'1px solid var(--border-main)',
+                background:'var(--bg-page)',
+              }}>
+                <ReadOnlySheet charData={sheetModal.charData} />
+              </div>
+            ) : (
+              <div style={{
+                padding:'20px', borderRadius:'10px',
+                border:'1px dashed var(--border-main)',
+                background:'var(--bg-section-hd)',
+                fontSize:'13px', color:'var(--text-faint)',
+                fontStyle:'italic', textAlign:'center',
+              }}>
+                Could not load character sheet.
+              </div>
+            )}
           </div>
         </div>
       )}

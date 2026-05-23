@@ -156,7 +156,7 @@ export function ErrorMsg({ children }) {
       fontSize:     '13px',
       color:        'var(--danger)',
     }}>
-      ⚠ {children}
+      <span className="icon icon-sm">warning</span>{' '}{children}
     </div>
   );
 }

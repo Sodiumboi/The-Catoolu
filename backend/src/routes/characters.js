@@ -101,7 +101,32 @@ router.get('/:id', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Character not found.' });
+      // Not the owner — check if requester is Keeper of a campaign the character belongs to
+      const keeperCheck = await pool.query(
+        `SELECT c.id FROM campaigns c
+         JOIN campaign_members cm1 ON cm1.campaign_id = c.id
+           AND cm1.user_id = $1 AND cm1.role = 'keeper'
+         JOIN campaign_members cm2 ON cm2.campaign_id = c.id
+           AND cm2.character_id = $2
+         LIMIT 1`,
+        [req.user.id, req.params.id]
+      );
+
+      if (keeperCheck.rows.length === 0) {
+        return res.status(403).json({ error: 'Access denied.' });
+      }
+
+      const keeperResult = await pool.query(
+        `SELECT id, name, occupation, game_type, sheet_data, portrait_data, created_at, updated_at
+         FROM characters WHERE id = $1`,
+        [req.params.id]
+      );
+
+      const character = keeperResult.rows[0];
+      if (character.portrait_data) {
+        character.sheet_data.Investigator.PersonalDetails.Portrait = character.portrait_data;
+      }
+      return res.json({ character });
     }
 
     const character = result.rows[0];

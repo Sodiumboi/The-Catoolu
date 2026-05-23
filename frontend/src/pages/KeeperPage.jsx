@@ -87,7 +87,9 @@ export default function KeeperPage() {
         {/* Empty state */}
         {!loading && campaigns.length === 0 && (
           <div style={{ textAlign:'center', padding:'80px 20px' }}>
-            <div style={{ fontSize:'48px', marginBottom:'12px', opacity:0.3 }}>🎭</div>
+            <div style={{ marginBottom:'12px', opacity:0.3 }}>
+              <span className="icon" style={{ fontSize:'48px' }}>theater_comedy</span>
+            </div>
             <p style={{
               fontFamily:'var(--font-serif)', fontSize:'18px',
               color:'var(--text-primary)', margin:'0 0 8px',
@@ -134,7 +136,7 @@ export default function KeeperPage() {
                   fontSize:'11px', fontWeight:'500',
                   padding:'3px 10px', marginBottom:'10px',
                 }}>
-                  🎭 Keeper
+                  <span className="icon icon-sm">theater_comedy</span>{' '}Keeper
                 </div>
                 <h3 style={{
                   fontFamily:'var(--font-serif)', fontSize:'18px',

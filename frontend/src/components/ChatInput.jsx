@@ -43,7 +43,7 @@ export default function ChatInput({
     }
   };
 
-  const isRoll = text.trim().startsWith('/roll');
+  const isRoll = text.trim().startsWith('/roll') || text.trim().startsWith('/r ') || text.trim() === '/r';
 
   return (
     <div style={{
@@ -81,7 +81,7 @@ export default function ChatInput({
             disabled={disabled}
             placeholder={disabled
               ? 'Connecting...'
-              : 'Message or /roll 1d100adv...'}
+              : 'Message or /roll 1d100adv... (or /r)'}
             style={{
               width:        '100%',
               padding:      '10px 14px',
@@ -111,10 +111,9 @@ export default function ChatInput({
               left:      '12px',
               top:       '50%',
               transform: 'translateY(-50%)',
-              fontSize:  '16px',
               pointerEvents: 'none',
             }}>
-              🎲
+              <span className="icon" style={{ fontSize: '18px' }}>casino</span>
             </span>
           )}
         </div>
@@ -146,7 +145,7 @@ export default function ChatInput({
               e.currentTarget.style.background = 'var(--color-primary)';
           }}
         >
-          {isRoll ? '🎲 Roll' : 'Send'}
+          {isRoll ? <><span className="icon icon-sm">casino</span>{' '}Roll</> : 'Send'}
         </button>
       </div>
     </div>

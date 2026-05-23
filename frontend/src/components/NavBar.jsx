@@ -195,7 +195,7 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
 
                   {/* Lock icon */}
                   {isSoon && (
-                    <span style={{ fontSize: '10px', opacity: 0.4 }}>🔒</span>
+                    <span className="icon icon-sm" style={{ opacity: 0.4 }}>lock</span>
                   )}
                 </button>
 
@@ -266,7 +266,7 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
               }}
               title={'Return to ' + activeRoom.name}
             >
-              <span>▶</span>
+              <span className="icon icon-sm">play_arrow</span>
               <span style={{
                 overflow:     'hidden',
                 textOverflow: 'ellipsis',
@@ -480,7 +480,7 @@ function MainMenuPanel({
         {/* Preferences — navigates to prefs panel */}
         <DropdownItem
           label="Preferences"
-          icon="⚙️"
+          icon={<span className="icon icon-sm">settings</span>}
           onClick={() => setPanel('preferences')}
           chevron
         />
@@ -546,7 +546,7 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
             e.currentTarget.style.color      = 'var(--text-secondary)';
           }}
         >
-          ← Back
+          <span className="icon icon-sm">arrow_back</span>{' '}Back
         </button>
 
         <span style={{
@@ -697,8 +697,8 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
             {[
-              { value: true,  label: '🔔 On'  },
-              { value: false, label: '🔕 Off' },
+              { value: true,  icon: 'notifications',     text: 'On'  },
+              { value: false, icon: 'notifications_off', text: 'Off' },
             ].map(opt => {
               const isActive = enabled === opt.value;
               return (
@@ -719,9 +719,13 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
                     fontWeight:   isActive ? '500' : '400',
                     cursor:       isActive ? 'default' : 'pointer',
                     transition:   'all 0.15s ease',
+                    display:      'flex',
+                    alignItems:   'center',
+                    justifyContent: 'center',
+                    gap:          '4px',
                   }}
                 >
-                  {opt.label}
+                  <span className="icon icon-sm">{opt.icon}</span>{opt.text}
                 </button>
               );
             })}

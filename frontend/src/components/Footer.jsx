@@ -2,7 +2,7 @@
 // Appears at the bottom of every page.
 // Version number and build credit.
 
-const VERSION = 'V1.5 · Nyarlathotep';
+const VERSION = 'V1.5b · Nyarlathotep - Bata';
 const CREDIT  = 'Built by Someone at Saltlakes with an unreasonable amount of help from Claude';
 
 export default function Footer() {

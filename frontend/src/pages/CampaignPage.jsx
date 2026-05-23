@@ -102,7 +102,7 @@ export default function CampaignPage() {
                 e.currentTarget.style.color       = 'var(--text-secondary)';
               }}
             >
-              🔑 Join
+              <span className="icon icon-sm">key</span>{' '}Join
             </button>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function CampaignPage() {
             fontSize:     '13px',
             color:        'var(--danger)',
           }}>
-            ⚠ {error}
+            <span className="icon icon-sm">warning</span>{' '}{error}
           </div>
         )}
 
@@ -140,7 +140,9 @@ export default function CampaignPage() {
         {/* Empty state */}
         {!loading && campaigns.length === 0 && (
           <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-            <div style={{ fontSize: '56px', marginBottom: '16px', opacity: 0.3 }}>⚔️</div>
+            <div style={{ marginBottom: '16px', opacity: 0.3 }}>
+              <span className="icon" style={{ fontSize: '56px', color: 'var(--text-muted)' }}>swords</span>
+            </div>
             <h2 style={{
               fontFamily: 'var(--font-serif)',
               fontSize:   '22px',
@@ -166,7 +168,7 @@ export default function CampaignPage() {
                   cursor:       'pointer',
                 }}
               >
-                🔑 Join with Code
+                <span className="icon icon-sm">key</span>{' '}Join with Code
               </button>
             </div>
           </div>
@@ -247,7 +249,10 @@ function CampaignCard({ campaign, onEnter }) {
           fontWeight:   '500',
           padding:      '3px 10px',
         }}>
-          {isKeeper ? '🎭 Keeper' : '⚔️ Player'}
+          {isKeeper
+            ? <><span className="icon icon-sm">theater_comedy</span>{' '}Keeper</>
+            : <><span className="icon icon-sm">swords</span>{' '}Player</>
+          }
         </span>
         <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
           {campaign.member_count} member{campaign.member_count !== '1' ? 's' : ''}

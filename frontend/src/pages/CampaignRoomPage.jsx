@@ -281,10 +281,10 @@ export default function CampaignRoomPage() {
     if (afk) handleToggleAfk();
 
     const trimmed = inputText.trim();
-    const isRoll  = trimmed.startsWith('/roll');
+    const isRoll  = trimmed.startsWith('/roll') || trimmed.startsWith('/r ') || trimmed === '/r';
 
     if (isRoll) {
-      let notation = trimmed.replace(/^\/roll\s*/i, '').trim();
+      let notation = trimmed.replace(/^\/(roll|r)\s*/i, '').trim();
       if (!notation) notation = advMode ? '1d100adv' : disMode ? '1d100dis' : '1d100';
       else if (!notation.endsWith('adv') && !notation.endsWith('dis')) {
         if (advMode) notation += 'adv';
@@ -380,6 +380,22 @@ export default function CampaignRoomPage() {
     try {
       await apiClient.put('/characters/' + characterId + '/stat', {
         stat: statKey, value: newVal,
+      });
+      setMyCharFullData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          sheet_data: {
+            ...prev.sheet_data,
+            Investigator: {
+              ...prev.sheet_data?.Investigator,
+              Characteristics: {
+                ...prev.sheet_data?.Investigator?.Characteristics,
+                [statKey]: newVal,
+              },
+            },
+          },
+        };
       });
       socket?.emit('send_message', {
         campaignId:    parseInt(id),

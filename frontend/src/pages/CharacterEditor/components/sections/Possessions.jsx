@@ -26,7 +26,7 @@ export default function Possessions({
                 style={{ color: 'var(--danger)', border: '1px solid var(--danger)33' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--danger)22'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                ✕
+                <span className="icon icon-sm">close</span>
               </button>
             </div>
           ))}

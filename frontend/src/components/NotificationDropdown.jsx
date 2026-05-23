@@ -266,7 +266,7 @@ export default function NotificationDropdown() {
                       color:'var(--accent)',
                       fontFamily:'var(--font-sans)',
                     }}>
-                      📌 Invites
+                      <span className="icon icon-sm">push_pin</span>{' '}Invites
                     </div>
                     {notifications
                       .filter(n => n.is_pinned)
@@ -404,8 +404,12 @@ function NotifRow({ notif, onClick, onDismiss, apiBase }) {
           <div style={{
             fontSize:'10px', color:'var(--accent)',
             marginBottom:'2px', fontFamily:'var(--font-sans)',
+            display:'flex', alignItems:'center', gap:'3px',
           }}>
-            {notif.type === 'roll' ? '🎲' : '💬'} {notif.campaign_name}
+            {notif.type === 'roll'
+              ? <span className="icon icon-sm">casino</span>
+              : <span className="icon icon-sm">chat</span>
+            }{' '}{notif.campaign_name}
           </div>
         )}
         <p style={{
@@ -423,12 +427,12 @@ function NotifRow({ notif, onClick, onDismiss, apiBase }) {
         onClick={onDismiss}
         style={{
           background:'none', border:'none', cursor:'pointer',
-          color:'var(--text-faint)', fontSize:'12px',
+          color:'var(--text-faint)',
           padding:'0', lineHeight:1, flexShrink:0,
           marginTop:'2px',
         }}
       >
-        ✕
+        <span className="icon icon-sm">close</span>
       </button>
     </div>
   );

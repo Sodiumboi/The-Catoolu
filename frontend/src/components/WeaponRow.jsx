@@ -45,7 +45,7 @@ export default function WeaponRow({ weapon, index, onChange, onDelete }) {
           onMouseEnter={e => e.currentTarget.style.background = 'var(--danger)22'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           title="Delete weapon">
-          ✕
+          <span className="icon icon-sm">close</span>
         </button>
       </td>
     </tr>

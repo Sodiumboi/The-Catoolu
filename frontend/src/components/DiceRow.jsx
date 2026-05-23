@@ -77,7 +77,7 @@ export default function DiceRow({
           color:      advMode ? 'var(--accent)'    : 'var(--text-faint)',
           transition: 'all 0.1s ease',
         }}>
-        Adv
+        <span className="icon icon-sm" style={{ marginRight: '2px' }}>trending_down</span>Adv
       </button>
 
       {/* Dis */}
@@ -90,7 +90,7 @@ export default function DiceRow({
           color:      disMode ? 'var(--danger)'    : 'var(--text-faint)',
           transition: 'all 0.1s ease',
         }}>
-        Dis
+        <span className="icon icon-sm" style={{ marginRight: '2px' }}>trending_up</span>Dis
       </button>
 
       {/* Divider */}
@@ -122,7 +122,10 @@ export default function DiceRow({
           whiteSpace:  'nowrap',
         }}
       >
-        {rollVisibility === 'only_me' ? '🔒 Only Me' : '👁 Everyone'}
+        {rollVisibility === 'only_me'
+          ? <><span className="icon icon-sm">lock</span>{' '}Only Me</>
+          : <><span className="icon icon-sm">visibility</span>{' '}Everyone</>
+        }
       </button>
 
       {/* Chat Filter toggle */}

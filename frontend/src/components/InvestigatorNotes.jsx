@@ -292,7 +292,7 @@ export default function InvestigatorNotes({ characterId, initialNotes, onSave })
         <div className="w-px mx-0.5 self-stretch" style={{ background: 'var(--border-main)' }} />
 
         {/* Clear formatting */}
-        <ToolBtn title="Clear formatting" onClick={() => exec('removeFormat')}>✕</ToolBtn>
+        <ToolBtn title="Clear formatting" onClick={() => exec('removeFormat')}><span className="icon icon-sm">close</span></ToolBtn>
       </div>
 
       {/* Swatch tip */}
@@ -333,14 +333,14 @@ export default function InvestigatorNotes({ characterId, initialNotes, onSave })
             color:      'var(--bg-page)',
             cursor:     saving ? 'not-allowed' : 'pointer',
           }}>
-          {saving ? 'Saving...' : '💾 Save Notes'}
+          {saving ? 'Saving...' : <><span className="icon icon-sm">save</span>{' '}Save Notes</>}
         </button>
-        {saved && <span className="text-xs" style={{ color: 'var(--success)' }}>✓ Notes saved!</span>}
-        {error && <span className="text-xs" style={{ color: 'var(--danger)' }}>⚠ {error}</span>}
+        {saved && <span className="text-xs" style={{ color: 'var(--success)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">check</span>Notes saved!</span>}
+        {error && <span className="text-xs" style={{ color: 'var(--danger)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">warning</span>{error}</span>}
       </div>
 
       <p className="text-xs italic" style={{ color: 'var(--text-faint)' }}>
-        ⚠ Notes are saved to the database only — not in exported JSON files.
+        <span className="icon icon-sm">warning</span>{' '}Notes are saved to the database only — not in exported JSON files.
       </p>
     </div>
   );
