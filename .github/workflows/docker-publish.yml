@@ -3,7 +3,7 @@ name: Build and Push Docker Images
 on:
   push:
     branches:
-      - main   # triggers on every push to main
+      - master # triggers on every push to main
 
 jobs:
   build-and-push:
@@ -39,7 +39,7 @@ jobs:
           push: true
           tags: ghcr.io/sodiumboi/catoolu-backend:latest
           cache-from: type=gha
-          cache-to:   type=gha,mode=max
+          cache-to: type=gha,mode=max
 
       # 6. Build and push frontend image
       - name: Build and push frontend
@@ -50,4 +50,4 @@ jobs:
           push: true
           tags: ghcr.io/sodiumboi/catoolu-frontend:latest
           cache-from: type=gha
-          cache-to:   type=gha,mode=max
+          cache-to: type=gha,mode=max
