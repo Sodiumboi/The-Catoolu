@@ -40,7 +40,7 @@ services:
       retries:  3
 
   frontend:
-    image: ghcr.io/YOUR_GITHUB_USERNAME/catoolu-frontend:latest
+    image: ghcr.io/sodiumboi/catoolu-frontend:latest
     container_name: coc_frontend
     restart: unless-stopped
     ports:
