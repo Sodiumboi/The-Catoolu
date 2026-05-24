@@ -1,171 +1,141 @@
-
 # 🐙 The Catoolu
-<img width="3518" height="769" alt="Catoolu baner" src="https://github.com/user-attachments/assets/e9152550-067b-4385-a2e9-9634fdabaa04" />
 
-### A Self-Hosted Call of Cthulhu 7e Character Sheet Manager
-
-> *"Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn"*
-> *— and also please remember to track your sanity points.*
-
-**The Catoolu** is a full-stack web application for managing Call of Cthulhu 7th Edition investigator sheets. Import from Dhole's House, edit everything interactively with live CoC rule calculations, track your sanity in real time, and host it yourself — because the Ancient Ones shouldn't have access to your character data either.
-
+<img width="3518" height="769" alt="Catoolu banner" src="https://github.com/user-attachments/assets/e9152550-067b-4385-a2e9-9634fdabaa04" />
+### A Self-Hosted Call of Cthulhu 7e Character Manager & Lightweight VTT
+ 
+> *"Ph'nglui mglw'nafh Nat-One d20 wgah'nagl Advantage."*
+ 
+**The Catoolu** is a full-stack web application for running Call of Cthulhu 7th Edition sessions. It combines a full character sheet editor with a real-time virtual tabletop — so your investigators can manage their sheets, roll dice, and descend into madness together, all from a browser.
+ 
+Built for home server deployment. No subscriptions, no ads, no cloud dependency. Your campaign data lives on your own machine.
+ 
+![Version](https://img.shields.io/badge/version-1.5%20Nyarlathotep-3B6D11?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+![Built with](https://img.shields.io/badge/built%20with-React%20%2B%20Express%20%2B%20PostgreSQL-4A90E2?style=flat-square)
+ 
 ---
-
+ 
 ## ✨ Features
-
+ 
 ### 🔐 Authentication
-- Secure registration and login with JWT tokens
-- Password hashing via bcrypt (your secrets are safe, unlike your investigator's)
-- Forgot password flow with email reset links (Resend SMTP)
-- User profile management — change username, email, or password
-
-### 📋 Dashboard
-- Character card grid with investigator portraits, SAN, and HP at a glance
-- One-click import from Dhole's House `.json` export files
-- Click any card to open the full sheet
-
+- Register and login with JWT tokens (7-day sessions)
+- Passwords hashed with bcrypt — never stored in plaintext
+- Forgot password flow — single-use reset link via email, expires in 1 hour
+- User profile page — change username, email, password, and profile picture
+### 📋 Investigator Dashboard
+- Character cards with portrait, name, occupation, SAN, and HP at a glance
+- Import directly from [Dhole's House](https://www.dholes-house.de/) JSON export
+- Live investigator search — filter by name or occupation
+- One-click export back to Dhole's House format
 ### 📝 Character Editor
-- **Full sheet editing** — Personal Details, Characteristics, Skills, Weapons, Backstory, Possessions, Cash
-- **Portrait upload** — Dynamic aspect ratio display, click to change
-- **Live CoC 7e calculations** — Change STR and watch Damage Bonus, Build, and Move update instantly. Change POW and watch Sanity and Magic Points recalculate. No manual math required.
-- **Separate current tracking** — Hit Points, Magic Points, Sanity, and Luck each have a Maximum and a Current box. Track damage, spell costs, and sanity loss mid-session.
-- **Grouped skills** — Displayed in Dhole's House style with parent groups (Art/Craft, Fighting, Firearms, Language, Science) and editable subskill names
-- **Skill search** — Filter 60+ skills instantly
-- **Half and Fifth values** — Auto-calculated on every keystroke
-- **Weapon presets** — Browse and add from an official CoC 7e weapon list covering Hand-to-Hand, Handguns, Rifles, Shotguns, Thrown, and Modern weapons
-- **Add / delete weapons and possessions** — Full control over equipment
-- **Editable cash fields** — Spending limit, cash on hand, and assets
-
-### 📓 Session Notes
-- Rich text editor built into the character sheet
-- Bold, italic, underline, strikethrough, bullet and numbered lists
-- Custom text colours with saveable swatches (stored in localStorage)
-- Notes saved to the database only — clearly marked as not included in JSON export
-
+A full interactive CoC 7e character sheet with live rule calculations.
+ 
+- **Personal Details** — name, occupation, age, gender, birthplace, residence, portrait
+- **Characteristics** — all 8 core stats with auto-calculated Half / Fifth values
+- **Live CoC 7e rules engine** — change STR and watch Damage Bonus, Build, and Move update instantly. Change POW and watch Sanity and Magic Points recalculate. No manual arithmetic.
+- **Separate current tracking** — HP, MP, Sanity, and Luck each have an independent current value. Track damage and sanity loss mid-session.
+- **Skills** — all 60+ CoC 7e skills in Dhole's House grouped layout. Occupation skill highlighting, editable subskill names, live Half/Fifth, skill search.
+- **Weapons** — full weapon table with official CoC 7e preset picker. Add, edit, delete.
+- **Backstory** — all 8 official fields: Traits, Ideology, Significant People, Phobias, Meaningful Locations, Treasured Possessions, Tomes & Artefacts, Description.
+- **Possessions & Financial Status** — editable item list, Spending Limit, Cash, Assets.
+- **Session Notes** — rich text editor with bold, italic, lists, and saveable colour swatches. Stored separately from the sheet; not included in JSON exports.
+- **Unsaved changes guard** — section-level dirty state tracking. Warning modal on navigation with Cancel / Discard / Save & Leave.
+### 🎲 Campaign Room (v1.5)
+- Real-time chat and dice rolling via Socket.io
+- Hardware-entropy dice using `crypto.randomInt()` — cryptographically fair, server-side
+- Advantage / Disadvantage rolls, custom notation (`2d6+3`, `1d100adv`)
+- `/roll` and `/r` alias (for Avrae refugees)
+- Roll visibility — Only Me or Everyone
+- Digit-box roll cards with suspense reveal (skeleton shimmer)
+- Nat 1 / Nat 100 celebration with custom meme + confetti 🎉
+- **Session sheet** — clickable skills, stats, and weapons roll directly from the sheet
+- Weapon attacks auto-roll damage on hit
+- HP / MP / Luck / Sanity +/- popup with auto-save and live broadcast to Keeper
+- Rollable Sanity and Luck — Adv/Dis aware, current value not max
+- Editable money fields (Spending Limit, Cash, Assets) directly in the session sheet
+- Session sheet font scale preference — adjustable in the profile dropdown, persisted across sessions
+- Portrait and character name stored in message history at send time — survives character changes and page refreshes
+### 👁 Keeper Tools
+- Keeper campaign page — manage campaigns, invite players, view and remove members
+- Live player stat tracking (HP / MP / Sanity) during session
+- Keeper player cards update in real time when players change their investigator
+- Expand arrow on each player card opens a full ReadOnly character sheet modal
+- ReadOnly sheet view for any registered investigator
 ### 🎨 UI & Theming
-- **Dark theme** — brooding, parchment-gold aesthetic befitting investigators of cosmic horror
-- **Parchment theme** — high-contrast cream and sepia for those who prefer their eldritch documents readable
-- **Skill text size toggle** — Small, Medium, or Large — your eyes, your choice
-- Theme and size preferences persist across sessions
-
-### 📤 Import / Export
-- Import any Dhole's House `.json` file directly from the dashboard
-- Export back to `.json` in full Dhole's House format — compatible with other CoC tools
-- Export warning if session notes exist (notes are database-only and won't appear in the file)
-
+- DM Serif Display + DM Sans typography
+- Catoolu Green brand identity
+- Dark (cool-gray) and Parchment (warm cream) themes
+- Material Symbols icon system
+- All preferences persist across sessions
+### 🔧 Deployment
+- Docker image-based deploy via GitHub Container Registry
+- GitHub Actions CI — auto-builds `linux/amd64` + `linux/arm64` on every push to main
+- Nginx reverse proxy with `/uploads/` correctly proxied to backend
+- Named Docker volume for profile picture persistence across deploys
+- Dice fairness tester with chi-squared analysis
 ---
-
+ 
 ## 🛠️ Tech Stack
-
+ 
 | Layer | Technology |
 |---|---|
-| **Frontend** | React 18, Vite, Tailwind CSS |
-| **Backend** | Node.js, Express |
-| **Database** | PostgreSQL 16 (character data stored as JSONB) |
-| **Auth** | JWT (jsonwebtoken), bcryptjs |
-| **Email** | Nodemailer + Resend SMTP |
-| **Containerisation** | Docker, Docker Compose |
-| **Serving** | Nginx (static frontend + API reverse proxy) |
-
+| Frontend | React 18 + Vite + Tailwind |
+| Backend | Node.js + Express |
+| Database | PostgreSQL 16 (JSONB) |
+| Real-time | Socket.io |
+| Auth | JWT + bcrypt |
+| Email | Resend API |
+| Deploy | Docker + Nginx + DuckDNS + GitHub Actions |
+ 
 ---
-
-## 🚀 Running Locally (Development)
-
-### Prerequisites
-- Node.js v20+ (via NVM recommended)
-- PostgreSQL 16
-- A Resend account (free tier) for email features
-
-### Setup
-
+ 
+## 🚀 Self-Hosting
+ 
+### Requirements
+- Docker + Docker Compose
+- A domain or DuckDNS subdomain
+- 1 GB RAM minimum (2 GB recommended)
+### Quick Start
+ 
 ```bash
-# Clone the repository
 git clone https://github.com/Sodiumboi/Catoolu-coc-sheet-manager.git
 cd Catoolu-coc-sheet-manager
-
-# Install backend dependencies
-cd backend && npm install
-
-# Install frontend dependencies
-cd ../frontend && npm install
-```
-
-Create `backend/.env`:
-
-```env
-PORT=3001
-NODE_ENV=development
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=coc_dev
-DB_USER=your_postgres_username
-DB_PASSWORD=
-JWT_SECRET=your_long_random_secret_here
-JWT_EXPIRES_IN=7d
-RESEND_API_KEY=re_your_key_here
-EMAIL_FROM=onboarding@resend.dev
-FRONTEND_URL=http://localhost:5173
-```
-
-Initialise the database:
-
-```bash
-cd backend
-createdb coc_dev
-npm run db:init
-```
-
-Start both servers (two terminals):
-
-```bash
-# Terminal 1 — Backend
-cd backend && npm run dev
-
-# Terminal 2 — Frontend
-cd frontend && npm run dev
-```
-
-Open **http://localhost:5173**
-
----
-
-## 🐳 Self-Hosting with Docker
-
-### Prerequisites
-- Docker and Docker Compose installed on your server
-
-### Deploy
-
-```bash
-# Clone the repo on your server
-git clone https://github.com/Sodiumboi/Catoolu-coc-sheet-manager.git
-cd Catoolu-coc-sheet-manager
-
-# Create production environment file
+ 
 cp backend/.env.example backend/.env.production
 # Edit .env.production with your values
-
-# Build and start
-docker compose up -d --build
+ 
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
 ```
-
-The app will be available at **http://your-server-ip:8088**
-
-### Environment Variables (Production)
-
-| Variable | Description |
-|---|---|
-| `DB_PASSWORD` | PostgreSQL password — must match `docker-compose.yml` |
-| `JWT_SECRET` | Long random string — generate with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
-| `RESEND_API_KEY` | Your Resend API key |
-| `FRONTEND_URL` | Your server's URL — used in password reset emails |
-
+ 
+Visit `http://localhost:8088` to get started.
+ 
+### Environment Variables
+ 
+Create `backend/.env.production`:
+ 
+```env
+NODE_ENV=production
+PORT=3001
+ 
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=coc_production
+DB_USER=coc_user
+DB_PASSWORD=your_secure_password
+ 
+JWT_SECRET=your_very_long_random_secret
+JWT_EXPIRES_IN=7d
+ 
+RESEND_API_KEY=re_xxxxxxxxxxxx
+FROM_EMAIL=noreply@yourdomain.com
+FRONTEND_URL=https://yourdomain.com
+```
+ 
 ---
-
+ 
 ## 📐 CoC 7e Calculation Reference
-
-The rules engine implements the following official formulas:
-
+ 
 | Derived Stat | Formula |
 |---|---|
 | Max Hit Points | `⌊(CON + SIZ) / 10⌋` |
@@ -177,67 +147,66 @@ The rules engine implements the following official formulas:
 | Skill Fifth | `⌊skill / 5⌋` |
 | Damage Bonus / Build | STR+SIZ table per Keeper Rulebook p.33 |
 | Move Rate | DEX/STR vs SIZ comparison per Keeper Rulebook p.34 |
-
+ 
 ---
-
+ 
 ## 🗂️ Project Structure
-
+ 
 ```
-catoolu-coc-sheet-manager/
-├── backend/
-│   ├── src/
-│   │   ├── config/        ← Database + email setup
-│   │   ├── middleware/    ← JWT authentication
-│   │   └── routes/        ← Auth, characters, profile API
-│   ├── sql/
-│   │   └── schema.sql     ← PostgreSQL schema
-│   └── Dockerfile
+Catoolu-coc-sheet-manager/
 ├── frontend/
 │   ├── src/
-│   │   ├── api/           ← Axios client with interceptors
-│   │   ├── components/    ← Reusable UI components
-│   │   ├── context/       ← Auth + Theme context providers
-│   │   ├── pages/         ← Login, Dashboard, Editor, Profile
-│   │   └── utils/         ← CoC rules engine, weapon presets
-│   ├── nginx/
-│   │   └── default.conf   ← Nginx config for API proxying
-│   └── Dockerfile
-└── docker-compose.yml
+│   │   ├── pages/          # Route pages
+│   │   ├── components/     # Shared UI components
+│   │   └── context/        # Auth + Theme context providers
+│   └── nginx/
+│       └── default.conf    # Nginx config — static + API + uploads proxy
+├── backend/
+│   ├── src/
+│   │   ├── routes/         # REST endpoints
+│   │   ├── socket.js       # Socket.io event handlers
+│   │   └── utils/          # Dice engine, helpers
+│   └── sql/
+│       └── schema.sql      # PostgreSQL schema
+├── .github/
+│   └── workflows/
+│       └── docker-publish.yml  # CI — auto-build on push
+└── docker-compose.prod.yml
 ```
-
+ 
 ---
-
+ 
 ## 🔒 Security Notes
-
-- Passwords are hashed with bcrypt (12 salt rounds) — never stored in plaintext
+ 
+- Passwords hashed with bcrypt (12 salt rounds) — never stored in plaintext
 - JWT tokens expire after 7 days
 - Password reset tokens are single-use and expire after 1 hour
-- Each user can only access their own characters — ownership is enforced at the database query level
-- Sensitive environment variables (passwords, JWT secret, API keys) are never committed to the repository
-
+- All dice rolls happen server-side — clients cannot influence results
+- Character ownership enforced at the database query level
+- Sensitive environment variables never committed to the repository
 ---
-
+ 
 ## 📜 License
-
-This project is for personal and educational use.
+ 
+MIT — do whatever you want, just don't blame me when the investigators go insane.
+ 
 Call of Cthulhu is a registered trademark of Chaosium Inc.
-Character sheet format based on Dhole's House (dholeshouse.org).
+Character sheet format based on [Dhole's House](https://www.dholes-house.de/).
 This project is not affiliated with or endorsed by Chaosium Inc.
-
+ 
 ---
-
+ 
 ## 🙏 Credits
-
+ 
 Built by **Someone at Saltlakes** with an unreasonable amount of help from **Claude** —
 who patiently explained every concept from scratch, debugged every error,
 and never once failed a Sanity roll despite the horrors encountered along the way.
-
-
+ 
 > *This project began with zero web development experience and ended with a fully containerised,
 > self-hosted full-stack application. The dice were kind.*
 >
 > *— rolled a 02 on the final push to production.*
-
+ 
 ---
-
-*"Ph'nglui mglw'nafh Nat-One d20 wgah'nagl Advantage."* 🐙
+ 
+*Ph'nglui mglw'nafh Nat-One d20 wgah'nagl Advantage.* 🐙
