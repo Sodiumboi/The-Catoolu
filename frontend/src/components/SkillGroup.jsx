@@ -161,8 +161,9 @@ function GroupedSkillRows({ parentName, entries, onChangeEntry, cls, inputW, num
 // MAIN EXPORT — renders the full skill list, grouped
 // ══════════════════════════════════════════════════════════
 export default function SkillGroup({ skills, onChangeSkill }) {
-  const { skillSize } = useTheme();
-  const { cls, inputW, numW } = SIZE_MAP[skillSize] || SIZE_MAP.sm;
+  const { sheetSize } = useTheme();
+  const skillKey = { sm: 'sm', md: 'base', lg: 'lg' }[sheetSize] || 'sm';
+  const { cls, inputW, numW } = SIZE_MAP[skillKey];
 
   // Group skills by name — skills with subskills cluster together
   const groups = [];

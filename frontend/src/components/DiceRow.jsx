@@ -2,10 +2,8 @@ const DICE = [4, 6, 8, 10, 12, 20, 100];
 
 export default function DiceRow({
   advMode, disMode,
-  chatFilter,
   rollVisibility,
   onToggleAdv, onToggleDis,
-  onChatFilterChange,
   onToggleVisibility,
   onRoll,
 }) {
@@ -28,7 +26,6 @@ export default function DiceRow({
       scrollbarWidth: 'none',
     }}>
       {DICE.map(sides => {
-        const isD100 = sides === 100;
         return (
           <button
             key={sides}
@@ -38,14 +35,12 @@ export default function DiceRow({
             style={{
               padding:      '4px 9px',
               borderRadius: '6px',
-              border:       isD100
-                ? '1.5px solid var(--color-primary)'
-                : '1px solid var(--border-main)',
-              background:   isD100 ? 'var(--accent-bg)' : 'var(--bg-card)',
-              color:        isD100 ? 'var(--color-primary)' : 'var(--text-secondary)',
+              border:       '1px solid var(--border-main)',
+              background:   'var(--bg-card)',
+              color:        'var(--text-secondary)',
               fontFamily:   'var(--font-sans)',
               fontSize:     '12px',
-              fontWeight:   isD100 ? '600' : '400',
+              fontWeight:   '400',
               cursor:       'pointer',
               transition:   'all 0.1s ease',
             }}
@@ -55,9 +50,9 @@ export default function DiceRow({
               e.currentTarget.style.color        = 'var(--accent)';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.background  = isD100 ? 'var(--accent-bg)' : 'var(--bg-card)';
-              e.currentTarget.style.borderColor = isD100 ? 'var(--color-primary)' : 'var(--border-main)';
-              e.currentTarget.style.color       = isD100 ? 'var(--color-primary)' : 'var(--text-secondary)';
+              e.currentTarget.style.background  = 'var(--bg-card)';
+              e.currentTarget.style.borderColor = 'var(--border-main)';
+              e.currentTarget.style.color       = 'var(--text-secondary)';
             }}
           >
             D{sides}
@@ -128,42 +123,6 @@ export default function DiceRow({
         }
       </button>
 
-      {/* Chat Filter toggle */}
-      <div style={{
-        display:      'flex',
-        marginLeft:   'auto',
-        border:       '1px solid var(--border-main)',
-        borderRadius: '6px',
-        overflow:     'hidden',
-      }}>
-        {[
-          { value: 'all',  label: 'All'       },
-          { value: 'text', label: 'Just Text' },
-        ].map((opt, i) => {
-          const isActive = chatFilter === opt.value;
-          return (
-            <button
-              key={opt.value}
-              onClick={() => onChatFilterChange(opt.value)}
-              style={{
-                padding:    '4px 10px',
-                border:     'none',
-                borderLeft: i > 0 ? '1px solid var(--border-main)' : 'none',
-                background: isActive ? 'var(--bg-section-hd)' : 'transparent',
-                color:      isActive ? 'var(--text-primary)' : 'var(--text-faint)',
-                fontFamily: 'var(--font-sans)',
-                fontSize:   '11px',
-                fontWeight: isActive ? '500' : '400',
-                cursor:     isActive ? 'default' : 'pointer',
-                transition: 'all 0.1s ease',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }

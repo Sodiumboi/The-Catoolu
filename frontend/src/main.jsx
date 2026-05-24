@@ -5,18 +5,15 @@ import App                     from './App.jsx';
 import { AuthProvider }        from './context/AuthContext';
 import { SocketProvider }      from './context/SocketContext';
 import { CampaignProvider }    from './context/CampaignContext';
-import { NotificationProvider } from './context/NotificationContext';
 import { ThemeProvider }       from './context/ThemeContext';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <SocketProvider>
         <CampaignProvider>
-          <NotificationProvider>
-            <ThemeProvider>
-              <App />
-            </ThemeProvider>
-          </NotificationProvider>
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
         </CampaignProvider>
       </SocketProvider>
     </AuthProvider>

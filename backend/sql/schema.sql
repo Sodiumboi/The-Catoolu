@@ -101,6 +101,10 @@ CREATE TABLE IF NOT EXISTS messages (
                            CHECK (type IN ('chat', 'roll', 'system')),
   content      TEXT        NOT NULL,
   created_at   TIMESTAMPTZ NOT NULL  DEFAULT NOW()
+  -- In the messages CREATE TABLE, add these columns:
+  avatar_url      VARCHAR(255),
+  portrait        TEXT,
+  character_name  VARCHAR(255),
 );
 
 -- ── Indexes ───────────────────────────────────────────────────

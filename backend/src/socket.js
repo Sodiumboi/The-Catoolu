@@ -157,14 +157,7 @@ function setupSocket(httpServer) {
           return socket.emit(EVENTS.ERROR, { message: 'Not a campaign member.' });
         }
 
-        // Save to database
-        const result = await pool.query(
-          `INSERT INTO messages (campaign_id, user_id, type, content)
-           VALUES ($1, $2, 'chat', $3)
-           RETURNING id, type, content, created_at`,
-          [campaignId, socket.user.id, content.trim()]
-        );
-
+        // Fetch avatar/portrait before insert — stored on the message row
         const [userRes, charRes] = await Promise.all([
           pool.query('SELECT avatar_url FROM users WHERE id = $1', [socket.user.id]),
           pool.query(
@@ -178,58 +171,32 @@ function setupSocket(httpServer) {
           ),
         ]);
 
+        const avatarUrl     = userRes.rows[0]?.avatar_url     || null;
+        const portrait      = charRes.rows[0]?.portrait       || null;
+        const characterName = charRes.rows[0]?.character_name || null;
+
+        // Save to database — avatar/portrait stored so history is self-contained
+        const result = await pool.query(
+          `INSERT INTO messages
+             (campaign_id, user_id, type, content,
+              avatar_url, portrait, character_name)
+           VALUES ($1, $2, 'chat', $3, $4, $5, $6)
+           RETURNING id, type, content, created_at,
+                     avatar_url, portrait, character_name`,
+          [campaignId, socket.user.id, content.trim(),
+           avatarUrl, portrait, characterName]
+        );
+
         const message = {
           ...result.rows[0],
           campaign_id:   campaignId,
           campaign_name: socket.currentCampaignName,
           user_id:       socket.user.id,
           username:      socket.user.username,
-          avatar_url:     userRes.rows[0]?.avatar_url        || null,
-          portrait:       charRes.rows[0]?.portrait          || null,
-          character_name: charRes.rows[0]?.character_name    || null,
         };
 
         // Broadcast to everyone in the room (including sender)
         io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, message);
-
-        // Save notification for all other members and push a live ping so their
-        // bell updates immediately on any page (not just inside a campaign room).
-        const membersRes = await pool.query(
-          'SELECT user_id FROM campaign_members WHERE campaign_id = $1',
-          [campaignId]
-        );
-
-        const senderName = charRes.rows[0]?.character_name || socket.user.username;
-        const senderAvatar = userRes.rows[0]?.avatar_url || null;
-
-        for (const member of membersRes.rows) {
-          if (member.user_id === socket.user.id) continue;
-
-          pool.query(
-            `INSERT INTO notifications
-               (user_id, type, campaign_id, campaign_name,
-                sender_name, avatar_url, content, is_pinned)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, false)`,
-            [
-              member.user_id,
-              'message',
-              campaignId,
-              socket.currentCampaignName || '',
-              senderName,
-              senderAvatar,
-              content.trim().slice(0, 120),
-            ]
-          ).then(() => {
-            io.to('user:' + member.user_id).emit('new_notification', {
-              campaign_id:   campaignId,
-              campaign_name: socket.currentCampaignName || '',
-              sender_name:   senderName,
-              avatar_url:    senderAvatar,
-              type:          'message',
-              content:       content.trim().slice(0, 120),
-            });
-          }).catch(err => console.error('Notification save failed (msg):', err));
-        }
 
       } catch (err) {
         console.error('send_message error:', err);
@@ -264,16 +231,7 @@ function setupSocket(httpServer) {
           return socket.emit(EVENTS.ERROR, { message: result.error });
         }
 
-        // Save to database as JSON string
-        const content = JSON.stringify(result);
-
-        const dbResult = await pool.query(
-          `INSERT INTO messages (campaign_id, user_id, type, content)
-           VALUES ($1, $2, 'roll', $3)
-           RETURNING id, type, content, created_at`,
-          [campaignId, socket.user.id, content]
-        );
-
+        // Fetch avatar/portrait before insert — stored on the message row
         const [userRes, charRes] = await Promise.all([
           pool.query('SELECT avatar_url FROM users WHERE id = $1', [socket.user.id]),
           pool.query(
@@ -287,15 +245,30 @@ function setupSocket(httpServer) {
           ),
         ]);
 
+        const avatarUrl     = userRes.rows[0]?.avatar_url     || null;
+        const portrait      = charRes.rows[0]?.portrait       || null;
+        const characterName = charRes.rows[0]?.character_name || null;
+
+        // Save to database as JSON string
+        const content = JSON.stringify(result);
+
+        const dbResult = await pool.query(
+          `INSERT INTO messages
+             (campaign_id, user_id, type, content,
+              avatar_url, portrait, character_name)
+           VALUES ($1, $2, 'roll', $3, $4, $5, $6)
+           RETURNING id, type, content, created_at,
+                     avatar_url, portrait, character_name`,
+          [campaignId, socket.user.id, content,
+           avatarUrl, portrait, characterName]
+        );
+
         const message = {
           ...dbResult.rows[0],
           campaign_id:   campaignId,
           campaign_name: socket.currentCampaignName,
           user_id:       socket.user.id,
           username:      socket.user.username,
-          avatar_url:     userRes.rows[0]?.avatar_url        || null,
-          portrait:       charRes.rows[0]?.portrait          || null,
-          character_name: charRes.rows[0]?.character_name    || null,
           // Send parsed object — client doesn't need to JSON.parse
           content:  result,
         };
@@ -333,20 +306,21 @@ function setupSocket(httpServer) {
               });
 
               const dmgDbResult = await pool.query(
-                `INSERT INTO messages (campaign_id, user_id, type, content)
-                 VALUES ($1, $2, 'roll', $3)
-                 RETURNING id, type, content, created_at`,
-                [campaignId, socket.user.id, damageContent]
+                `INSERT INTO messages
+                   (campaign_id, user_id, type, content,
+                    avatar_url, portrait, character_name)
+                 VALUES ($1, $2, 'roll', $3, $4, $5, $6)
+                 RETURNING id, type, content, created_at,
+                           avatar_url, portrait, character_name`,
+                [campaignId, socket.user.id, damageContent,
+                 avatarUrl, portrait, characterName]
               );
 
               const damageMessage = {
                 ...dmgDbResult.rows[0],
-                user_id:        socket.user.id,
-                username:       socket.user.username,
-                avatar_url:     userRes.rows[0]?.avatar_url     || null,
-                portrait:       charRes.rows[0]?.portrait       || null,
-                content:        { ...damageResult, isDamage: true, weaponName: payload.weaponName },
-                character_name: charRes.rows[0]?.character_name || null,
+                user_id:  socket.user.id,
+                username: socket.user.username,
+                content:  { ...damageResult, isDamage: true, weaponName: payload.weaponName },
               };
 
               setTimeout(() => {
@@ -354,45 +328,6 @@ function setupSocket(httpServer) {
               }, 300);
             }
           }
-        }
-
-        // Save notification for all other members and push live ping
-        const membersRes = await pool.query(
-          'SELECT user_id FROM campaign_members WHERE campaign_id = $1',
-          [campaignId]
-        );
-
-        const senderName  = charRes.rows[0]?.character_name || socket.user.username;
-        const senderAvatar = userRes.rows[0]?.avatar_url || null;
-        const rollContent  = '🎲 ' + senderName + ' rolled dice';
-
-        for (const member of membersRes.rows) {
-          if (member.user_id === socket.user.id) continue;
-
-          pool.query(
-            `INSERT INTO notifications
-               (user_id, type, campaign_id, campaign_name,
-                sender_name, avatar_url, content, is_pinned)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, false)`,
-            [
-              member.user_id,
-              'roll',
-              campaignId,
-              socket.currentCampaignName || '',
-              senderName,
-              senderAvatar,
-              rollContent,
-            ]
-          ).then(() => {
-            io.to('user:' + member.user_id).emit('new_notification', {
-              campaign_id:   campaignId,
-              campaign_name: socket.currentCampaignName || '',
-              sender_name:   senderName,
-              avatar_url:    senderAvatar,
-              type:          'roll',
-              content:       rollContent,
-            });
-          }).catch(err => console.error('Notification save failed (roll):', err));
         }
 
         console.log(
@@ -463,8 +398,15 @@ function setupSocket(httpServer) {
           const charRes = await pool.query(
             `SELECT
                id,
-               sheet_data->'Investigator'->'PersonalDetails'->>'Name'       AS name,
-               sheet_data->'Investigator'->'PersonalDetails'->>'Occupation'  AS occupation
+               sheet_data->'Investigator'->'PersonalDetails'->>'Name'                AS name,
+               sheet_data->'Investigator'->'PersonalDetails'->>'Occupation'           AS occupation,
+               sheet_data->'Investigator'->'Characteristics'->>'HitPts'              AS hit_pts,
+               sheet_data->'Investigator'->'Characteristics'->>'HitPtsMax'           AS hit_pts_max,
+               sheet_data->'Investigator'->'Characteristics'->>'MagicPts'            AS magic_pts,
+               sheet_data->'Investigator'->'Characteristics'->>'MagicPtsMax'         AS magic_pts_max,
+               sheet_data->'Investigator'->'Characteristics'->>'Sanity'              AS sanity,
+               sheet_data->'Investigator'->'Characteristics'->>'SanityMax'           AS sanity_max,
+               portrait_data                                                          AS portrait
              FROM characters
              WHERE id = $1 AND user_id = $2`,
             [characterId, socket.user.id]

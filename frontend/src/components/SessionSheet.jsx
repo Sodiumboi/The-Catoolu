@@ -2,9 +2,11 @@ import { useState, useMemo, useRef } from 'react';
 import SessionTrackedStat from './SessionTrackedStat';
 import SessionSkillRow    from './SessionSkillRow';
 import SkillRollPopup     from './SkillRollPopup';
+import apiClient          from '../api/client';
+import { useTheme }       from '../context/ThemeContext';
 
 // ── Stat button ────────────────────────────────────────────────
-function StatButton({ label, value, sublabel, advMode, disMode, onRoll }) {
+function StatButton({ label, value, sublabel, advMode, disMode, onRoll, scale = 1 }) {
   const [showPopup, setShowPopup] = useState(false);
   const [buttonRect, setButtonRect] = useState(null);
   const buttonRef = useRef(null);
@@ -63,17 +65,17 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll }) {
           </span>
         )}
         <span style={{
-          fontSize: '18px', fontWeight: '700',
+          fontSize: (18 * scale) + 'px', fontWeight: '700',
           fontFamily: 'var(--font-serif)', color: 'var(--text-primary)',
           lineHeight: 1,
         }}>
           {num}
         </span>
         <div style={{ display: 'flex', gap: '4px' }}>
-          <span style={{ fontSize: '9px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+          <span style={{ fontSize: (9 * scale) + 'px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
             {half}
           </span>
-          <span style={{ fontSize: '9px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+          <span style={{ fontSize: (9 * scale) + 'px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
             {fifth}
           </span>
         </div>
@@ -94,11 +96,11 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll }) {
 }
 
 // ── Section wrapper ────────────────────────────────────────────
-function Section({ title, children }) {
+function Section({ title, children, scale = 1 }) {
   return (
     <div style={{ marginBottom: '12px' }}>
       <div style={{
-        fontSize: '9px', fontWeight: '600',
+        fontSize: (9 * scale) + 'px', fontWeight: '600',
         textTransform: 'uppercase', letterSpacing: '0.08em',
         color: 'var(--accent)', fontFamily: 'var(--font-sans)',
         padding: '4px 8px',
@@ -124,9 +126,12 @@ export default function SessionSheet({
   onWeaponAttack,  // (weapon, skills) => void
   onStatBlur,      // (statKey, oldVal, newVal) => void
 }) {
+  const { sheetFontScale } = useTheme();
+  const fs = (base) => base * sheetFontScale;
   const [skillSearch, setSkillSearch] = useState('');
 
   const inv      = charData?.sheet_data?.Investigator;
+  const cash     = inv?.Cash || {};
   const details  = inv?.PersonalDetails   || {};
   const chars    = inv?.Characteristics   || {};
   const skills   = useMemo(() => charData?.sheet_data?.Investigator?.Skills?.Skill   || [], [charData]);
@@ -241,6 +246,14 @@ export default function SessionSheet({
             label="Luck" statKey="Luck"
             maxVal={chars.LuckMax}     currentVal={chars.Luck}
             onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
+            rollable
+            advMode={advMode}
+            disMode={disMode}
+            onRoll={(mode) => onStatRoll(
+              'Luck',
+              parseInt(chars.Luck) || parseInt(chars.LuckMax) || 0,
+              mode
+            )}
           />
           <div style={{ width: '1px', background: 'var(--border-main)', alignSelf: 'stretch', margin: '4px 0' }} />
           <SessionTrackedStat
@@ -249,13 +262,15 @@ export default function SessionSheet({
             insaneVal={chars.SanityMax}
             onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
             rollable
-            onRoll={() => onStatRoll('Sanity', parseInt(chars.Sanity) || parseInt(chars.SanityStart) || 0, advMode ? 'adv' : disMode ? 'dis' : 'normal')}
+            advMode={advMode}
+            disMode={disMode}
+            onRoll={(mode) => onStatRoll('Sanity', parseInt(chars.Sanity) || parseInt(chars.SanityStart) || 0, mode)}
           />
         </div>
       </div>
 
       {/* ── Characteristics ── */}
-      <Section title="Characteristics">
+      <Section title="Characteristics" scale={sheetFontScale}>
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
           {[...LEFT_STATS, ...RIGHT_STATS].map(({ key, sub }) => (
             <StatButton
@@ -266,6 +281,7 @@ export default function SessionSheet({
               advMode={advMode}
               disMode={disMode}
               onRoll={onStatRoll}
+              scale={sheetFontScale}
             />
           ))}
         </div>
@@ -306,7 +322,7 @@ export default function SessionSheet({
 
       {/* ── Weapons ── */}
       {weapons.length > 0 && (
-        <Section title="Weapons">
+        <Section title="Weapons" scale={sheetFontScale}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {weapons.map((weapon, i) => (
               <WeaponButton
@@ -322,8 +338,41 @@ export default function SessionSheet({
         </Section>
       )}
 
+      {/* ── Financial Status ── */}
+      {(cash.spending || cash.cash || cash.assets) && (
+        <Section title="Financial Status" scale={sheetFontScale}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {[
+              { label: 'Spending Limit', field: 'spending' },
+              { label: 'Cash',           field: 'cash'     },
+              { label: 'Assets',         field: 'assets'   },
+            ].map(({ label, field }) => (
+              <MoneyField
+                key={field}
+                label={label}
+                value={cash[field] || ''}
+                onSave={(newVal) => {
+                  apiClient.put('/characters/' + characterId, {
+                    sheet_data: {
+                      ...charData.sheet_data,
+                      Investigator: {
+                        ...charData.sheet_data.Investigator,
+                        Cash: {
+                          ...charData.sheet_data.Investigator.Cash,
+                          [field]: newVal,
+                        },
+                      },
+                    },
+                  }).catch(() => {});
+                }}
+              />
+            ))}
+          </div>
+        </Section>
+      )}
+
       {/* ── Skills ── */}
-      <Section title="Skills">
+      <Section title="Skills" scale={sheetFontScale}>
         {/* Search */}
         <input
           type="text"
@@ -373,6 +422,7 @@ export default function SessionSheet({
               advMode={advMode}
               disMode={disMode}
               onRoll={onStatRoll}
+              fontScale={sheetFontScale}
             />
           ))}
         </div>
@@ -472,6 +522,168 @@ function WeaponButton({ weapon, skills, advMode, disMode, onAttack }) {
           }}
           onClose={() => { setShowPopup(false); setButtonRect(null); }}
         />
+      )}
+    </div>
+  );
+}
+
+// ── Shared button style helper (mirrors SessionTrackedStat) ───
+function btnCss(color) {
+  return {
+    width: '32px', height: '32px', borderRadius: '8px',
+    border: '1px solid var(--border-main)',
+    background: 'var(--bg-input)', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: color ?? 'inherit', transition: 'all 0.1s ease',
+  };
+}
+
+// ── Money Field ────────────────────────────────────────────────
+const MONEY_POPUP_W = 160;
+
+function MoneyField({ label, value, onSave }) {
+  const [showPopup, setShowPopup] = useState(false);
+  const [current,   setCurrent]   = useState(value ?? '');
+  const [step,      setStep]      = useState('');
+  const [btnRect,   setBtnRect]   = useState(null);
+  const btnRef = useRef(null);
+
+  const handleOpen = () => {
+    setBtnRect(btnRef.current?.getBoundingClientRect() ?? null);
+    setStep('');
+    setShowPopup(p => !p);
+  };
+
+  const handleClose = () => { setShowPopup(false); setStep(''); };
+
+  const applyStep = (sign) => {
+    const base = parseFloat(String(current).replace(/[^0-9.-]/g, '')) || 0;
+    const s    = parseFloat(step) || 0;
+    if (s === 0) return;
+    const next = sign === -1 ? Math.max(0, base - s) : base + s;
+    const nextStr = String(next);
+    setCurrent(nextStr);
+    onSave(nextStr);
+    setStep('');
+  };
+
+  const popupStyle = btnRect ? {
+    position:  'fixed',
+    top:       btnRect.bottom + 6,
+    left:      Math.max(
+      MONEY_POPUP_W / 2 + 8,
+      Math.min(window.innerWidth - MONEY_POPUP_W / 2 - 8, btnRect.left + btnRect.width / 2)
+    ),
+    transform: 'translateX(-50%)',
+    zIndex:    100,
+  } : { display: 'none' };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+      <span style={{
+        fontSize: '9px', fontWeight: '600',
+        textTransform: 'uppercase', letterSpacing: '0.07em',
+        color: 'var(--accent)', fontFamily: 'var(--font-sans)',
+      }}>
+        {label}
+      </span>
+
+      <button
+        ref={btnRef}
+        onClick={handleOpen}
+        style={{
+          width:        '90px',
+          padding:      '5px 8px',
+          borderRadius: '6px',
+          border:       '2px solid var(--border-focus)',
+          background:   'var(--bg-input)',
+          color:        'var(--text-primary)',
+          fontFamily:   'var(--font-sans)',
+          fontSize:     '12px',
+          textAlign:    'center',
+          cursor:       'pointer',
+          transition:   'border-color 0.15s ease',
+          overflow:     'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace:   'nowrap',
+        }}
+        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
+        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-focus)'}
+      >
+        {current ? '$' + current : '—'}
+      </button>
+
+      {showPopup && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={handleClose} />
+          <div style={{
+            ...popupStyle,
+            background:    'var(--bg-popup)',
+            border:        '1px solid var(--border-focus)',
+            borderRadius:  '10px',
+            boxShadow:     'var(--shadow-dropdown)',
+            padding:       '10px 12px',
+            display:       'flex',
+            flexDirection: 'column',
+            alignItems:    'center',
+            gap:           '8px',
+            minWidth:      MONEY_POPUP_W + 'px',
+          }}>
+            <div style={{
+              fontSize: '10px', fontWeight: '600',
+              textTransform: 'uppercase', letterSpacing: '0.07em',
+              color: 'var(--accent)', fontFamily: 'var(--font-sans)',
+            }}>
+              {label}
+            </div>
+
+            {/* Current value */}
+            <div style={{
+              fontFamily: 'var(--font-serif)', fontSize: '26px', fontWeight: '700',
+              color: 'var(--text-primary)',
+            }}>
+              ${current || '0'}
+            </div>
+
+            {/* Step input */}
+            <input
+              type="number"
+              min="0"
+              value={step}
+              onChange={e => setStep(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Escape') handleClose(); }}
+              placeholder="amount"
+              autoFocus
+              style={{
+                width:        '100%',
+                padding:      '4px 8px',
+                borderRadius: '6px',
+                border:       '1px solid var(--border-input)',
+                background:   'var(--bg-input)',
+                color:        'var(--text-primary)',
+                fontFamily:   'var(--font-sans)',
+                fontSize:     '13px',
+                textAlign:    'center',
+                outline:      'none',
+                boxSizing:    'border-box',
+              }}
+            />
+
+            {/* − + */}
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button onClick={() => applyStep(-1)} style={btnCss('var(--danger)')}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
+                <span className="icon icon-sm">remove</span>
+              </button>
+              <button onClick={() => applyStep(+1)} style={btnCss('var(--success)')}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
+                <span className="icon icon-sm">add</span>
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

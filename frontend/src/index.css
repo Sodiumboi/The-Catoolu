@@ -19,8 +19,9 @@
 
   /* Page backgrounds — parchment palette */
   --bg-page:        #f0e8d8;
-  --bg-card:        rgba(255, 250, 240, 0.95);
-  --bg-nav:         rgba(240, 232, 216, 0.98);
+  --bg-card:        #fffdf8;
+  --bg-nav:         #f0e8d8;
+  --bg-popup:       #fffdf8;
   --bg-input:       #fffdf8;
   --bg-section-hd:  rgba(139, 90, 20, 0.06);
 
@@ -71,6 +72,7 @@
   --bg-page:        #1C1C1A;
   --bg-card:        #2A2A27;
   --bg-nav:         #222220;
+  --bg-popup:       #2A2A27;
   --bg-input:       #1C1C1A;
   --bg-section-hd:  #2A2A27;
 

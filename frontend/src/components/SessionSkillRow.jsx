@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import SkillRollPopup from './SkillRollPopup';
 
-export default function SessionSkillRow({ skill, advMode, disMode, onRoll }) {
+export default function SessionSkillRow({ skill, advMode, disMode, onRoll, fontScale = 1 }) {
   const [showPopup, setShowPopup] = useState(false);
   const [buttonRect, setButtonRect] = useState(null);
   const buttonRef = useRef(null);
@@ -52,7 +52,7 @@ export default function SessionSkillRow({ skill, advMode, disMode, onRoll }) {
 
         {/* Skill name */}
         <span style={{
-          flex: 1, fontSize: '12px',
+          flex: 1, fontSize: (12 * fontScale) + 'px',
           color: 'var(--text-primary)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
@@ -60,7 +60,7 @@ export default function SessionSkillRow({ skill, advMode, disMode, onRoll }) {
         </span>
 
         {/* Value */}
-        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', flexShrink: 0 }}>
+        <span style={{ fontSize: (12 * fontScale) + 'px', fontWeight: '600', color: 'var(--text-primary)', flexShrink: 0 }}>
           {val}
         </span>
       </button>

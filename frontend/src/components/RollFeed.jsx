@@ -18,9 +18,14 @@ function SystemMessage({ msg }) {
   );
 }
 
-export default function RollFeed({ messages, currentUserId, chatFilter }) {
+export default function RollFeed({ messages, currentUserId }) {
   const bottomRef     = useRef(null);
   const prevLengthRef = useRef(0);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'instant' });
+    prevLengthRef.current = messages.length;
+  }, []);
 
   useEffect(() => {
     if (messages.length > prevLengthRef.current) {
@@ -29,9 +34,7 @@ export default function RollFeed({ messages, currentUserId, chatFilter }) {
     }
   }, [messages]);
 
-  const visible = chatFilter === 'text'
-    ? messages.filter(m => m.type !== 'roll')
-    : messages;
+  const visible = messages;
 
   return (
     <div style={{

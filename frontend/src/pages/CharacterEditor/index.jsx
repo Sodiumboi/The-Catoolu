@@ -117,7 +117,7 @@ export default function CharacterEditorPage() {
 
   // ── Render ────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-input)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
 
       {/* Unsaved changes modal */}
       {showWarning && (

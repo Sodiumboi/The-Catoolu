@@ -2,16 +2,16 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext(null);
 
+const SHEET_SCALE = { sm: 0.9, md: 1.0, lg: 1.1 };
+
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(
     () => localStorage.getItem('coc_theme') || 'light'
   );
-  const [skillSize, setSkillSizeState] = useState(
-    () => localStorage.getItem('coc_skill_size') || 'sm'
+  const [sheetSize, setSheetSizeState] = useState(
+    () => localStorage.getItem('coc_sheet_size') || 'md'
   );
 
-  // Applies data-theme="dark" or data-theme="parchment" to <html>
-  // This is what activates the CSS variable block in index.css
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('coc_theme', theme);
@@ -20,13 +20,15 @@ export function ThemeProvider({ children }) {
   const toggleTheme = () =>
     setTheme(t => (t === 'dark' ? 'light' : 'dark'));
 
-  const setSkillSize = (size) => {
-    setSkillSizeState(size);
-    localStorage.setItem('coc_skill_size', size);
+  const setSheetSize = (size) => {
+    setSheetSizeState(size);
+    localStorage.setItem('coc_sheet_size', size);
   };
 
+  const sheetFontScale = SHEET_SCALE[sheetSize] ?? 1.0;
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, skillSize, setSkillSize }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, sheetSize, setSheetSize, sheetFontScale }}>
       {children}
     </ThemeContext.Provider>
   );

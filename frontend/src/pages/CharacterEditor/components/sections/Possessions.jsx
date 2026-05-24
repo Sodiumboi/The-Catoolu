@@ -17,9 +17,11 @@ export default function Possessions({
                 value={item.description}
                 onChange={e => onUpdatePossession(i, e.target.value)}
                 className="flex-1 px-2 py-1 rounded text-sm outline-none"
-                style={{ background: 'var(--bg-input)', border: '1px solid var(--accent)22', color: 'var(--text-primary)' }}
+                style={{ background: 'var(--bg-input)', border: '1.5px solid var(--border-input)', color: 'var(--text-primary)', transition: 'border-color 0.12s ease' }}
+                onMouseEnter={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-focus)'; }}
+                onMouseLeave={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-input)'; }}
                 onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                onBlur={e  => e.target.style.borderColor = 'var(--accent-bg)'}
+                onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
               />
               <button onClick={() => onDeletePossession(i)}
                 className="text-xs px-1.5 py-0.5 rounded flex-shrink-0 transition-all"
@@ -57,9 +59,11 @@ export default function Possessions({
                 value={cash[field] || ''}
                 onChange={e => onUpdateCash(field, e.target.value)}
                 className="text-center px-3 py-2 rounded text-base font-bold outline-none"
-                style={{ background: 'var(--bg-input)', border: '1px solid var(--accent)33', color: 'var(--success)', width: '140px' }}
+                style={{ background: 'var(--bg-input)', border: '1.5px solid var(--border-input)', color: 'var(--success)', width: '140px', transition: 'border-color 0.12s ease' }}
+                onMouseEnter={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-focus)'; }}
+                onMouseLeave={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-input)'; }}
                 onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                onBlur={e  => e.target.style.borderColor = 'var(--border-main)'}
+                onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
               />
             </div>
           ))}

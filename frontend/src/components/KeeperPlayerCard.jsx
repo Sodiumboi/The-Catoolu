@@ -1,4 +1,4 @@
-export default function KeeperPlayerCard({ member }) {
+export default function KeeperPlayerCard({ member, onOpenSheet }) {
   const { character_name, character_occupation, username } = member;
 
   return (
@@ -8,7 +8,32 @@ export default function KeeperPlayerCard({ member }) {
       borderRadius: '10px',
       padding:      '12px',
       marginBottom: '10px',
+      position:     'relative',
     }}>
+      {member.character_id && onOpenSheet && (
+        <button
+          onClick={e => { e.stopPropagation(); onOpenSheet(member); }}
+          title="View character sheet"
+          style={{
+            position:     'absolute',
+            top:          '10px',
+            right:        '10px',
+            background:   'none',
+            border:       'none',
+            cursor:       'pointer',
+            color:        'var(--text-faint)',
+            display:      'flex',
+            alignItems:   'center',
+            padding:      '2px',
+            borderRadius: '4px',
+            transition:   'color 0.1s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+        >
+          <span className="icon icon-sm">open_in_new</span>
+        </button>
+      )}
       {/* Header */}
       <div style={{
         display:       'flex',

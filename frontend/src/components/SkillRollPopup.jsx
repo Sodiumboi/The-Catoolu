@@ -40,8 +40,8 @@ export default function SkillRollPopup({
       {/* Popup */}
       <div style={{
         ...fixedStyle,
-        background:   'var(--bg-card)',
-        border:       '1px solid var(--border-main)',
+        background:   'var(--bg-popup)',
+        border:       '1px solid var(--border-focus)',
         borderRadius: '10px',
         boxShadow:    'var(--shadow-dropdown)',
         padding:      '10px 12px',

@@ -3,9 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCampaign } from '../context/CampaignContext';
-import { useNotifications } from '../context/NotificationContext';
 import logo from '../assets/vault-logo.png';
-import NotificationDropdown from './NotificationDropdown';
 
 // ── Tab definitions ────────────────────────────────────────
 // 'available' tabs are clickable, 'soon' tabs are greyed out
@@ -231,9 +229,6 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
           marginLeft: 'auto',
           flexShrink: 0,
         }}>
-
-          {/* Notification bell */}
-          <NotificationDropdown />
 
           {/* Return to Room pill — only shown when in a session */}
           {activeRoom && (
@@ -500,8 +495,7 @@ function MainMenuPanel({
 
 // ── Preferences panel ──────────────────────────────────────
 function PreferencesPanel({ theme, toggleTheme, setPanel }) {
-  const { skillSize, setSkillSize }  = useTheme();
-  const { enabled, toggleEnabled }   = useNotifications();
+  const { sheetSize, setSheetSize } = useTheme();
   const [savedMsg, setSavedMsg]      = useState('');
 
   // Flash "Saved" confirmation when a setting changes
@@ -630,7 +624,7 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
           </div>
         </div>
 
-        {/* ── Skill Text Size ── */}
+        {/* ── Sheet Text Size ── */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{
             fontFamily:    'var(--font-sans)',
@@ -641,26 +635,26 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
             color:         'var(--text-muted)',
             marginBottom:  '8px',
           }}>
-            Skill Text Size
+            Sheet Text Size
           </div>
 
           <div style={{
-            display:       'flex',
-            border:        '1.5px solid var(--border-main)',
-            borderRadius:  '8px',
-            overflow:      'hidden',
+            display:      'flex',
+            border:       '1.5px solid var(--border-main)',
+            borderRadius: '8px',
+            overflow:     'hidden',
           }}>
             {[
-              { value: 'sm',   label: 'S', title: 'Small'  },
-              { value: 'base', label: 'M', title: 'Medium' },
-              { value: 'lg',   label: 'L', title: 'Large'  },
+              { value: 'sm', label: 'S', title: 'Small',  fontSize: '11px' },
+              { value: 'md', label: 'M', title: 'Medium', fontSize: '13px' },
+              { value: 'lg', label: 'L', title: 'Large',  fontSize: '15px' },
             ].map((opt, i) => {
-              const isActive = skillSize === opt.value;
+              const isActive = sheetSize === opt.value;
               return (
                 <button
                   key={opt.value}
                   title={opt.title}
-                  onClick={() => applySetting(() => setSkillSize(opt.value))}
+                  onClick={() => applySetting(() => setSheetSize(opt.value))}
                   style={{
                     flex:       1,
                     padding:    '6px 0',
@@ -669,63 +663,13 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
                     background: isActive ? 'var(--accent)' : 'transparent',
                     color:      isActive ? '#ffffff'       : 'var(--text-secondary)',
                     fontFamily: 'var(--font-sans)',
-                    fontSize:   i === 0 ? '11px' : i === 1 ? '13px' : '15px',
+                    fontSize:   opt.fontSize,
                     fontWeight: isActive ? '500' : '400',
                     cursor:     isActive ? 'default' : 'pointer',
                     transition: 'all 0.15s ease',
                   }}
                 >
                   {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── Notifications ── */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{
-            fontFamily:    'var(--font-sans)',
-            fontSize:      '11px',
-            fontWeight:    '500',
-            textTransform: 'uppercase',
-            letterSpacing: '0.07em',
-            color:         'var(--text-muted)',
-            marginBottom:  '8px',
-          }}>
-            Message Notifications
-          </div>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {[
-              { value: true,  icon: 'notifications',     text: 'On'  },
-              { value: false, icon: 'notifications_off', text: 'Off' },
-            ].map(opt => {
-              const isActive = enabled === opt.value;
-              return (
-                <button
-                  key={String(opt.value)}
-                  onClick={() => applySetting(toggleEnabled)}
-                  style={{
-                    flex:         1,
-                    padding:      '6px 8px',
-                    borderRadius: '8px',
-                    border:       isActive
-                      ? '1.5px solid var(--color-primary)'
-                      : '1.5px solid var(--border-main)',
-                    background:   isActive ? 'var(--accent-bg)' : 'transparent',
-                    color:        isActive ? 'var(--color-primary)' : 'var(--text-secondary)',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '12px',
-                    fontWeight:   isActive ? '500' : '400',
-                    cursor:       isActive ? 'default' : 'pointer',
-                    transition:   'all 0.15s ease',
-                    display:      'flex',
-                    alignItems:   'center',
-                    justifyContent: 'center',
-                    gap:          '4px',
-                  }}
-                >
-                  <span className="icon icon-sm">{opt.icon}</span>{opt.text}
                 </button>
               );
             })}

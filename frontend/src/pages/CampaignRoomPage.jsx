@@ -11,9 +11,9 @@ import SkillRollPopup      from '../components/SkillRollPopup';
 import { useSocket }       from '../context/SocketContext';
 import { useAuth }         from '../context/AuthContext';
 import { useCampaign }     from '../context/CampaignContext';
-import { useNotifications } from '../context/NotificationContext';
 import apiClient           from '../api/client';
 import SessionSheet        from '../components/SessionSheet';
+import ReadOnlySheet       from '../components/ReadOnlySheet';
 
 // ── Roll context label builder ─────────────────────────────────
 function getRollLabel(skillName, statName) {
@@ -31,7 +31,6 @@ export default function CampaignRoomPage() {
   const { socket, connected }     = useSocket();
   const { user }                  = useAuth();
   const { enterRoom, leaveRoom }  = useCampaign();
-  const { setCurrentRoom, clearCurrentRoom } = useNotifications();
 
   // ── Core state ────────────────────────────────────────────────
   const [campaign,      setCampaign]      = useState(null);
@@ -50,12 +49,12 @@ export default function CampaignRoomPage() {
   const [text,          setText]          = useState('');
   const [advMode,       setAdvMode]       = useState(false);
   const [disMode,       setDisMode]       = useState(false);
-  const [chatFilter,     setChatFilter]     = useState('all');
   const [rollVisibility, setRollVisibility] = useState('everyone');
   const [sidebarTab,    setSidebarTab]    = useState('chat');
   const [sidebarOpen,   setSidebarOpen]   = useState(false);
   const [afk,           setAfk]           = useState(false);
-  const [rollPopup,     setRollPopup]     = useState(null);
+  const [rollPopup,          setRollPopup]          = useState(null);
+  const [keeperSheetModal,   setKeeperSheetModal]   = useState(null);
   const [myCharFullData, setMyCharFullData] = useState(null);
   const [leftWidth,     setLeftWidth]     = useState(() => {
     const saved = parseInt(localStorage.getItem('sheet-panel-width'));
@@ -117,7 +116,6 @@ export default function CampaignRoomPage() {
       setInRoom(true);
       if (campaign) {
         enterRoom(parseInt(id), campaign.name);
-        setCurrentRoom(parseInt(id));
       }
     };
 
@@ -193,9 +191,16 @@ export default function CampaignRoomPage() {
         m.id === userId
           ? {
               ...m,
-              character_id:         character?.id   || null,
-              character_name:       character?.name || null,
-              character_occupation: character?.occupation || null,
+              character_id:         character?.id           || null,
+              character_name:       character?.name         || null,
+              character_occupation: character?.occupation   || null,
+              hit_pts:              character?.hit_pts      ?? null,
+              hit_pts_max:          character?.hit_pts_max  ?? null,
+              magic_pts:            character?.magic_pts    ?? null,
+              magic_pts_max:        character?.magic_pts_max ?? null,
+              sanity:               character?.sanity       ?? null,
+              sanity_max:           character?.sanity_max   ?? null,
+              portrait:             character?.portrait     ?? null,
             }
           : m
       ));
@@ -222,11 +227,9 @@ export default function CampaignRoomPage() {
     };
   }, [socket, connected, loading, error, id, campaign]);
 
-  // Set current room for notifications when campaign loads
   useEffect(() => {
     if (campaign && inRoom) {
       enterRoom(parseInt(id), campaign.name);
-      setCurrentRoom(parseInt(id));
     }
   }, [campaign, inRoom]);
 
@@ -238,10 +241,6 @@ export default function CampaignRoomPage() {
       .catch(() => setMyCharFullData(null));
   }, [myCharacter?.id]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => { clearCurrentRoom(); };
-  }, []);
 
   // ── Left-panel resize ─────────────────────────────────────────
   useEffect(() => {
@@ -460,10 +459,19 @@ export default function CampaignRoomPage() {
   const handleLeave = () => {
     socket?.emit('leave_campaign', { campaignId: parseInt(id) });
     leaveRoom();
-    clearCurrentRoom();
     setTimeout(() => {
       navigate('/campaign');
     }, 100);
+  };
+
+  // ── Keeper sheet preview ──────────────────────────────────────
+  const handleOpenKeeperSheet = async (member) => {
+    try {
+      const res = await apiClient.get('/characters/' + member.character_id);
+      setKeeperSheetModal(res.data.character);
+    } catch {
+      setKeeperSheetModal({ _error: true });
+    }
   };
 
   // ── Adv/Dis toggle ────────────────────────────────────────────
@@ -644,39 +652,80 @@ export default function CampaignRoomPage() {
           flexShrink: 0,
           overflowY:  'auto',
           background: 'var(--bg-page)',
-          padding:    '12px',
+          padding:    myRole === 'keeper' && keeperSheetModal ? 0 : '12px',
         }}>
           {myRole === 'keeper' ? (
-            <>
-              <div style={{
-                fontSize:      '11px',
-                fontWeight:    '600',
-                textTransform: 'uppercase',
-                letterSpacing: '0.07em',
-                color:         'var(--text-muted)',
-                marginBottom:  '10px',
-                fontFamily:    'var(--font-sans)',
-              }}>
-                Investigators ({members.filter(m => m.role === 'player').length})
-              </div>
-              {members
-                .filter(m => m.role === 'player')
-                .map(member => (
-                  <KeeperPlayerCard key={member.id} member={member} />
-                ))
-              }
-              {members.filter(m => m.role === 'player').length === 0 && (
+            keeperSheetModal ? (
+              <>
+                <button
+                  onClick={() => setKeeperSheetModal(null)}
+                  style={{
+                    position:     'sticky',
+                    top:          0,
+                    zIndex:       10,
+                    display:      'flex',
+                    alignItems:   'center',
+                    gap:          '4px',
+                    width:        '100%',
+                    background:   'var(--bg-page)',
+                    border:       'none',
+                    borderBottom: '1px solid var(--border-main)',
+                    cursor:       'pointer',
+                    color:        'var(--text-muted)',
+                    fontFamily:   'var(--font-sans)',
+                    fontSize:     '12px',
+                    padding:      '10px 12px',
+                    boxSizing:    'border-box',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                >
+                  <span className="icon icon-sm">arrow_back</span>
+                  Back to Investigators
+                </button>
+                {keeperSheetModal._error ? (
+                  <div style={{ padding: '40px', textAlign: 'center',
+                                color: 'var(--text-faint)', fontStyle: 'italic' }}>
+                    Could not load character sheet.
+                  </div>
+                ) : (
+                  <div style={{ padding: '12px' }}>
+                    <ReadOnlySheet charData={keeperSheetModal} />
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
                 <div style={{
-                  fontSize:  '13px',
-                  color:     'var(--text-faint)',
-                  fontStyle: 'italic',
-                  textAlign: 'center',
-                  padding:   '24px 0',
+                  fontSize:      '11px',
+                  fontWeight:    '600',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color:         'var(--text-muted)',
+                  marginBottom:  '10px',
+                  fontFamily:    'var(--font-sans)',
                 }}>
-                  No players have joined yet.
+                  Investigators ({members.filter(m => m.role === 'player').length})
                 </div>
-              )}
-            </>
+                {members
+                  .filter(m => m.role === 'player')
+                  .map(member => (
+                    <KeeperPlayerCard key={member.id} member={member} onOpenSheet={handleOpenKeeperSheet} />
+                  ))
+                }
+                {members.filter(m => m.role === 'player').length === 0 && (
+                  <div style={{
+                    fontSize:  '13px',
+                    color:     'var(--text-faint)',
+                    fontStyle: 'italic',
+                    textAlign: 'center',
+                    padding:   '24px 0',
+                  }}>
+                    No players have joined yet.
+                  </div>
+                )}
+              </>
+            )
           ) : myCharFullData ? (
             <SessionSheet
               charData={myCharFullData}
@@ -727,7 +776,6 @@ export default function CampaignRoomPage() {
           <RollFeed
             messages={messages}
             currentUserId={user?.id}
-            chatFilter={chatFilter}
           />
 
           {/* Typing indicator */}
@@ -744,11 +792,9 @@ export default function CampaignRoomPage() {
           {/* Dice row */}
           <DiceRow
             advMode={advMode} disMode={disMode}
-            chatFilter={chatFilter}
             rollVisibility={rollVisibility}
             onToggleAdv={handleToggleAdv}
             onToggleDis={handleToggleDis}
-            onChatFilterChange={setChatFilter}
             onToggleVisibility={() => setRollVisibility(p => p === 'everyone' ? 'only_me' : 'everyone')}
             onRoll={(notation, shiftKey) => {
               const isD100 = notation.toLowerCase().includes('d100');
@@ -814,6 +860,8 @@ export default function CampaignRoomPage() {
           campaignId={id}
         />
       </div>
+
+
     </div>
   );
 }

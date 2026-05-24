@@ -12,6 +12,8 @@ export default function SessionTrackedStat({
   onSave,
   rollable,
   onRoll,
+  advMode,
+  disMode,
 }) {
   const [showPopup, setShowPopup] = useState(false);
   const [pending,   setPending]   = useState(null);
@@ -40,8 +42,9 @@ export default function SessionTrackedStat({
 
   const handleClose = () => { setShowPopup(false); setPending(null); };
 
-  const displayVal = pending ?? currentNum;
-  const changed    = pending !== null && pending !== currentNum;
+  const displayVal    = pending ?? currentNum;
+  const changed       = pending !== null && pending !== currentNum;
+  const rollModeLabel = advMode ? ' Adv' : disMode ? ' Dis' : '';
 
   // Fixed popup position — below button, clamped to viewport
   const popupStyle = btnRect ? {
@@ -122,8 +125,8 @@ export default function SessionTrackedStat({
           <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={handleClose} />
           <div style={{
             ...popupStyle,
-            background:    'var(--bg-card)',
-            border:        '1px solid var(--border-main)',
+            background:    'var(--bg-popup)',
+            border:        '1px solid var(--border-focus)',
             borderRadius:  '10px',
             boxShadow:     'var(--shadow-dropdown)',
             padding:       '10px 12px',
@@ -177,7 +180,7 @@ export default function SessionTrackedStat({
               <>
                 <div style={{ width: '100%', height: '1px', background: 'var(--border-main)' }} />
                 <button
-                  onClick={() => { onRoll?.(); handleClose(); }}
+                  onClick={() => { onRoll?.(advMode ? 'adv' : disMode ? 'dis' : 'normal'); handleClose(); }}
                   style={{
                     width: '100%', padding: '5px 0', borderRadius: '7px',
                     border: '1px solid var(--border-main)', background: 'transparent',
@@ -190,7 +193,7 @@ export default function SessionTrackedStat({
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <span className="icon icon-sm">casino</span>
-                  Roll Sanity ({displayVal})
+                  Roll {label}{rollModeLabel} ({displayVal})
                 </button>
               </>
             )}

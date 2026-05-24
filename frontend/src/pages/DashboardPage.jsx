@@ -109,6 +109,15 @@ export default function DashboardPage() {
       flexDirection: 'column',
     }}>
 
+      {/* Hidden file input — triggered by "Import Another" card */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleFileImport}
+        style={{ display: 'none' }}
+      />
+
       {/* ── Top Navigation Bar ── */}
       <NavBar
         activeTab="investigators"

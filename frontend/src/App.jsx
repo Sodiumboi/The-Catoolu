@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import ProtectedRoute     from './components/ProtectedRoute';
-import NotificationToast  from './components/NotificationToast';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import CharacterEditorPage from './pages/CharacterEditor';
@@ -80,7 +79,6 @@ export default function App() {
               }
             />
       </Routes>
-      <NotificationToast />
     </BrowserRouter>
   );
 }

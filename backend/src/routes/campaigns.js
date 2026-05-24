@@ -322,30 +322,11 @@ router.get('/:id/messages', async (req, res) => {
     let query;
     let params;
 
-    const portraitSubquery = `(
-      SELECT c.portrait_data
-      FROM characters c
-      JOIN campaign_members cm ON cm.character_id = c.id
-      WHERE cm.campaign_id = m.campaign_id
-        AND cm.user_id = m.user_id
-      LIMIT 1
-    ) AS portrait`;
-
-    const charNameSubquery = `(
-      SELECT sheet_data->'Investigator'->'PersonalDetails'->>'Name'
-      FROM characters c
-      JOIN campaign_members cm ON cm.character_id = c.id
-      WHERE cm.campaign_id = m.campaign_id
-        AND cm.user_id = m.user_id
-      LIMIT 1
-    ) AS character_name`;
-
     if (before) {
       query = `
         SELECT m.id, m.type, m.content, m.created_at,
-               u.id AS user_id, u.username, u.avatar_url,
-               ${portraitSubquery},
-               ${charNameSubquery}
+               m.avatar_url, m.portrait, m.character_name,
+               u.id AS user_id, u.username
         FROM messages m
         LEFT JOIN users u ON m.user_id = u.id
         WHERE m.campaign_id = $1 AND m.id < $2
@@ -356,9 +337,8 @@ router.get('/:id/messages', async (req, res) => {
     } else {
       query = `
         SELECT m.id, m.type, m.content, m.created_at,
-               u.id AS user_id, u.username, u.avatar_url,
-               ${portraitSubquery},
-               ${charNameSubquery}
+               m.avatar_url, m.portrait, m.character_name,
+               u.id AS user_id, u.username
         FROM messages m
         LEFT JOIN users u ON m.user_id = u.id
         WHERE m.campaign_id = $1

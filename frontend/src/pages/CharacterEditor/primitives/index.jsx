@@ -49,11 +49,14 @@ export function StatBox({ label, value, onChange, sublabel }) {
               width: '48px', height: '48px', fontSize: '1.2rem',
               textAlign: 'center',
               background: 'var(--bg-input)',
-              border: '2px solid var(--border-main)',
+              border: '2px solid var(--border-input)',
               color: 'var(--text-primary)',
               MozAppearance: 'textfield',
+              transition: 'border-color 0.12s ease',
             }}
-            onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+            onMouseEnter={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-focus)'; }}
+            onMouseLeave={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-input)'; }}
+            onFocus={e => e.target.style.borderColor = 'var(--accent)'}
             onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
           />
         </div>
@@ -149,12 +152,15 @@ export function BackstoryField({ label, value, onChange }) {
         className="w-full px-3 py-2 rounded text-sm outline-none resize-y"
         style={{
           background: 'var(--bg-input)',
-          border: '1px solid var(--accent)33',
+          border: '1.5px solid var(--border-input)',
           color: 'var(--text-primary)',
           lineHeight: '1.6',
+          transition: 'border-color 0.12s ease',
         }}
+        onMouseEnter={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-focus)'; }}
+        onMouseLeave={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-input)'; }}
         onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-        onBlur={e  => e.target.style.borderColor = 'var(--border-main)'}
+        onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
       />
     </div>
   );
@@ -175,11 +181,14 @@ export function DetailInput({ label, value, onChange }) {
         className="w-full px-3 py-2 rounded text-sm outline-none"
         style={{
           background: 'var(--bg-input)',
-          border: '1px solid var(--accent)33',
+          border: '1.5px solid var(--border-input)',
           color: 'var(--text-primary)',
+          transition: 'border-color 0.12s ease, background 0.12s ease',
         }}
+        onMouseEnter={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-focus)'; }}
+        onMouseLeave={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-input)'; }}
         onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-        onBlur={e  => e.target.style.borderColor = 'var(--border-main)'}
+        onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
       />
     </div>
   );
