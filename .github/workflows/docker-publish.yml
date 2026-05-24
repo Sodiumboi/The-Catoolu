@@ -7,11 +7,16 @@ on:
 
 permissions:
   contents: read
-  packages: write
+  packages: write # ← this is what was missing
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       # 1. Check out the code
