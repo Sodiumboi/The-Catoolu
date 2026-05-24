@@ -1,4 +1,7 @@
+
 # 🐙 The Catoolu
+<img width="3518" height="769" alt="Catoolu baner" src="https://github.com/user-attachments/assets/e9152550-067b-4385-a2e9-9634fdabaa04" />
+
 ### A Self-Hosted Call of Cthulhu 7e Character Sheet Manager
 
 > *"Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn"*
