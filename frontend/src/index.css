@@ -49,8 +49,8 @@
   --row-hover:      #8b5a140a;
 
   /* Typography */
-  --font-serif:     'DM Serif Display', Georgia, 'Times New Roman', serif;
-  --font-sans:      'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-serif:     'DM Serif Display', 'Noto Sans Thai', Georgia, 'Times New Roman', serif;
+  --font-sans:      'DM Sans', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
 
   /* Shadows — warm parchment tints */
   --shadow-card:    0 1px 3px rgba(139, 90, 20, 0.08), 0 4px 12px rgba(139, 90, 20, 0.06);

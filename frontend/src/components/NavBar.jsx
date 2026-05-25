@@ -69,7 +69,6 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
       zIndex:       50,
     }}>
       <div style={{
-        width:      '100%',
         padding:    '0 24px',
         display:    'flex',
         alignItems: 'center',
@@ -88,7 +87,7 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
             border:     'none',
             cursor:     'pointer',
             padding:    '0',
-            flexShrink: 0,
+            flex:       1,
           }}
         >
           <img
@@ -121,7 +120,6 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
           display:    'flex',
           alignItems: 'center',
           gap:        '4px',
-          flex:       1,
         }}>
           {TABS.map(tab => {
             const isActive = activeTab === tab.id;
@@ -223,11 +221,11 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
 
         {/* ── Right side — pushed to far right with marginLeft auto ── */}
         <div style={{
-          display:    'flex',
-          alignItems: 'center',
-          gap:        '8px',
-          marginLeft: 'auto',
-          flexShrink: 0,
+          display:        'flex',
+          alignItems:     'center',
+          gap:            '8px',
+          flex:           1,
+          justifyContent: 'flex-end',
         }}>
 
           {/* Return to Room pill — only shown when in a session */}

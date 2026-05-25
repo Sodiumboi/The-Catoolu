@@ -306,14 +306,14 @@ export default function DashboardPage() {
             <button
               onClick={() => fileInputRef.current?.click()}
               className="rounded-lg p-5 border-2 border-dashed flex flex-col items-center justify-center gap-3 min-h-48 transition-all duration-200"
-              style={{ borderColor: 'var(--accent)33', color: 'var(--accent)55' }}
+              style={{ borderColor: 'var(--border-main)', color: 'var(--text-muted)' }}
               onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'var(--accent)';
+                e.currentTarget.style.borderColor = 'var(--border-focus)';
                 e.currentTarget.style.color = 'var(--accent)';
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.borderColor = 'var(--accent)33';
-                e.currentTarget.style.color = 'var(--accent)55';
+                e.currentTarget.style.borderColor = 'var(--border-main)';
+                e.currentTarget.style.color = 'var(--text-muted)';
               }}
             >
               <span className="text-3xl">+</span>
