@@ -14,6 +14,7 @@ import { useCampaign }     from '../context/CampaignContext';
 import apiClient           from '../api/client';
 import SessionSheet        from '../components/SessionSheet';
 import ReadOnlySheet       from '../components/ReadOnlySheet';
+import RoomSubNav          from '../components/RoomSubNav';
 
 // ── Roll context label builder ─────────────────────────────────
 function getRollLabel(skillName, statName) {
@@ -46,6 +47,7 @@ export default function CampaignRoomPage() {
   const [inRoom,        setInRoom]        = useState(false);
 
   // ── UI state ──────────────────────────────────────────────────
+  const [subTab,        setSubTab]        = useState('main');
   const [text,          setText]          = useState('');
   const [advMode,       setAdvMode]       = useState(false);
   const [disMode,       setDisMode]       = useState(false);
@@ -568,6 +570,8 @@ export default function CampaignRoomPage() {
 
       <NavBar activeTab="campaign" />
 
+      <div className="animate-fade-rise" style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
+
       {/* Room header */}
       <div style={{
         padding:       '8px 20px',
@@ -645,110 +649,153 @@ export default function CampaignRoomPage() {
       {/* Main content */}
       <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
 
-        {/* Left: character sheet OR Keeper player cards */}
-        <div style={{
-          width:      leftWidth + 'px',
-          minWidth:   '280px',
-          flexShrink: 0,
-          overflowY:  'auto',
-          background: 'var(--bg-page)',
-          padding:    myRole === 'keeper' && keeperSheetModal ? 0 : '12px',
-        }}>
-          {myRole === 'keeper' ? (
-            keeperSheetModal ? (
-              <>
-                <button
-                  onClick={() => setKeeperSheetModal(null)}
-                  style={{
-                    position:     'sticky',
-                    top:          0,
-                    zIndex:       10,
-                    display:      'flex',
-                    alignItems:   'center',
-                    gap:          '4px',
-                    width:        '100%',
-                    background:   'var(--bg-page)',
-                    border:       'none',
-                    borderBottom: '1px solid var(--border-main)',
-                    cursor:       'pointer',
-                    color:        'var(--text-muted)',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '12px',
-                    padding:      '10px 12px',
-                    boxSizing:    'border-box',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-                >
-                  <span className="icon icon-sm">arrow_back</span>
-                  Back to Investigators
-                </button>
-                {keeperSheetModal._error ? (
-                  <div style={{ padding: '40px', textAlign: 'center',
-                                color: 'var(--text-faint)', fontStyle: 'italic' }}>
-                    Could not load character sheet.
-                  </div>
+        {/* Left: sub-nav + character sheet OR Keeper player cards */}
+        {(() => {
+          const playerTabs = [
+            { id: 'main',  label: 'Sheet' },
+            { id: 'notes', label: 'Notes', comingSoon: true },
+          ];
+          const keeperTabs = [
+            { id: 'main',     label: 'Players' },
+            { id: 'handouts', label: 'Handouts', comingSoon: true },
+            { id: 'notes',    label: 'Notes',    comingSoon: true },
+          ];
+          const tabs = myRole === 'keeper' ? keeperTabs : playerTabs;
+
+          const comingSoonPanel = (
+            <div style={{
+              display:        'flex',
+              flexDirection:  'column',
+              alignItems:     'center',
+              justifyContent: 'center',
+              height:         '100%',
+              gap:            '0.75rem',
+              color:          'var(--text-faint)',
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 40 }}>
+                construction
+              </span>
+              <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: '14px' }}>
+                Coming in a future update
+              </p>
+            </div>
+          );
+
+          return (
+            <div style={{
+              width:         leftWidth + 'px',
+              minWidth:      '280px',
+              flexShrink:    0,
+              display:       'flex',
+              flexDirection: 'column',
+              background:    'var(--bg-page)',
+              overflow:      'hidden',
+            }}>
+              <RoomSubNav tabs={tabs} activeTab={subTab} onTabChange={setSubTab} />
+
+              <div key={subTab} className="animate-fade-rise" style={{
+                flex:      1,
+                overflowY: 'auto',
+                padding:   subTab === 'main' && myRole === 'keeper' && keeperSheetModal ? 0 : subTab === 'main' ? '12px' : 0,
+              }}>
+                {subTab !== 'main' ? comingSoonPanel : myRole === 'keeper' ? (
+                  keeperSheetModal ? (
+                    <>
+                      <button
+                        onClick={() => setKeeperSheetModal(null)}
+                        style={{
+                          position:     'sticky',
+                          top:          0,
+                          zIndex:       10,
+                          display:      'flex',
+                          alignItems:   'center',
+                          gap:          '4px',
+                          width:        '100%',
+                          background:   'var(--bg-page)',
+                          border:       'none',
+                          borderBottom: '1px solid var(--border-main)',
+                          cursor:       'pointer',
+                          color:        'var(--text-muted)',
+                          fontFamily:   'var(--font-sans)',
+                          fontSize:     '12px',
+                          padding:      '10px 12px',
+                          boxSizing:    'border-box',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                      >
+                        <span className="icon icon-sm">arrow_back</span>
+                        Back to Investigators
+                      </button>
+                      {keeperSheetModal._error ? (
+                        <div style={{ padding: '40px', textAlign: 'center',
+                                      color: 'var(--text-faint)', fontStyle: 'italic' }}>
+                          Could not load character sheet.
+                        </div>
+                      ) : (
+                        <div style={{ padding: '12px' }}>
+                          <ReadOnlySheet charData={keeperSheetModal} />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div style={{
+                        fontSize:      '11px',
+                        fontWeight:    '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.07em',
+                        color:         'var(--text-muted)',
+                        marginBottom:  '10px',
+                        fontFamily:    'var(--font-sans)',
+                      }}>
+                        Investigators ({members.filter(m => m.role === 'player').length})
+                      </div>
+                      {members
+                        .filter(m => m.role === 'player')
+                        .map(member => (
+                          <KeeperPlayerCard key={member.id} member={member} onOpenSheet={handleOpenKeeperSheet} />
+                        ))
+                      }
+                      {members.filter(m => m.role === 'player').length === 0 && (
+                        <div style={{
+                          fontSize:  '13px',
+                          color:     'var(--text-faint)',
+                          fontStyle: 'italic',
+                          textAlign: 'center',
+                          padding:   '24px 0',
+                        }}>
+                          No players have joined yet.
+                        </div>
+                      )}
+                    </>
+                  )
+                ) : myCharFullData ? (
+                  <SessionSheet
+                    charData={myCharFullData}
+                    characterId={myCharacter?.id}
+                    advMode={advMode}
+                    disMode={disMode}
+                    onStatRoll={(label, value, mode) => handlePopupRoll(mode, label, value)}
+                    onWeaponAttack={handleWeaponAttack}
+                    onStatBlur={handleStatBlur}
+                  />
                 ) : (
-                  <div style={{ padding: '12px' }}>
-                    <ReadOnlySheet charData={keeperSheetModal} />
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div style={{
-                  fontSize:      '11px',
-                  fontWeight:    '600',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color:         'var(--text-muted)',
-                  marginBottom:  '10px',
-                  fontFamily:    'var(--font-sans)',
-                }}>
-                  Investigators ({members.filter(m => m.role === 'player').length})
-                </div>
-                {members
-                  .filter(m => m.role === 'player')
-                  .map(member => (
-                    <KeeperPlayerCard key={member.id} member={member} onOpenSheet={handleOpenKeeperSheet} />
-                  ))
-                }
-                {members.filter(m => m.role === 'player').length === 0 && (
                   <div style={{
                     fontSize:  '13px',
                     color:     'var(--text-faint)',
                     fontStyle: 'italic',
                     textAlign: 'center',
-                    padding:   '24px 0',
+                    padding:   '24px 16px',
                   }}>
-                    No players have joined yet.
+                    No investigator registered.<br/>
+                    Select one in the Players tab →
                   </div>
                 )}
-              </>
-            )
-          ) : myCharFullData ? (
-            <SessionSheet
-              charData={myCharFullData}
-              characterId={myCharacter?.id}
-              advMode={advMode}
-              disMode={disMode}
-              onStatRoll={(label, value, mode) => handlePopupRoll(mode, label, value)}
-              onWeaponAttack={handleWeaponAttack}
-              onStatBlur={handleStatBlur}
-            />
-          ) : (
-            <div style={{
-              fontSize:  '13px',
-              color:     'var(--text-faint)',
-              fontStyle: 'italic',
-              textAlign: 'center',
-              padding:   '24px 16px',
-            }}>
-              No investigator registered.<br/>
-              Select one in the Players tab →
+              </div>
             </div>
-          )}
-        </div>
+          );
+        })()}
 
         {/* Resize handle */}
         <div
@@ -861,6 +908,7 @@ export default function CampaignRoomPage() {
         />
       </div>
 
+      </div>{/* end animate-fade-rise wrapper */}
 
     </div>
   );

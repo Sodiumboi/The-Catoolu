@@ -250,7 +250,7 @@ export default function ProfilePage() {
     }}>
       <NavBar activeTab={null} />
 
-      <main style={{
+      <main className="animate-fade-rise" style={{
         maxWidth: '1100px',
         margin:   '0 auto',
         padding:  '32px 24px',

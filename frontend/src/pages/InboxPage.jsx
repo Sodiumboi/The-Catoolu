@@ -44,7 +44,7 @@ export default function InboxPage() {
     }}>
       <NavBar activeTab="inbox" />
 
-      <main style={{
+      <main className="animate-fade-rise" style={{
         maxWidth:'680px', margin:'0 auto',
         padding:'32px 24px', flex:1, width:'100%',
       }}>

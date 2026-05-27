@@ -45,7 +45,7 @@ export default function CampaignPage() {
     }}>
       <NavBar activeTab="campaign" />
 
-      <main style={{
+      <main className="animate-fade-rise" style={{
         maxWidth: '1200px',
         margin:   '0 auto',
         padding:  '32px 24px',
