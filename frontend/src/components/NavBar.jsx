@@ -13,7 +13,7 @@ const TABS = [
   { id: 'campaign',      label: 'Campaign',      path: '/campaign', status: 'available' },
 ];
 
-export default function NavBar({ activeTab = 'investigators', onImport, investigatorCount }) {
+export default function NavBar({ activeTab = 'investigators', onImport }) {
   const { user, logout }          = useAuth();
   const { theme, toggleTheme }    = useTheme();
   const { activeRoom }            = useCampaign();
@@ -173,21 +173,6 @@ export default function NavBar({ activeTab = 'investigators', onImport, investig
                   }}
                 >
                   {tab.label}
-
-                  {/* Count badge */}
-                  {tab.id === 'investigators' && investigatorCount > 0 && (
-                    <span style={{
-                      background:   isActive ? 'var(--color-primary)' : 'var(--border-main)',
-                      color:        isActive ? '#ffffff' : 'var(--text-muted)',
-                      borderRadius: '10px',
-                      fontSize:     '10px',
-                      fontWeight:   '500',
-                      padding:      '0px 6px',
-                      lineHeight:   '1.6',
-                    }}>
-                      {investigatorCount}
-                    </span>
-                  )}
 
                   {/* Lock icon */}
                   {isSoon && (

@@ -10,6 +10,7 @@ import KeeperPage   from './pages/KeeperPage';
 import CampaignPage     from './pages/CampaignPage';
 import InboxPage        from './pages/InboxPage';
 import CampaignRoomPage from './pages/CampaignRoomPage';
+import CharacterCreationPage from './pages/CharacterCreationPage';
 
 // ── Forces full remount when character ID changes ──────────
 function CharacterEditorWithKey() {
@@ -40,6 +41,11 @@ export default function App() {
             <Route path="/character/:id" element={<CharacterEditorWithKey />} />
             <Route path="/profile" element={
               <ProtectedRoute><ProfilePage /></ProtectedRoute>
+            }/>
+
+            {/* Hidden creation engine — no NavBar link */}
+            <Route path="/plzwork" element={
+              <ProtectedRoute><CharacterCreationPage /></ProtectedRoute>
             }/>
 
             {/* Fallbacks */}

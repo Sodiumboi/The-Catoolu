@@ -122,7 +122,6 @@ export default function DashboardPage() {
       <NavBar
         activeTab="investigators"
         onImport={handleFileImport}
-        investigatorCount={characters.length}
       />
 
       {/* ── Main Content ── */}
