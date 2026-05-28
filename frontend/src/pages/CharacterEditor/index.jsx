@@ -187,7 +187,7 @@ export default function CharacterEditorPage() {
       </div>
 
       {/* Page content */}
-      <div className="max-w-6xl mx-auto px-6 py-8" style={{ flex: 1 }}>
+      <div className="animate-fade-rise max-w-6xl mx-auto px-6 py-8" style={{ flex: 1 }}>
 
         <PersonalDetails
           details={details} portrait={portrait}
