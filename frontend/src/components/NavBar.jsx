@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCampaign } from '../context/CampaignContext';
+import { useNavBarActions } from '../context/NavBarActionsContext';
 import logo from '../assets/vault-logo.png';
 
 // ── Tab definitions ────────────────────────────────────────
@@ -13,10 +14,16 @@ const TABS = [
   { id: 'campaign',      label: 'Campaign',      path: '/campaign', status: 'available' },
 ];
 
-export default function NavBar({ activeTab = 'investigators', onImport }) {
+// NavBar remounts on every page — this carries the pill's last measured position
+// across remounts so the sliding animation can play on navigation.
+let _lastPillBounds = null;
+
+
+export default function NavBar({ activeTab = 'investigators' }) {
   const { user, logout }          = useAuth();
   const { theme, toggleTheme }    = useTheme();
   const { activeRoom }            = useCampaign();
+  const { onImport }              = useNavBarActions();
   const navigate                  = useNavigate();
   const location                  = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -24,6 +31,9 @@ export default function NavBar({ activeTab = 'investigators', onImport }) {
   const [panel,        setPanel]        = useState('main'); // 'main' | 'preferences'
   const dropdownRef                     = useRef(null);
   const fileInputRef                    = useRef(null);
+  const containerRef                    = useRef(null);
+  const tabRefs                         = useRef({});
+  const [pillBounds, setPillBounds]     = useState(_lastPillBounds);
 
   // ── Close dropdown when clicking outside ────────────────
   useEffect(() => {
@@ -42,6 +52,23 @@ export default function NavBar({ activeTab = 'investigators', onImport }) {
     setDropdownOpen(false);
     setPanel('main'); // ← reset panel on navigation too
   }, [location.pathname]);
+
+  // Derive active tab from URL so navigation always triggers re-measurement
+  const currentActiveTab = TABS.find(
+    t => location.pathname === t.path || location.pathname.startsWith(t.path + '/')
+  )?.id ?? activeTab;
+
+  // Measure active tab position; persist across remounts so animation plays on navigation
+  useEffect(() => {
+    const el        = tabRefs.current[currentActiveTab];
+    const container = containerRef.current;
+    if (!el || !container) return;
+    const r = el.getBoundingClientRect();
+    const c = container.getBoundingClientRect();
+    const b = { left: r.left - c.left, width: r.width };
+    _lastPillBounds = b;
+    setPillBounds(b);
+  }, [currentActiveTab]);
 
   // ── Handlers ─────────────────────────────────────────────
   const handleLogout = () => {
@@ -115,66 +142,75 @@ export default function NavBar({ activeTab = 'investigators', onImport }) {
           </div>
         </button>
 
-        {/* ── Tabs — pill shaped ── */}
-        <div style={{
-          display:    'flex',
-          alignItems: 'center',
-          gap:        '4px',
-        }}>
+        {/* ── Tabs — sliding pill ── */}
+        <div
+          ref={containerRef}
+          style={{
+            display:   'flex',
+            alignItems:'center',
+            gap:       '4px',
+            position:  'relative',
+          }}
+        >
+          {/* Single pill — slides across the container */}
+          {pillBounds && (
+            <div
+              style={{
+                position:      'absolute',
+                top:           0,
+                bottom:        0,
+                left:          pillBounds.left,
+                width:         pillBounds.width,
+                borderRadius:  '20px',
+                background:    'var(--accent-bg)',
+                border:        '1.5px solid var(--color-primary)',
+                zIndex:        0,
+                pointerEvents: 'none',
+                transition:    'left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+            />
+          )}
+
           {TABS.map(tab => {
-            const isActive = activeTab === tab.id;
+            const isActive = currentActiveTab === tab.id;
             const isSoon   = tab.status === 'soon';
 
             return (
               <div key={tab.id} style={{ position: 'relative' }}>
                 <button
+                  ref={el => { tabRefs.current[tab.id] = el; }}
                   onClick={() => !isSoon && navigate(tab.path)}
-                  onMouseEnter={() => isSoon && setTooltip({ id: tab.id, label: tab.version })}
-                  onMouseLeave={() => setTooltip(null)}
+                  onMouseEnter={() => {
+                    if (isSoon) setTooltip({ id: tab.id, label: tab.version });
+                  }}
+                  onMouseLeave={() => {
+                    setTooltip(null);
+                  }}
                   style={{
-                    display:       'flex',
-                    alignItems:    'center',
-                    gap:           '6px',
-                    padding:       '5px 14px',
-                    borderRadius:  '20px',
-                    border:        isActive
-                      ? '1.5px solid var(--color-primary)'
-                      : '1.5px solid transparent',
-                    background:    isActive
-                      ? 'var(--accent-bg)'
-                      : 'transparent',
-                    cursor:        isSoon ? 'default' : 'pointer',
-                    fontFamily:    'var(--font-sans)',
-                    fontSize:      '13px',
-                    fontWeight:    isActive ? '500' : '400',
-                    color:         isActive
+                    display:      'flex',
+                    alignItems:   'center',
+                    gap:          '6px',
+                    padding:      '5px 14px',
+                    borderRadius: '20px',
+                    border:       '1.5px solid transparent',
+                    background:   'transparent',
+                    cursor:       isSoon ? 'default' : 'pointer',
+                    fontFamily:   'var(--font-sans)',
+                    fontSize:     '13px',
+                    fontWeight:   isActive ? '500' : '400',
+                    color:        isActive
                       ? 'var(--color-primary)'
                       : isSoon
                         ? 'var(--text-faint)'
                         : 'var(--text-secondary)',
-                    whiteSpace:    'nowrap',
-                    transition:    'all 0.15s ease',
-                  }}
-                  onMouseEnter={e => {
-                    if (!isSoon && !isActive) {
-                      e.currentTarget.style.background   = 'var(--row-hover)';
-                      e.currentTarget.style.color        = 'var(--text-primary)';
-                      e.currentTarget.style.borderColor  = 'var(--border-main)';
-                    }
-                    if (isSoon) setTooltip({ id: tab.id, label: tab.version });
-                  }}
-                  onMouseLeave={e => {
-                    if (!isSoon && !isActive) {
-                      e.currentTarget.style.background  = 'transparent';
-                      e.currentTarget.style.color       = 'var(--text-secondary)';
-                      e.currentTarget.style.borderColor = 'transparent';
-                    }
-                    setTooltip(null);
+                    whiteSpace:   'nowrap',
+                    transition:   'color 0.15s ease',
+                    position:     'relative',
+                    zIndex:       1,
                   }}
                 >
                   {tab.label}
 
-                  {/* Lock icon */}
                   {isSoon && (
                     <span className="icon icon-sm" style={{ opacity: 0.4 }}>lock</span>
                   )}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import OCCUPATIONS from '../../utils/occupations';
 
-function PreviewPanel({ occ, stats }) {
+function PreviewPanel({ occ, stats, gameEra }) {
   if (!occ) {
     return (
       <div style={{
@@ -25,6 +25,9 @@ function PreviewPanel({ occ, stats }) {
   const pts        = occ.skillPointsCalc(stats);
   const crMid      = Math.floor((occ.creditRating.min + occ.creditRating.max) / 2);
   const { cash, assets, spendingLimit } = occ.cashAndAssets(crMid);
+  const isUnusual  = occ.erasAvailable?.length > 0
+    && gameEra
+    && !occ.erasAvailable.includes(gameEra);
 
   return (
     <div style={{
@@ -39,6 +42,19 @@ function PreviewPanel({ occ, stats }) {
       <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: 'var(--color-primary-dark)', marginBottom: '0.25rem' }}>
         {occ.name}
       </h3>
+      {isUnusual && (
+        <p style={{
+          fontSize: '12px',
+          color: 'var(--warning-text, #b47800)',
+          marginTop: '0',
+          marginBottom: '0.5rem',
+          fontStyle: 'italic',
+          fontFamily: 'var(--font-sans)',
+        }}>
+          ⚠ This occupation may not fit the {ERA_LABELS[gameEra] ?? gameEra} setting.
+          Check with your Keeper before selecting.
+        </p>
+      )}
       <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
         {occ.description}
       </p>
@@ -133,8 +149,17 @@ function Divider() {
   return <div style={{ borderTop: '1px solid var(--border-main)', margin: '0.75rem 0' }} />;
 }
 
+const ERA_LABELS = {
+  modern:        'Modern',
+  classic_1920s: "Classic 1920's",
+  gaslight:      'Cthulhu by Gaslight',
+  old_west:      'Old West',
+  regency:       'Regency Cthulhu',
+  dark_ages:     'Dark Ages',
+};
+
 export default function StepOccupationPicker({ state, setOccupation }) {
-  const { stats, selectedOccupation } = state;
+  const { stats, selectedOccupation, gameEra } = state;
   const [search, setSearch] = useState('');
   const [hovered, setHovered] = useState(null);
 
@@ -190,6 +215,9 @@ export default function StepOccupationPicker({ state, setOccupation }) {
             {filtered.map((occ, i) => {
               const isSelected = selectedOccupation?.id === occ.id;
               const isHovered  = hovered?.id === occ.id;
+              const isUnusual  = occ.erasAvailable?.length > 0
+                && gameEra
+                && !occ.erasAvailable.includes(gameEra);
 
               return (
                 <div
@@ -217,8 +245,24 @@ export default function StepOccupationPicker({ state, setOccupation }) {
                       fontSize: '0.88rem',
                       fontWeight: isSelected ? 600 : 400,
                       color: isSelected ? 'var(--color-primary-dark)' : 'var(--text-primary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '0.3rem',
                     }}>
                       {occ.name}
+                      {isUnusual && (
+                        <span style={{
+                          fontSize: '10px',
+                          padding: '1px 5px',
+                          borderRadius: '4px',
+                          backgroundColor: 'var(--warning-bg, rgba(180,120,0,0.15))',
+                          color: 'var(--warning-text, #b47800)',
+                          fontWeight: 500,
+                        }}>
+                          unusual era
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
                       {occ.skillPointsFormula} = {occ.skillPointsCalc(stats)} pts
@@ -239,7 +283,7 @@ export default function StepOccupationPicker({ state, setOccupation }) {
         </div>
 
         {/* ── Right: preview ── */}
-        <PreviewPanel occ={preview} stats={stats} />
+        <PreviewPanel occ={preview} stats={stats} gameEra={gameEra} />
       </div>
     </div>
   );

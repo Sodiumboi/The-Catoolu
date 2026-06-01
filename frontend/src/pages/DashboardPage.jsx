@@ -305,8 +305,8 @@ export default function DashboardPage() {
             {/* "Add another" card */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="rounded-lg p-5 border-2 border-dashed flex flex-col items-center justify-center gap-3 min-h-48 transition-all duration-200"
-              style={{ borderColor: 'var(--border-main)', color: 'var(--text-muted)' }}
+              className="p-5 border-2 border-dashed flex flex-col items-center justify-center gap-3 min-h-48 transition-all duration-200"
+              style={{ borderColor: 'var(--border-main)', color: 'var(--text-muted)', borderRadius: 'var(--radius-squircle)' }}
               onMouseEnter={e => {
                 e.currentTarget.style.borderColor = 'var(--border-focus)';
                 e.currentTarget.style.color = 'var(--accent)';

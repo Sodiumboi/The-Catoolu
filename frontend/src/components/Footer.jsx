@@ -2,7 +2,7 @@
 // Appears at the bottom of every page.
 // Version number and build credit.
 
-const VERSION = 'V1.5 · Nyarlathotep - Update Ds-i: Goldenfields';
+const VERSION = 'V1.5 · Nyarlathotep - Update Ds-i: Goldenfields.';
 const CREDIT  = 'Built by Someone at Saltlakes with an unreasonable amount of help from Claude';
 
 export default function Footer() {
@@ -12,31 +12,44 @@ export default function Footer() {
       marginTop: 'auto',
     }}>
       <div style={{
-        maxWidth:       '1200px',
-        margin:         '0 auto',
-        padding:        '16px 24px',
+        padding:        '16px 24px', // ระยะห่างจากขอบจอ 24px ซ้าย-ขวา
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'space-between',
         flexWrap:       'wrap',
-        gap:            '8px',
+        gap:            '16px',
       }}>
-        <span style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize:   '12px',
-          color:      'var(--text-faint)',
+        
+        {/* Left Side: 2 Lines */}
+        <div style={{
+          display:       'flex',
+          flexDirection: 'column',
+          gap:           '4px',
+          fontFamily:    'var(--font-sans)',
+          fontSize:      '12px',
+          color:         'var(--text-faint)',
         }}>
-          {VERSION} · {CREDIT}
-        </span>
+          <span>{VERSION}</span>
+          <span>{CREDIT}</span>
+        </div>
 
-        <span style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize:   '12px',
-          color:      'var(--text-faint)',
-          fontStyle:  'italic',
+        {/* Right Side: 2 Lines */}
+        <div style={{
+          display:       'flex',
+          flexDirection: 'column',
+          alignItems:    'flex-end',
+          gap:           '4px',
+          fontFamily:    'var(--font-sans)',
+          fontSize:      '12px',
+          color:         'var(--text-faint)',
+          textAlign:     'right',
         }}>
-          Ph'nglui mglw'nafh 🐙
-        </span>
+          <span>2026 · The Catoolu.</span>
+          <span style={{ fontStyle: 'italic' }}>
+            Ph'nglui mglw'nafh 🐙
+          </span>
+        </div>
+
       </div>
     </footer>
   );

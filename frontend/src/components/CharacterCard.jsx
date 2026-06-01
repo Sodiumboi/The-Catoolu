@@ -11,14 +11,15 @@ export default function CharacterCard({ character, onDelete, onOpen }) {
   return (
     <div
       onClick={() => onOpen(id)}          /* ← whole card is now clickable */
-      className="rounded-lg border overflow-hidden transition-all duration-300
+      className="border overflow-hidden transition-all duration-300
                  flex cursor-pointer select-none"
       style={{
-        background:  'var(--bg-card, var(--bg-card))',
-        borderColor: 'var(--border-main, var(--accent)44)',
-        boxShadow:   '0 4px 20px rgba(0,0,0,0.4)',
-        minHeight:   '180px',
-        maxHeight:   '280px',
+        background:   'var(--bg-card, var(--bg-card))',
+        borderColor:  'var(--border-main, var(--accent)44)',
+        boxShadow:    '0 4px 20px rgba(0,0,0,0.4)',
+        borderRadius: 'var(--radius-squircle)',
+        minHeight:    '180px',
+        maxHeight:    '280px',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.borderColor = 'var(--accent, var(--accent))';
@@ -33,7 +34,7 @@ export default function CharacterCard({ character, onDelete, onOpen }) {
     >
 
       {/* ── LEFT: Portrait ── */}
-      <div className="flex-shrink-0 relative overflow-hidden" style={{ width: '120px', alignSelf: 'stretch' }}>
+      <div className="flex-shrink-0 relative overflow-hidden" style={{ width: '120px', alignSelf: 'stretch', borderRadius: 'var(--radius-squircle-inner) 0 0 var(--radius-squircle-inner)' }}>
         {portrait_data ? (
           <img
             src={`data:image/jpeg;base64,${portrait_data}`}
