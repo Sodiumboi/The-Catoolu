@@ -65,6 +65,10 @@ export default function useCharacterEditor(id) {
         setSheet(data);
         originalSheetRef.current = data;
       } catch (err) {
+        if (err.response?.status === 403) {
+          navigate('/', { state: { error: 'You do not have permission to view that character.' } });
+          return;
+        }
         setError(
           err.response?.status === 404
             ? 'Character not found.'

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import CharacterCard from '../components/CharacterCard';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -10,10 +10,11 @@ import logo from '../assets/vault-logo.png';
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [search, setSearch] = useState('');
   const [characters, setCharacters]   = useState([]);
   const [loading, setLoading]         = useState(true); // true = load on mount
-  const [error, setError]             = useState('');
+  const [error, setError]             = useState(location.state?.error || '');
   const [importing, setImporting]     = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, name }
   const fileInputRef = useRef(null);

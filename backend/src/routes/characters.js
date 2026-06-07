@@ -154,13 +154,16 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'sheet_data is required.' });
     }
 
-    // Verify the character belongs to this user before updating
-    const ownerCheck = await pool.query(
-      'SELECT id FROM characters WHERE id = $1 AND user_id = $2',
-      [req.params.id, req.user.id]
+    // Verify the character exists and belongs to this user
+    const charCheck = await pool.query(
+      'SELECT id, user_id FROM characters WHERE id = $1',
+      [req.params.id]
     );
-    if (ownerCheck.rows.length === 0) {
+    if (!charCheck.rows[0]) {
       return res.status(404).json({ error: 'Character not found.' });
+    }
+    if (charCheck.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     const name       = sheet_data?.Investigator?.PersonalDetails?.Name       || 'Unknown Investigator';
@@ -197,18 +200,22 @@ router.put('/:id', async (req, res) => {
 // ── DELETE /api/characters/:id ─────────────────────────────
 router.delete('/:id', async (req, res) => {
   try {
-    const result = await pool.query(
-      'DELETE FROM characters WHERE id = $1 AND user_id = $2 RETURNING id, name',
-      [req.params.id, req.user.id]
+    const charCheck = await pool.query(
+      'SELECT id, name, user_id FROM characters WHERE id = $1',
+      [req.params.id]
     );
-
-    if (result.rows.length === 0) {
+    if (!charCheck.rows[0]) {
       return res.status(404).json({ error: 'Character not found.' });
     }
+    if (charCheck.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    await pool.query('DELETE FROM characters WHERE id = $1', [req.params.id]);
 
     res.json({
-      message:   `Character "${result.rows[0].name}" deleted.`,
-      deletedId: result.rows[0].id
+      message:   `Character "${charCheck.rows[0].name}" deleted.`,
+      deletedId: charCheck.rows[0].id
     });
 
   } catch (err) {
@@ -228,13 +235,15 @@ router.put('/:id/notes', async (req, res) => {
       return res.status(400).json({ error: 'notes field is required.' });
     }
 
-    // Verify ownership
-    const ownerCheck = await pool.query(
-      'SELECT id FROM characters WHERE id = $1 AND user_id = $2',
-      [req.params.id, req.user.id]
+    const charCheck = await pool.query(
+      'SELECT id, user_id FROM characters WHERE id = $1',
+      [req.params.id]
     );
-    if (ownerCheck.rows.length === 0) {
+    if (!charCheck.rows[0]) {
       return res.status(404).json({ error: 'Character not found.' });
+    }
+    if (charCheck.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     // Update just the Notes key inside the JSONB sheet_data
@@ -269,12 +278,15 @@ router.put('/:id/stat', async (req, res) => {
       return res.status(400).json({ error: 'Invalid stat.' });
     }
 
-    const ownerCheck = await pool.query(
-      'SELECT id FROM characters WHERE id = $1 AND user_id = $2',
-      [req.params.id, req.user.id]
+    const charCheck = await pool.query(
+      'SELECT id, user_id FROM characters WHERE id = $1',
+      [req.params.id]
     );
-    if (ownerCheck.rows.length === 0) {
+    if (!charCheck.rows[0]) {
       return res.status(404).json({ error: 'Character not found.' });
+    }
+    if (charCheck.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
 
     await pool.query(
