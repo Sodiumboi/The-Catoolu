@@ -1,5 +1,7 @@
 import { Section } from '../../primitives';
 
+const stripDollar = v => String(v || '').replace(/^\$+/, '').trim();
+
 export default function Possessions({
   items, cash,
   onUpdatePossession, onDeletePossession, onAddPossession,
@@ -56,8 +58,8 @@ export default function Possessions({
               </label>
               <input
                 type="text"
-                value={cash[field] || ''}
-                onChange={e => onUpdateCash(field, e.target.value)}
+                value={stripDollar(cash[field])}
+                onChange={e => onUpdateCash(field, stripDollar(e.target.value))}
                 className="text-center px-3 py-2 rounded text-base font-bold outline-none"
                 style={{ background: 'var(--bg-input)', border: '1.5px solid var(--border-input)', color: 'var(--success)', width: '140px', transition: 'border-color 0.12s ease' }}
                 onMouseEnter={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-focus)'; }}

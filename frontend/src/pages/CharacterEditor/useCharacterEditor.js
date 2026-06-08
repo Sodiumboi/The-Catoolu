@@ -8,13 +8,13 @@ import {
   calcDodge,
 } from '../../utils/cocCalculations';
 
-export default function useCharacterEditor(id) {
+export default function useCharacterEditor(uuid) {
   const navigate = useNavigate();
 
   // ── Core sheet state ──────────────────────────────────────
   const [sheet,     setSheet]     = useState(null);
   const [loading,   setLoading]   = useState(true);
-  const [currentId, setCurrentId] = useState(id);
+  const [currentId, setCurrentId] = useState(uuid);
   const [saving,    setSaving]    = useState(false);
   const [saved,     setSaved]     = useState(false);
   const [error,     setError]     = useState('');
@@ -39,7 +39,7 @@ export default function useCharacterEditor(id) {
   // ── Load character ────────────────────────────────────────
   useEffect(() => {
     const fetchChar = async () => {
-      setCurrentId(id);
+      setCurrentId(uuid);
       setSheet(null);
       setError('');
       setLoading(true);
@@ -48,7 +48,13 @@ export default function useCharacterEditor(id) {
       originalSheetRef.current = null;
 
       try {
-        const res  = await apiClient.get(`/characters/${id}`);
+        const res  = await apiClient.get(`/characters/${uuid}`);
+
+        if (res.data.is_owner === false) {
+          navigate('/dashboard', { state: { error: 'You do not have permission to edit that character.' } });
+          return;
+        }
+
         const data = res.data.character.sheet_data;
 
         if (!data || !data.Investigator) {
@@ -66,7 +72,7 @@ export default function useCharacterEditor(id) {
         originalSheetRef.current = data;
       } catch (err) {
         if (err.response?.status === 403) {
-          navigate('/', { state: { error: 'You do not have permission to view that character.' } });
+          navigate('/dashboard', { state: { error: 'You do not have permission to view that character.' } });
           return;
         }
         setError(
@@ -79,7 +85,7 @@ export default function useCharacterEditor(id) {
       }
     };
     fetchChar();
-  }, [id]);
+  }, [uuid]);
 
   // ── Browser back button interception ─────────────────────
   useEffect(() => {
@@ -153,7 +159,7 @@ export default function useCharacterEditor(id) {
   const handleWarnSave = async () => {
     setWarnSaving(true);
     try {
-      await apiClient.put(`/characters/${id}`, { sheet_data: sheet });
+      await apiClient.put(`/characters/${uuid}`, { sheet_data: sheet });
       setIsDirty(false);
       originalSheetRef.current = sheet;
       setShowWarning(false);
@@ -263,7 +269,7 @@ export default function useCharacterEditor(id) {
     setSaving(true);
     setError('');
     try {
-      await apiClient.put(`/characters/${id}`, { sheet_data: sheet });
+      await apiClient.put(`/characters/${uuid}`, { sheet_data: sheet });
       setIsDirty(false);
       originalSheetRef.current = sheet;
       setSaved(true);

@@ -3,10 +3,10 @@ import { createContext, useContext, useState } from 'react';
 const CampaignContext = createContext(null);
 
 export function CampaignProvider({ children }) {
-  // activeRoom: { id, name } or null
+  // activeRoom: { id, name, uuid } or null
   const [activeRoom, setActiveRoom] = useState(null);
 
-  const enterRoom = (id, name) => setActiveRoom({ id, name });
+  const enterRoom = (id, name, uuid) => setActiveRoom({ id, name, uuid });
   const leaveRoom = ()          => setActiveRoom(null);
 
   return (

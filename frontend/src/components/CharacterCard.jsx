@@ -1,6 +1,6 @@
 export default function CharacterCard({ character, onDelete, onOpen }) {
   const {
-    id, name, occupation, game_type,
+    uuid, name, occupation, game_type,
     sanity, hp, updated_at, portrait_data
   } = character;
 
@@ -10,7 +10,7 @@ export default function CharacterCard({ character, onDelete, onOpen }) {
 
   return (
     <div
-      onClick={() => onOpen(id)}          /* ← whole card is now clickable */
+      onClick={() => onOpen(uuid)}
       className="border overflow-hidden transition-all duration-300
                  flex cursor-pointer select-none"
       style={{
@@ -119,7 +119,7 @@ export default function CharacterCard({ character, onDelete, onOpen }) {
           </span>
           <ActionButton
             label="Delete"
-            onClick={() => onDelete(id, name)}
+            onClick={() => onDelete(uuid, name)}
             color="#E24B4A"
           />
         </div>

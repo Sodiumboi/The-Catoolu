@@ -1,77 +1,75 @@
 import { useState, useRef } from 'react';
 import SkillRollPopup from './SkillRollPopup';
 
-export default function SessionSkillRow({ skill, advMode, disMode, onRoll, fontScale = 1 }) {
-  const [showPopup, setShowPopup] = useState(false);
+export default function SessionSkillRow({
+  skill,
+  displayName,
+  rollName,
+  advMode, disMode, onRoll,
+  fontScale = 1,
+}) {
+  const [showPopup,  setShowPopup]  = useState(false);
   const [buttonRect, setButtonRect] = useState(null);
   const buttonRef = useRef(null);
 
-  const val = parseInt(skill.value) || 0;
+  const val  = parseInt(skill.value) || 0;
+  const isCthulhuMythos = skill.name?.toLowerCase() === 'cthulhu mythos';
+  const isOcc = skill.occupation === '1' || skill.occupation === 'true';
 
-  if (!val || val === 0) return null; // hide empty skills
+  if (val === 0 && !isCthulhuMythos) return null;
 
-  const displayName = skill.subskill
-    ? skill.name + ' (' + skill.subskill + ')'
-    : skill.name;
+  const label = rollName || displayName || skill.name;
+  const fs = base => (base * fontScale) + 'px';
 
   return (
     <div style={{ position: 'relative' }}>
       <button
         ref={buttonRef}
-        onClick={() => { setButtonRect(buttonRef.current?.getBoundingClientRect() ?? null); setShowPopup(true); }}
+        onClick={() => {
+          setButtonRect(buttonRef.current?.getBoundingClientRect() ?? null);
+          setShowPopup(true);
+        }}
         style={{
-          width:        '100%',
-          display:      'flex',
-          alignItems:   'center',
-          justifyContent:'space-between',
-          padding:      '5px 8px',
-          borderRadius: '6px',
-          border:       '1px solid transparent',
-          background:   'transparent',
-          cursor:       'pointer',
-          fontFamily:   'var(--font-sans)',
-          transition:   'all 0.1s ease',
-          textAlign:    'left',
+          width: '100%', display: 'flex', alignItems: 'center',
+          gap: '4px', padding: '4px 8px', minHeight: '30px',
+          borderRadius: '4px', border: '1px solid var(--border-main)',
+          background: 'var(--bg-input)', cursor: 'pointer',
+          fontFamily: 'var(--font-sans)', textAlign: 'left',
+          transition: 'border-color 0.1s ease',
         }}
-        onMouseEnter={e => {
-          e.currentTarget.style.background    = 'var(--accent-bg)';
-          e.currentTarget.style.borderColor   = 'var(--accent)';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.background    = 'transparent';
-          e.currentTarget.style.borderColor   = 'transparent';
-        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-main)'; }}
       >
         {/* Occupation dot */}
-        <span style={{
-          width: '6px', height: '6px', borderRadius: '50%',
-          background: skill.occupation === '1' ? 'var(--accent)' : 'transparent',
-          border: skill.occupation === '1' ? 'none' : '1px solid var(--border-main)',
-          flexShrink: 0, marginRight: '6px',
-        }} />
+        <span style={{ width: '8px', flexShrink: 0, textAlign: 'center' }}>
+          {isOcc && <span style={{ color: 'var(--accent)', fontSize: '7px' }}>●</span>}
+        </span>
 
         {/* Skill name */}
         <span style={{
-          flex: 1, fontSize: (12 * fontScale) + 'px',
-          color: 'var(--text-primary)',
+          flex: 1, fontSize: fs(11),
+          color: isOcc ? 'var(--text-primary)' : 'var(--text-secondary)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
-          {displayName}
+          {displayName ?? skill.name}
         </span>
 
-        {/* Value */}
-        <span style={{ fontSize: (12 * fontScale) + 'px', fontWeight: '600', color: 'var(--text-primary)', flexShrink: 0 }}>
-          {val}
+        {/* Val */}
+        <span style={{
+          flexShrink: 0, fontSize: fs(12), fontWeight: '600',
+          color: 'var(--text-primary)', minWidth: '28px', textAlign: 'right',
+        }}>
+          {val || '—'}
         </span>
       </button>
 
       {showPopup && (
         <SkillRollPopup
-          label={displayName}
+          label={label}
           value={val}
           defaultMode={advMode ? 'adv' : disMode ? 'dis' : 'normal'}
           buttonRect={buttonRect}
-          onRoll={(mode) => { onRoll(displayName, val, mode); setShowPopup(false); setButtonRect(null); }}
+          onRoll={mode => { onRoll(label, val, mode); setShowPopup(false); setButtonRect(null); }}
           onClose={() => { setShowPopup(false); setButtonRect(null); }}
         />
       )}

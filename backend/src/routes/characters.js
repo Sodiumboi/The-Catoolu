@@ -1,11 +1,11 @@
 // ============================================================
 // Character Routes (all protected — require valid JWT)
 //
-// GET    /api/characters        ← list all your characters
-// POST   /api/characters        ← create a new character
-// GET    /api/characters/:id    ← get one character's full data
-// PUT    /api/characters/:id    ← update/save a character
-// DELETE /api/characters/:id    ← delete a character
+// GET    /api/characters          ← list all your characters
+// POST   /api/characters          ← create a new character
+// GET    /api/characters/:uuid    ← get one character's full data
+// PUT    /api/characters/:uuid    ← update/save a character
+// DELETE /api/characters/:uuid    ← delete a character
 // ============================================================
 
 const express = require('express');
@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
   `SELECT
-     id, name, occupation, game_type, created_at, updated_at,
+     id, uuid, name, occupation, game_type, created_at, updated_at,
      sheet_data->'Investigator'->'Characteristics'->>'Sanity'  AS sanity,
      sheet_data->'Investigator'->'Characteristics'->>'HitPts'  AS hp,
      portrait_data
@@ -71,11 +71,13 @@ router.post('/', async (req, res) => {
       cleanSheet.Investigator.Header.UUID = crypto.randomUUID();
     }
 
+    const uuid = cleanSheet.Investigator.Header.UUID;
+
     const result = await pool.query(
-      `INSERT INTO characters (user_id, name, occupation, game_type, sheet_data, portrait_data)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, name, occupation, game_type, created_at`,
-      [req.user.id, name, occupation, game_type, cleanSheet, portrait_data]
+      `INSERT INTO characters (user_id, uuid, name, occupation, game_type, sheet_data, portrait_data)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, uuid, name, occupation, game_type, created_at`,
+      [req.user.id, uuid, name, occupation, game_type, cleanSheet, portrait_data]
     );
 
     res.status(201).json({
@@ -89,15 +91,15 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ── GET /api/characters/:id ────────────────────────────────
+// ── GET /api/characters/:uuid ──────────────────────────────
 // Returns the FULL character data including portrait
-router.get('/:id', async (req, res) => {
+router.get('/:uuid', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, name, occupation, game_type, sheet_data, portrait_data, created_at, updated_at
+      `SELECT id, uuid, name, occupation, game_type, sheet_data, portrait_data, created_at, updated_at
        FROM characters
-       WHERE id = $1 AND user_id = $2`,
-      [req.params.id, req.user.id]
+       WHERE uuid = $1 AND user_id = $2`,
+      [req.params.uuid, req.user.id]
     );
 
     if (result.rows.length === 0) {
@@ -107,26 +109,33 @@ router.get('/:id', async (req, res) => {
          JOIN campaign_members cm1 ON cm1.campaign_id = c.id
            AND cm1.user_id = $1 AND cm1.role = 'keeper'
          JOIN campaign_members cm2 ON cm2.campaign_id = c.id
-           AND cm2.character_id = $2
+         JOIN characters ch ON ch.id = cm2.character_id AND ch.uuid = $2
          LIMIT 1`,
-        [req.user.id, req.params.id]
+        [req.user.id, req.params.uuid]
       );
 
       if (keeperCheck.rows.length === 0) {
-        return res.status(403).json({ error: 'Access denied.' });
+        // Distinguish 404 (no such character) from 403 (exists but not accessible)
+        const exists = await pool.query(
+          'SELECT 1 FROM characters WHERE uuid = $1',
+          [req.params.uuid]
+        );
+        return exists.rows.length === 0
+          ? res.status(404).json({ error: 'Character not found.' })
+          : res.status(403).json({ error: 'Access denied.' });
       }
 
       const keeperResult = await pool.query(
-        `SELECT id, name, occupation, game_type, sheet_data, portrait_data, created_at, updated_at
-         FROM characters WHERE id = $1`,
-        [req.params.id]
+        `SELECT id, uuid, name, occupation, game_type, sheet_data, portrait_data, created_at, updated_at
+         FROM characters WHERE uuid = $1`,
+        [req.params.uuid]
       );
 
       const character = keeperResult.rows[0];
       if (character.portrait_data) {
         character.sheet_data.Investigator.PersonalDetails.Portrait = character.portrait_data;
       }
-      return res.json({ character });
+      return res.json({ character, is_owner: false });
     }
 
     const character = result.rows[0];
@@ -136,7 +145,7 @@ router.get('/:id', async (req, res) => {
       character.sheet_data.Investigator.PersonalDetails.Portrait = character.portrait_data;
     }
 
-    res.json({ character });
+    res.json({ character, is_owner: true });
 
   } catch (err) {
     console.error('Get character error:', err);
@@ -144,9 +153,9 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ── PUT /api/characters/:id ────────────────────────────────
+// ── PUT /api/characters/:uuid ──────────────────────────────
 // Save edits to an existing character
-router.put('/:id', async (req, res) => {
+router.put('/:uuid', async (req, res) => {
   try {
     const { sheet_data } = req.body;
 
@@ -156,8 +165,8 @@ router.put('/:id', async (req, res) => {
 
     // Verify the character exists and belongs to this user
     const charCheck = await pool.query(
-      'SELECT id, user_id FROM characters WHERE id = $1',
-      [req.params.id]
+      'SELECT id, user_id FROM characters WHERE uuid = $1',
+      [req.params.uuid]
     );
     if (!charCheck.rows[0]) {
       return res.status(404).json({ error: 'Character not found.' });
@@ -181,9 +190,9 @@ router.put('/:id', async (req, res) => {
       `UPDATE characters
        SET name = $1, occupation = $2, game_type = $3,
            sheet_data = $4, portrait_data = $5
-       WHERE id = $6 AND user_id = $7
-       RETURNING id, name, occupation, updated_at`,
-      [name, occupation, game_type, cleanSheet, portrait_data, req.params.id, req.user.id]
+       WHERE uuid = $6 AND user_id = $7
+       RETURNING id, uuid, name, occupation, updated_at`,
+      [name, occupation, game_type, cleanSheet, portrait_data, req.params.uuid, req.user.id]
     );
 
     res.json({
@@ -197,12 +206,12 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// ── DELETE /api/characters/:id ─────────────────────────────
-router.delete('/:id', async (req, res) => {
+// ── DELETE /api/characters/:uuid ───────────────────────────
+router.delete('/:uuid', async (req, res) => {
   try {
     const charCheck = await pool.query(
-      'SELECT id, name, user_id FROM characters WHERE id = $1',
-      [req.params.id]
+      'SELECT id, name, user_id FROM characters WHERE uuid = $1',
+      [req.params.uuid]
     );
     if (!charCheck.rows[0]) {
       return res.status(404).json({ error: 'Character not found.' });
@@ -211,11 +220,11 @@ router.delete('/:id', async (req, res) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    await pool.query('DELETE FROM characters WHERE id = $1', [req.params.id]);
+    await pool.query('DELETE FROM characters WHERE uuid = $1', [req.params.uuid]);
 
     res.json({
-      message:   `Character "${charCheck.rows[0].name}" deleted.`,
-      deletedId: charCheck.rows[0].id
+      message:    `Character "${charCheck.rows[0].name}" deleted.`,
+      deletedUuid: req.params.uuid
     });
 
   } catch (err) {
@@ -224,10 +233,10 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// ── PUT /api/characters/:id/notes ─────────────────────────
+// ── PUT /api/characters/:uuid/notes ───────────────────────
 // Save session notes separately — quick endpoint so notes
 // don't require sending the full sheet_data
-router.put('/:id/notes', async (req, res) => {
+router.put('/:uuid/notes', async (req, res) => {
   try {
     const { notes } = req.body;
 
@@ -236,8 +245,8 @@ router.put('/:id/notes', async (req, res) => {
     }
 
     const charCheck = await pool.query(
-      'SELECT id, user_id FROM characters WHERE id = $1',
-      [req.params.id]
+      'SELECT id, user_id FROM characters WHERE uuid = $1',
+      [req.params.uuid]
     );
     if (!charCheck.rows[0]) {
       return res.status(404).json({ error: 'Character not found.' });
@@ -255,8 +264,8 @@ router.put('/:id/notes', async (req, res) => {
          '{Investigator,Notes}',
          $1::jsonb
        )
-       WHERE id = $2 AND user_id = $3`,
-      [JSON.stringify(notes), req.params.id, req.user.id]
+       WHERE uuid = $2 AND user_id = $3`,
+      [JSON.stringify(notes), req.params.uuid, req.user.id]
     );
 
     res.json({ message: 'Notes saved!' });
@@ -267,9 +276,9 @@ router.put('/:id/notes', async (req, res) => {
   }
 });
 
-// ── PUT /api/characters/:id/stat ─────────────────────────────
+// ── PUT /api/characters/:uuid/stat ────────────────────────
 // Update a single tracked stat (HP, MP, Luck, Sanity current value)
-router.put('/:id/stat', async (req, res) => {
+router.put('/:uuid/stat', async (req, res) => {
   try {
     const { stat, value } = req.body;
 
@@ -279,8 +288,8 @@ router.put('/:id/stat', async (req, res) => {
     }
 
     const charCheck = await pool.query(
-      'SELECT id, user_id FROM characters WHERE id = $1',
-      [req.params.id]
+      'SELECT id, user_id FROM characters WHERE uuid = $1',
+      [req.params.uuid]
     );
     if (!charCheck.rows[0]) {
       return res.status(404).json({ error: 'Character not found.' });
@@ -296,8 +305,8 @@ router.put('/:id/stat', async (req, res) => {
          ARRAY['Investigator', 'Characteristics', $1],
          to_jsonb($2::text)
        )
-       WHERE id = $3 AND user_id = $4`,
-      [stat, String(value), req.params.id, req.user.id]
+       WHERE uuid = $3 AND user_id = $4`,
+      [stat, String(value), req.params.uuid, req.user.id]
     );
 
     res.json({ message: 'Stat updated.' });

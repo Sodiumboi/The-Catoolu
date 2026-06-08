@@ -12,6 +12,9 @@ const cors    = require('cors');
 const path    = require('path');
 require('dotenv').config();
 
+// Migrations
+const addCampaignUuid = require('./migrations/add_campaign_uuid');
+
 // Route handlers
 const authRoutes       = require('./routes/auth');
 const characterRoutes  = require('./routes/characters');
@@ -82,12 +85,17 @@ const io = setupSocket(httpServer);
 // Make io available to routes if needed later
 app.set('io', io);
 
-// Start listening
-httpServer.listen(PORT, () => {
-  console.log('');
-  console.log('🐙 ═══════════════════════════════════════════');
-  console.log('   CoC Manager API running on port', PORT);
-  console.log('   http://localhost:' + PORT + '/api/health');
-  console.log('🐙 ═══════════════════════════════════════════');
-  console.log('');
-});
+async function startServer() {
+  await addCampaignUuid();
+
+  httpServer.listen(PORT, () => {
+    console.log('');
+    console.log('🐙 ═══════════════════════════════════════════');
+    console.log('   CoC Manager API running on port', PORT);
+    console.log('   http://localhost:' + PORT + '/api/health');
+    console.log('🐙 ═══════════════════════════════════════════');
+    console.log('');
+  });
+}
+
+startServer();

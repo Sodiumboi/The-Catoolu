@@ -12,12 +12,12 @@ import InboxPage        from './pages/InboxPage';
 import CampaignRoomPage from './pages/CampaignRoomPage';
 import CharacterCreationPage from './pages/CharacterCreationPage';
 
-// ── Forces full remount when character ID changes ──────────
+// ── Forces full remount when character UUID changes ─────────
 function CharacterEditorWithKey() {
-  const { id } = useParams();
+  const { uuid } = useParams();
   return (
     <ProtectedRoute>
-      <CharacterEditorPage key={id} />
+      <CharacterEditorPage key={uuid} />
     </ProtectedRoute>
   );
 }
@@ -38,7 +38,7 @@ export default function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute><DashboardPage /></ProtectedRoute>
             }/>
-            <Route path="/character/:id" element={<CharacterEditorWithKey />} />
+            <Route path="/character/:uuid" element={<CharacterEditorWithKey />} />
             <Route path="/profile" element={
               <ProtectedRoute><ProfilePage /></ProtectedRoute>
             }/>
@@ -77,7 +77,7 @@ export default function App() {
               }
             />
             <Route
-              path="/campaign/:id"
+              path="/campaign/:uuid"
               element={
                 <ProtectedRoute>
                   <CampaignRoomPage />

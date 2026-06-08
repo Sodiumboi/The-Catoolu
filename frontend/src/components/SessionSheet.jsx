@@ -138,15 +138,57 @@ export default function SessionSheet({
   const weapons  = useMemo(() => charData?.sheet_data?.Investigator?.Weapons?.weapon || [], [charData]);
   const portrait = details.Portrait;
 
-  // Group skills alphabetically, hide empty ones
+  // Hide empty skills and meaningless (None) subskill placeholders
   const filteredSkills = useMemo(() => {
+    const isNone = sub => sub?.toLowerCase() === 'none';
+
+    // Pre-scan: per skill name, count None slots and track whether a named subskill exists
+    const hasNamed  = {}; // skillName → true when a real subskill is filled in
+    const noneCount = {}; // skillName → number of None slots
+    for (const s of skills) {
+      if (!s.subskill) continue;
+      const key = s.name.toLowerCase();
+      if (isNone(s.subskill)) {
+        noneCount[key] = (noneCount[key] || 0) + 1;
+      } else {
+        hasNamed[key] = true;
+      }
+    }
+
     return skills.filter(s => {
       const val = parseInt(s.value) || 0;
-      if (val === 0) return false;
+      if (val === 0 && s.name.toLowerCase() !== 'cthulhu mythos') return false;
+      // Drop None slots when a named subskill exists OR there are multiple empty slots
+      if (isNone(s.subskill)) {
+        const key = s.name.toLowerCase();
+        if (hasNamed[key] || (noneCount[key] || 0) > 1) return false;
+      }
       if (!skillSearch.trim()) return true;
-      return s.name.toLowerCase().includes(skillSearch.toLowerCase());
+      const display = s.subskill && !isNone(s.subskill)
+        ? s.name + ' (' + s.subskill + ')'
+        : s.name;
+      return display.toLowerCase().includes(skillSearch.toLowerCase());
     });
   }, [skills, skillSearch]);
+
+  // Build skill groups for the two-column layout
+  const skillGroups = useMemo(() => {
+    const groups = [];
+    const seen   = {};
+    filteredSkills.forEach((skill, idx) => {
+      if (skill.subskill != null) {
+        if (!seen[skill.name]) {
+          seen[skill.name] = { type: 'group', parentName: skill.name, entries: [] };
+          groups.push(seen[skill.name]);
+        }
+        seen[skill.name].entries.push({ skill, idx });
+      } else {
+        groups.push({ type: 'flat', skill, idx });
+      }
+    });
+    const half = Math.ceil(groups.length / 2);
+    return { left: groups.slice(0, half), right: groups.slice(half) };
+  }, [filteredSkills]);
 
   const LEFT_STATS  = [
     { key: 'STR' },
@@ -394,36 +436,57 @@ export default function SessionSheet({
           }}
         />
 
-        {/* Column headers */}
-        <div style={{
-          display:             'grid',
-          gridTemplateColumns: '1fr 1fr',
-          borderBottom:        '1px solid var(--border-main)',
-          marginBottom:        '2px',
-          paddingBottom:       '4px',
-        }}>
-          {[0, 1].map(col => (
-            <div key={col} style={{ display: 'flex', justifyContent: 'space-between', padding: '0 8px' }}>
-              <span style={{ fontSize: '9px', color: 'var(--text-faint)' }}>Skill</span>
-              <span style={{ fontSize: '9px', color: 'var(--text-faint)' }}>Reg</span>
+        {/* Grouped two-column layout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+          {[skillGroups.left, skillGroups.right].map((col, ci) => (
+            <div key={ci}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '4px',
+                padding: '0 8px 4px', marginBottom: '4px',
+                borderBottom: '1px solid var(--border-main)',
+              }}>
+                <span style={{ width: '8px', flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: '9px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Skill</span>
+                <span style={{ minWidth: '28px', textAlign: 'right', fontSize: '9px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Reg</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {col.map(g => g.type === 'flat' ? (
+                  <SessionSkillRow
+                    key={g.idx}
+                    skill={g.skill}
+                    displayName={g.skill.name}
+                    advMode={advMode} disMode={disMode}
+                    onRoll={onStatRoll} fontScale={sheetFontScale}
+                  />
+                ) : (
+                  <div key={g.parentName} style={{
+                    borderRadius: '6px', overflow: 'hidden',
+                    border: '1px solid var(--border-main)',
+                  }}>
+                    <div style={{ padding: '3px 8px', background: 'var(--bg-section-hd)' }}>
+                      <span style={{ fontSize: (11 * sheetFontScale) + 'px', fontWeight: '600', color: 'var(--accent)' }}>
+                        {g.parentName}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '3px' }}>
+                      {g.entries.map(({ skill, idx }) => {
+                        const sub = skill.subskill && skill.subskill !== 'None' ? skill.subskill : null;
+                        return (
+                          <SessionSkillRow
+                            key={idx}
+                            skill={skill}
+                            displayName={sub ?? '—'}
+                            rollName={sub ? skill.name + ' (' + sub + ')' : skill.name}
+                            advMode={advMode} disMode={disMode}
+                            onRoll={onStatRoll} fontScale={sheetFontScale}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-
-        <div style={{
-          display:             'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap:                 '2px',
-        }}>
-          {filteredSkills.map((skill, i) => (
-            <SessionSkillRow
-              key={i}
-              skill={skill}
-              advMode={advMode}
-              disMode={disMode}
-              onRoll={onStatRoll}
-              fontScale={sheetFontScale}
-            />
           ))}
         </div>
 
@@ -540,10 +603,11 @@ function btnCss(color) {
 
 // ── Money Field ────────────────────────────────────────────────
 const MONEY_POPUP_W = 160;
+const stripDollar = v => String(v || '').replace(/^\$+/, '').trim();
 
 function MoneyField({ label, value, onSave }) {
   const [showPopup, setShowPopup] = useState(false);
-  const [current,   setCurrent]   = useState(value ?? '');
+  const [current,   setCurrent]   = useState(stripDollar(value));
   const [step,      setStep]      = useState('');
   const [btnRect,   setBtnRect]   = useState(null);
   const btnRef = useRef(null);
@@ -592,7 +656,7 @@ function MoneyField({ label, value, onSave }) {
         ref={btnRef}
         onClick={handleOpen}
         style={{
-          width:        '90px',
+          minWidth:     '90px',
           padding:      '5px 8px',
           borderRadius: '6px',
           border:       '2px solid var(--border-focus)',
@@ -603,8 +667,6 @@ function MoneyField({ label, value, onSave }) {
           textAlign:    'center',
           cursor:       'pointer',
           transition:   'border-color 0.15s ease',
-          overflow:     'hidden',
-          textOverflow: 'ellipsis',
           whiteSpace:   'nowrap',
         }}
         onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}

@@ -19,18 +19,18 @@ export default function KeeperCampaignDetail({ campaign, onBack }) {
 
   const load = async () => {
     try {
-      const res = await apiClient.get('/campaigns/' + campaign.id);
+      const res = await apiClient.get('/campaigns/' + campaign.uuid);
       setMembers(res.data.campaign.members || []);
     } catch { /* silent */ }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [campaign.id]);
+  useEffect(() => { load(); }, [campaign.uuid]);
 
   const handleRemoveMember = async (userId) => {
     if (!window.confirm('Remove this player from the campaign?')) return;
     try {
-      await apiClient.delete('/campaigns/' + campaign.id + '/members/' + userId);
+      await apiClient.delete('/campaigns/' + campaign.uuid + '/members/' + userId);
       setMembers(prev => prev.filter(m => m.id !== userId));
     } catch { /* silent */ }
   };
@@ -113,7 +113,7 @@ export default function KeeperCampaignDetail({ campaign, onBack }) {
         {/* Enter Room button at bottom */}
         <div style={{ marginTop:'auto', padding:'16px 20px' }}>
           <button
-            onClick={() => navigate('/campaign/' + campaign.id)}
+            onClick={() => navigate('/campaign/' + campaign.uuid)}
             style={{
               width:'100%', padding:'8px 0',
               borderRadius:'8px', border:'none',
@@ -199,18 +199,18 @@ function InfoTab({
 
   const handleOpenSheet = async (member) => {
     try {
-      const res = await apiClient.get('/characters/' + member.character_id);
+      const res = await apiClient.get('/characters/' + member.character_uuid);
       setSheetModal({
         name:        member.character_name,
         occupation:  member.character_occupation,
-        characterId: member.character_id,
+        characterId: member.character_uuid,
         charData:    res.data.character,
       });
     } catch {
       setSheetModal({
         name:        member.character_name,
         occupation:  member.character_occupation,
-        characterId: member.character_id,
+        characterId: member.character_uuid,
         charData:    null,
       });
     }
@@ -220,7 +220,7 @@ function InfoTab({
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await apiClient.put('/campaigns/' + campaign.id, {
+      await apiClient.put('/campaigns/' + campaign.uuid, {
         name: name.trim(), description: description.trim(),
       });
       setSaveMsg('✓ Saved');
@@ -293,7 +293,7 @@ function InfoTab({
                 fontFamily:'var(--font-serif)', fontSize:'22px',
                 color:'var(--text-primary)', margin:'0 0 6px',
               }}>
-                {campaign.name}
+                {name}
               </h2>
               <button
                 onClick={() => setEditing(true)}
@@ -308,14 +308,54 @@ function InfoTab({
                 <span className="icon icon-sm">edit</span>{' '}Edit
               </button>
             </div>
-            {campaign.description && (
+            {description && (
               <p style={{
                 fontSize:'14px', color:'var(--text-secondary)',
                 margin:0, lineHeight:'1.6',
               }}>
-                {campaign.description}
+                {description}
               </p>
             )}
+          </div>
+        )}
+      </div>
+
+      {/* Campaign meta */}
+      <div style={{
+        display:'flex', flexDirection:'column', gap:'6px',
+        marginBottom:'24px',
+        padding:'10px 12px', borderRadius:'8px',
+        background:'var(--bg-section-hd)',
+        border:'1px solid var(--border-main)',
+      }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+          <span style={{
+            fontSize:'11px', fontWeight:'600',
+            textTransform:'uppercase', letterSpacing:'0.07em',
+            color:'var(--text-muted)', flexShrink:0, width:'90px',
+          }}>
+            Campaign ID
+          </span>
+          <span style={{
+            fontFamily:'monospace', fontSize:'12px',
+            color:'var(--text-faint)',
+            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+          }}>
+            {campaign.uuid}
+          </span>
+        </div>
+        {campaign.created_at && (
+          <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+            <span style={{
+              fontSize:'11px', fontWeight:'600',
+              textTransform:'uppercase', letterSpacing:'0.07em',
+              color:'var(--text-muted)', flexShrink:0, width:'90px',
+            }}>
+              Created
+            </span>
+            <span style={{ fontSize:'12px', color:'var(--text-faint)' }}>
+              {new Date(campaign.created_at).toLocaleString()}
+            </span>
           </div>
         )}
       </div>
@@ -568,7 +608,7 @@ function DangerZoneTab({ campaign, onDeleted }) {
     if (!nameMatches) return;
     setDeleting(true);
     try {
-      await apiClient.delete('/campaigns/' + campaign.id);
+      await apiClient.delete('/campaigns/' + campaign.uuid);
       onDeleted();
     } catch {
       setDeleting(false);

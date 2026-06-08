@@ -77,8 +77,8 @@ export default function DashboardPage() {
   const handleDelete = async () => {
     if (!deleteConfirm) return;
     try {
-      await apiClient.delete(`/characters/${deleteConfirm.id}`);
-      setCharacters(prev => prev.filter(c => c.id !== deleteConfirm.id));
+      await apiClient.delete(`/characters/${deleteConfirm.uuid}`);
+      setCharacters(prev => prev.filter(c => c.uuid !== deleteConfirm.uuid));
       setDeleteConfirm(null);
     } catch (err) {
       setError('Failed to delete character.');
@@ -296,10 +296,10 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredCharacters.map(character => (
               <CharacterCard
-                key={character.id}
+                key={character.uuid}
                 character={character}
-                onOpen={(id) => navigate(`/character/${id}`)}
-                onDelete={(id, name) => setDeleteConfirm({ id, name })}
+                onOpen={(uuid) => navigate(`/character/${uuid}`)}
+                onDelete={(uuid, name) => setDeleteConfirm({ uuid, name })}
               />
             ))}
 

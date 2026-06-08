@@ -27,7 +27,7 @@ function getRollLabel(skillName, statName) {
 }
 
 export default function CampaignRoomPage() {
-  const { id }                    = useParams();
+  const { uuid }                  = useParams();
   const navigate                  = useNavigate();
   const { socket, connected }     = useSocket();
   const { user }                  = useAuth();
@@ -60,7 +60,7 @@ export default function CampaignRoomPage() {
   const [myCharFullData, setMyCharFullData] = useState(null);
   const [leftWidth,     setLeftWidth]     = useState(() => {
     const saved = parseInt(localStorage.getItem('sheet-panel-width'));
-    return saved && saved >= 280 && saved <= 640 ? saved : 400;
+    return saved && saved >= 480 && saved <= 640 ? saved : 480;
   });
   // rollPopup: { label, value, mode, top, left }
   const forceMemeNextRollRef  = useRef(false);
@@ -74,8 +74,8 @@ export default function CampaignRoomPage() {
     const load = async () => {
       try {
         const [campRes, msgRes, charRes] = await Promise.all([
-          apiClient.get('/campaigns/' + id),
-          apiClient.get('/campaigns/' + id + '/messages?limit=50'),
+          apiClient.get('/campaigns/' + uuid),
+          apiClient.get('/campaigns/' + uuid + '/messages?limit=50'),
           apiClient.get('/characters'),
         ]);
 
@@ -92,6 +92,7 @@ export default function CampaignRoomPage() {
         if (me?.character_id && me?.character_name) {
           setMyCharacter({
             id:         me.character_id,
+            uuid:       me.character_uuid,
             name:       me.character_name,
             occupation: me.character_occupation,
           });
@@ -105,19 +106,19 @@ export default function CampaignRoomPage() {
       }
     };
     load();
-  }, [id]);
+  }, [uuid]);
 
   // ── Socket room join ──────────────────────────────────────────
   useEffect(() => {
-    if (!socket || !connected || loading || error) return;
+    if (!socket || !connected || loading || error || !campaign) return;
 
-    socket.emit('join_campaign', parseInt(id));
+    socket.emit('join_campaign', campaign?.id);
 
     const onJoined = (data) => {
       setOnlineUsers(data.onlineUsers || []);
       setInRoom(true);
       if (campaign) {
-        enterRoom(parseInt(id), campaign.name);
+        enterRoom(campaign?.id, campaign.name, campaign?.uuid);
       }
     };
 
@@ -227,28 +228,28 @@ export default function CampaignRoomPage() {
       socket.off('afk_change',       onAfkChange);
       socket.off('character_change', onCharacterChange);
     };
-  }, [socket, connected, loading, error, id, campaign]);
+  }, [socket, connected, loading, error, uuid, campaign]);
 
   useEffect(() => {
     if (campaign && inRoom) {
-      enterRoom(parseInt(id), campaign.name);
+      enterRoom(campaign?.id, campaign.name, campaign?.uuid);
     }
   }, [campaign, inRoom]);
 
   // Fetch full sheet data whenever the active character changes
   useEffect(() => {
-    if (!myCharacter?.id) { setMyCharFullData(null); return; }
-    apiClient.get('/characters/' + myCharacter.id)
+    if (!myCharacter?.uuid) { setMyCharFullData(null); return; }
+    apiClient.get('/characters/' + myCharacter.uuid)
       .then(res => setMyCharFullData(res.data.character))
       .catch(() => setMyCharFullData(null));
-  }, [myCharacter?.id]);
+  }, [myCharacter?.uuid]);
 
 
   // ── Left-panel resize ─────────────────────────────────────────
   useEffect(() => {
     const onMove = (e) => {
       if (!isDraggingRef.current) return;
-      const next = Math.max(280, Math.min(640, dragStartWidthRef.current + (e.clientX - dragStartXRef.current)));
+      const next = Math.max(480, Math.min(640, dragStartWidthRef.current + (e.clientX - dragStartXRef.current)));
       setLeftWidth(next);
     };
     const onUp = () => {
@@ -303,7 +304,7 @@ export default function CampaignRoomPage() {
       if (rollVisibility === 'only_me') {
         try {
           const res = await apiClient.post(
-            '/campaigns/' + id + '/roll/hidden',
+            '/campaigns/' + uuid + '/roll/hidden',
             { notation, skillName: null, skillValue: null }
           );
           const msg = {
@@ -320,7 +321,7 @@ export default function CampaignRoomPage() {
         } catch { /* silent */ }
       } else {
         socket.emit('roll_dice', {
-          campaignId:    parseInt(id),
+          campaignId:    campaign?.id,
           notation,
           skillName:     null,
           skillValue:    null,
@@ -329,7 +330,7 @@ export default function CampaignRoomPage() {
       }
     } else {
       socket.emit('send_message', {
-        campaignId:    parseInt(id),
+        campaignId:    campaign?.id,
         content:       trimmed,
         characterName: myCharacter?.name || null,
       });
@@ -353,7 +354,7 @@ export default function CampaignRoomPage() {
     const notation = '1d100' + suffix;
 
     if (rollVisibility === 'only_me') {
-      apiClient.post('/campaigns/' + id + '/roll/hidden', {
+      apiClient.post('/campaigns/' + uuid + '/roll/hidden', {
         notation, skillName: label, skillValue: value,
       }).then(res => {
         setMessages(prev => [...prev, {
@@ -365,7 +366,7 @@ export default function CampaignRoomPage() {
       }).catch(() => {});
     } else {
       socket.emit('roll_dice', {
-        campaignId:    parseInt(id),
+        campaignId:    campaign?.id,
         notation,
         skillName:     label,
         skillValue:    value,
@@ -399,7 +400,7 @@ export default function CampaignRoomPage() {
         };
       });
       socket?.emit('send_message', {
-        campaignId:    parseInt(id),
+        campaignId:    campaign?.id,
         content:       JSON.stringify({
           stat:          statKey,
           oldVal,
@@ -425,7 +426,7 @@ export default function CampaignRoomPage() {
       : matchedSkill ? parseInt(matchedSkill.value) : null;
 
     if (rollVisibility === 'only_me') {
-      apiClient.post('/campaigns/' + id + '/roll/hidden', {
+      apiClient.post('/campaigns/' + uuid + '/roll/hidden', {
         notation,
         skillName:  'Attack — ' + weapon.name,
         skillValue: skillVal,
@@ -439,7 +440,7 @@ export default function CampaignRoomPage() {
       }).catch(() => {});
     } else {
       socket.emit('roll_dice', {
-        campaignId:    parseInt(id),
+        campaignId:    campaign?.id,
         notation,
         skillName:     'Attack — ' + weapon.name,
         skillValue:    skillVal,
@@ -454,12 +455,12 @@ export default function CampaignRoomPage() {
   const handleToggleAfk = () => {
     const next = !afk;
     setAfk(next);
-    socket?.emit('afk_change', { campaignId: parseInt(id), afk: next });
+    socket?.emit('afk_change', { campaignId: campaign?.id, afk: next });
   };
 
   // ── Leave table ───────────────────────────────────────────────
   const handleLeave = () => {
-    socket?.emit('leave_campaign', { campaignId: parseInt(id) });
+    socket?.emit('leave_campaign', { campaignId: campaign?.id });
     leaveRoom();
     setTimeout(() => {
       navigate('/campaign');
@@ -496,20 +497,20 @@ export default function CampaignRoomPage() {
   // ── Character change (from sidebar) ──────────────────────────
   const handleChangeCharacter = async (character) => {
     try {
-      await apiClient.put('/campaigns/' + id + '/character', {
+      await apiClient.put('/campaigns/' + uuid + '/character', {
         character_id: character?.id || null,
       });
       setMyCharacter(character || null);
       socket?.emit('character_change', {
-        campaignId:  parseInt(id),
+        campaignId:  campaign?.id,
         characterId: character?.id || null,
       });
     } catch { /* silent */ }
   };
 
   // ── Typing handlers ───────────────────────────────────────────
-  const handleTyping     = () => socket?.emit('typing',      { campaignId: parseInt(id) });
-  const handleStopTyping = () => socket?.emit('stop_typing', { campaignId: parseInt(id) });
+  const handleTyping     = () => socket?.emit('typing',      { campaignId: campaign?.id });
+  const handleStopTyping = () => socket?.emit('stop_typing', { campaignId: campaign?.id });
 
   // ── Render guards ─────────────────────────────────────────────
   if (loading) return (
@@ -570,7 +571,7 @@ export default function CampaignRoomPage() {
 
       <NavBar activeTab="campaign" />
 
-      <div className="animate-fade-rise" style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
+      <div className="animate-fade" style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
 
       {/* Room header */}
       <div style={{
@@ -684,7 +685,7 @@ export default function CampaignRoomPage() {
           return (
             <div style={{
               width:         leftWidth + 'px',
-              minWidth:      '280px',
+              minWidth:      '480px',
               flexShrink:    0,
               display:       'flex',
               flexDirection: 'column',
@@ -693,7 +694,7 @@ export default function CampaignRoomPage() {
             }}>
               <RoomSubNav tabs={tabs} activeTab={subTab} onTabChange={setSubTab} />
 
-              <div key={subTab} className="animate-fade-rise" style={{
+              <div key={subTab} className="animate-fade" style={{
                 flex:      1,
                 overflowY: 'auto',
                 padding:   subTab === 'main' && myRole === 'keeper' && keeperSheetModal ? 0 : subTab === 'main' ? '12px' : 0,
@@ -773,7 +774,7 @@ export default function CampaignRoomPage() {
                 ) : myCharFullData ? (
                   <SessionSheet
                     charData={myCharFullData}
-                    characterId={myCharacter?.id}
+                    characterId={myCharacter?.uuid}
                     advMode={advMode}
                     disMode={disMode}
                     onStatRoll={(label, value, mode) => handlePopupRoll(mode, label, value)}
@@ -854,7 +855,7 @@ export default function CampaignRoomPage() {
               }
               if (!socket || !inRoom) return;
               if (rollVisibility === 'only_me') {
-                apiClient.post('/campaigns/' + id + '/roll/hidden', { notation })
+                apiClient.post('/campaigns/' + uuid + '/roll/hidden', { notation })
                   .then(res => {
                     const msg = {
                       ...res.data.message,
@@ -871,7 +872,7 @@ export default function CampaignRoomPage() {
                   .catch(() => {});
               } else {
                 socket.emit('roll_dice', {
-                  campaignId:    parseInt(id),
+                  campaignId:    campaign?.id,
                   notation,
                   characterName: myCharacter?.name || null,
                 });
@@ -904,7 +905,7 @@ export default function CampaignRoomPage() {
           myCharacter={myCharacter}
           myCharacters={myCharacters}
           onChangeCharacter={handleChangeCharacter}
-          campaignId={id}
+          campaignId={uuid}
         />
       </div>
 

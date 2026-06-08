@@ -205,8 +205,7 @@ export default function ProfilePage() {
     setSavingProfile(true);
     try {
       const res = await apiClient.put('/profile', { username, email });
-      const updatedUser = { ...user, username: res.data.user.username, email: res.data.user.email };
-      localStorage.setItem('coc_user', JSON.stringify(updatedUser));
+      updateUser({ username: res.data.user.username, email: res.data.user.email });
       setProfileMsg({ text: '✓ Profile updated successfully!', type: 'success' });
     } catch (err) {
       setProfileMsg({ text: err.response?.data?.error || 'Update failed.', type: 'error' });

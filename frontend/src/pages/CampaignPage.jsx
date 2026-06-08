@@ -185,7 +185,7 @@ export default function CampaignPage() {
               <CampaignCard
                 key={campaign.id}
                 campaign={campaign}
-                onEnter={() => navigate('/campaign/' + campaign.id)}
+                onEnter={() => navigate('/campaign/' + campaign.uuid)}
               />
             ))}
           </div>

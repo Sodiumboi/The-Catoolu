@@ -252,7 +252,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
           {/* Return to Room pill — only shown when in a session */}
           {activeRoom && (
             <button
-              onClick={() => navigate('/campaign/' + activeRoom.id)}
+              onClick={() => navigate('/campaign/' + activeRoom.uuid)}
               style={{
                 display:      'flex',
                 alignItems:   'center',

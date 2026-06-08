@@ -13,8 +13,8 @@ import Possessions         from './components/sections/Possessions';
 import { useParams } from 'react-router-dom';
 
 export default function CharacterEditorPage() {
-  const { id } = useParams();
-  const editor = useCharacterEditor(id);
+  const { uuid } = useParams();
+  const editor = useCharacterEditor(uuid);
 
   const {
     // State
@@ -70,7 +70,7 @@ export default function CharacterEditorPage() {
   };
 
   // ── Loading state ─────────────────────────────────────────
-  if (loading || (!editor.sheet && !error) || currentId !== id) return (
+  if (loading || (!editor.sheet && !error) || currentId !== uuid) return (
     <div className="flex items-center justify-center min-h-screen"
          style={{ background: 'var(--bg-page)' }}>
       <div className="text-center">
@@ -197,7 +197,7 @@ export default function CharacterEditorPage() {
         />
 
         <Characteristics
-          chars={chars} inv={inv} characterId={id}
+          chars={chars} inv={inv} characterId={uuid}
           onUpdateChar={updateChar}
           onUpdateSheet={updateSheet}
         />
