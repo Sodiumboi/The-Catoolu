@@ -470,7 +470,9 @@ export default function CampaignRoomPage() {
   // ── Keeper sheet preview ──────────────────────────────────────
   const handleOpenKeeperSheet = async (member) => {
     try {
-      const res = await apiClient.get('/characters/' + member.character_id);
+      // Fetch by uuid (the /characters/:uuid route matches on uuid, not the
+      // numeric character_id). Mirrors the Keeper-tab sheet preview.
+      const res = await apiClient.get('/characters/' + member.character_uuid);
       setKeeperSheetModal(res.data.character);
     } catch {
       setKeeperSheetModal({ _error: true });

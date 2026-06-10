@@ -1,6 +1,6 @@
-import WeaponRow from '../../../../components/WeaponRow';
+import Section from '../../../../components/sheet/Section';
+import WeaponTable from '../../../../components/sheet/WeaponTable';
 import { WEAPON_PRESETS, WEAPON_CATEGORIES } from '../../../../utils/weaponPresets';
-import { Section } from '../../primitives';
 
 export default function Weapons({
   weapons, skills,
@@ -12,23 +12,12 @@ export default function Weapons({
   return (
     <Section title="Weapons & Combat">
       {/* Weapon table */}
-      <div className="overflow-x-auto mb-3">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b" style={{ borderColor: 'var(--border-main)' }}>
-              {['Weapon','Skill','Reg','Hard','Ext','Damage','Range','Attacks',''].map((h, i) => (
-                <th key={i} className="text-left py-2 pl-2 text-xs uppercase tracking-widest"
-                    style={{ color: 'var(--accent)' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {weapons.map((weapon, i) => (
-              <WeaponRow key={i} weapon={weapon} index={i}
-                onChange={onUpdateWeapon} onDelete={onDeleteWeapon} />
-            ))}
-          </tbody>
-        </table>
+      <div className="mb-3">
+        <WeaponTable
+          weapons={weapons} editable
+          onUpdateWeapon={onUpdateWeapon}
+          onDeleteWeapon={onDeleteWeapon}
+        />
       </div>
 
       {/* Action buttons */}

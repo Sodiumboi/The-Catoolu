@@ -3,6 +3,7 @@ import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CharacterCard from '../components/CharacterCard';
+import CreateOrImportModal from '../components/CreateOrImportModal';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/vault-logo.png';
@@ -17,7 +18,21 @@ export default function DashboardPage() {
   const [error, setError]             = useState(location.state?.error || '');
   const [importing, setImporting]     = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, name }
+  const [showCreateImport, setShowCreateImport] = useState(false);
+  const [createdBanner, setCreatedBanner] = useState(!!location.state?.created);
   const fileInputRef = useRef(null);
+
+  // ── Create / Import chooser ────────────────────────────
+  const openCreateImport  = () => setShowCreateImport(true);
+  const handleChooseCreate = () => { setShowCreateImport(false); navigate('/create'); };
+  const handleChooseImport = () => { setShowCreateImport(false); fileInputRef.current?.click(); };
+
+  // Auto-dismiss the "investigator ready" success banner
+  useEffect(() => {
+    if (!createdBanner) return;
+    const t = setTimeout(() => setCreatedBanner(false), 5000);
+    return () => clearTimeout(t);
+  }, [createdBanner]);
 
   const fetchCharacters = async () => {
     setLoading(true);
@@ -222,6 +237,19 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Success banner — shown after creating an investigator */}
+        {createdBanner && (
+          <div className="mb-6 px-4 py-3 rounded text-sm flex items-center justify-between animate-fade-rise"
+               style={{ background: 'var(--accent-bg)', color: 'var(--color-primary-dark)', border: '1px solid var(--accent)' }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:'6px' }}>
+              <span className="icon icon-sm">check_circle</span>Your investigator is ready.
+            </span>
+            <button onClick={() => setCreatedBanner(false)} style={{ color: 'var(--color-primary-dark)', opacity: 0.7 }}>
+              <span className="icon icon-sm">close</span>
+            </button>
+          </div>
+        )}
+
         {/* Error banner */}
         {error && (
           <div className="mb-6 px-4 py-3 rounded text-sm flex items-center justify-between"
@@ -250,16 +278,16 @@ export default function DashboardPage() {
               The vault is empty
             </h3>
             <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-              Import a Dhole's House JSON file to add your first investigator
+              Build one from scratch with the creation wizard, or import a Dhole's House JSON file
             </p>
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={openCreateImport}
               className="px-6 py-3 rounded font-medium transition-all duration-150"
               style={{
                 background: 'var(--accent)',
                 color: 'var(--bg-input)',
               }}>
-              <span className="icon icon-sm">folder_open</span>{' '}Import Your First Character
+              <span className="icon icon-sm">add</span>{' '}Create or Import Investigator
             </button>
           </div>
 
@@ -303,9 +331,9 @@ export default function DashboardPage() {
               />
             ))}
 
-            {/* "Add another" card */}
+            {/* Persistent "Create or Import" card */}
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={openCreateImport}
               className="p-5 border-2 border-dashed flex flex-col items-center justify-center gap-3 min-h-48 transition-all duration-200"
               style={{ borderColor: 'var(--border-main)', color: 'var(--text-muted)', borderRadius: 'var(--radius-squircle)' }}
               onMouseEnter={e => {
@@ -318,7 +346,7 @@ export default function DashboardPage() {
               }}
             >
               <span className="text-3xl">+</span>
-              <span className="text-sm font-medium">Import Another</span>
+              <span className="text-sm font-medium">Create or Import</span>
             </button>
           </div>
         )}
@@ -368,6 +396,14 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── Create / Import chooser ── */}
+      <CreateOrImportModal
+        open={showCreateImport}
+        onClose={() => setShowCreateImport(false)}
+        onCreate={handleChooseCreate}
+        onImport={handleChooseImport}
+      />
 
       <Footer />
     </div>

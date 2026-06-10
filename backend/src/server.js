@@ -14,6 +14,7 @@ require('dotenv').config();
 
 // Migrations
 const addCampaignUuid = require('./migrations/add_campaign_uuid');
+const createCharacterDrafts = require('./migrations/create_character_drafts');
 
 // Route handlers
 const authRoutes       = require('./routes/auth');
@@ -87,6 +88,7 @@ app.set('io', io);
 
 async function startServer() {
   await addCampaignUuid();
+  await createCharacterDrafts();
 
   httpServer.listen(PORT, () => {
     console.log('');

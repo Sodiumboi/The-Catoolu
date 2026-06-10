@@ -91,6 +91,60 @@ router.post('/', async (req, res) => {
   }
 });
 
+// ── Creation-wizard draft (resume) ─────────────────────────
+// MUST be declared before the /:uuid routes — otherwise Express matches
+// "draft" as a character uuid. One draft per user (UNIQUE(user_id)).
+
+// GET /api/characters/draft — current user's draft, or null
+router.get('/draft', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT wizard_state, current_step, updated_at
+       FROM character_drafts WHERE user_id = $1`,
+      [req.user.id]
+    );
+    res.json(result.rows[0] ?? null);
+  } catch (err) {
+    console.error('Get draft error:', err);
+    res.status(500).json({ error: 'Failed to load draft.' });
+  }
+});
+
+// PUT /api/characters/draft — upsert the current user's draft
+router.put('/draft', async (req, res) => {
+  try {
+    const { wizard_state, current_step } = req.body;
+    if (wizard_state == null) {
+      return res.status(400).json({ error: 'wizard_state is required.' });
+    }
+    const result = await pool.query(
+      `INSERT INTO character_drafts (user_id, wizard_state, current_step, updated_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (user_id) DO UPDATE
+         SET wizard_state = EXCLUDED.wizard_state,
+             current_step = EXCLUDED.current_step,
+             updated_at   = NOW()
+       RETURNING wizard_state, current_step, updated_at`,
+      [req.user.id, JSON.stringify(wizard_state), current_step ?? 1]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Save draft error:', err);
+    res.status(500).json({ error: 'Failed to save draft.' });
+  }
+});
+
+// DELETE /api/characters/draft — clear on completion or abandon
+router.delete('/draft', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM character_drafts WHERE user_id = $1', [req.user.id]);
+    res.json({ message: 'Draft cleared.' });
+  } catch (err) {
+    console.error('Delete draft error:', err);
+    res.status(500).json({ error: 'Failed to clear draft.' });
+  }
+});
+
 // ── GET /api/characters/:uuid ──────────────────────────────
 // Returns the FULL character data including portrait
 router.get('/:uuid', async (req, res) => {

@@ -46,6 +46,9 @@ export default function CharacterCreationPage() {
     goToStep,
     canProceed,
     saveCharacter,
+    resuming,
+    dismissResume,
+    startFresh,
   } = useCharacterCreation();
 
   const { currentStep } = state;
@@ -69,7 +72,8 @@ export default function CharacterCreationPage() {
     setSaveError(null);
     try {
       await saveCharacter();
-      navigate('/dashboard');
+      // Back to the investigators dashboard with a success banner
+      navigate('/dashboard', { state: { created: true } });
     } catch (err) {
       setSaveError(err?.response?.data?.message ?? err.message ?? 'Something went wrong.');
       setSaving(false);
@@ -114,6 +118,45 @@ export default function CharacterCreationPage() {
         }}>
           Create Investigator
         </h1>
+
+        {/* Resume banner — shown when a saved draft was restored on mount */}
+        {resuming && (
+          <div className="animate-fade-rise" style={{
+            display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap',
+            background: 'var(--accent-bg)',
+            border: '1px solid var(--accent)',
+            borderRadius: '10px',
+            padding: '0.9rem 1.1rem',
+            marginBottom: '1.5rem',
+          }}>
+            <span style={{ flex: 1, minWidth: '240px', fontFamily: 'var(--font-sans)', fontSize: '0.9rem', color: 'var(--color-primary-dark)' }}>
+              <strong>Welcome back!</strong> You have an unfinished investigator. Continue where you left off or start fresh.
+            </span>
+            <div style={{ display: 'flex', gap: '0.6rem' }}>
+              <button
+                onClick={dismissResume}
+                style={{
+                  padding: '0.5rem 1.1rem', borderRadius: '7px', border: 'none',
+                  background: 'var(--color-primary)', color: '#fff',
+                  fontFamily: 'var(--font-sans)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                Continue
+              </button>
+              <button
+                onClick={startFresh}
+                style={{
+                  padding: '0.5rem 1.1rem', borderRadius: '7px',
+                  border: '1px solid var(--border-input)', background: 'transparent',
+                  color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)',
+                  fontSize: '0.85rem', cursor: 'pointer',
+                }}
+              >
+                Start Fresh
+              </button>
+            </div>
+          </div>
+        )}
 
         <CreationStepIndicator currentStep={currentStep} goToStep={goToStep} labels={STEP_LABELS} />
 

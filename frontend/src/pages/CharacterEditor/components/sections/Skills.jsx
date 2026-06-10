@@ -1,5 +1,5 @@
-import SkillGroup from '../../../../components/SkillGroup';
-import { Section } from '../../primitives';
+import Section from '../../../../components/sheet/Section';
+import SkillList from '../../../../components/sheet/SkillList';
 
 export default function Skills({ skills, skillSearch, onSearchChange, onUpdateSkill }) {
   const filtered = skillSearch.trim()
@@ -31,7 +31,7 @@ export default function Skills({ skills, skillSearch, onSearchChange, onUpdateSk
           onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
         />
       </div>
-      <SkillGroup skills={filtered} onChangeSkill={onUpdateSkill} />
+      <SkillList skills={filtered} editable onChangeSkill={onUpdateSkill} />
     </Section>
   );
 }

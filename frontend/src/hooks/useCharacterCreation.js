@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import apiClient from '../api/client';
 import { getSkillBase } from '../utils/skillBases';
 import ALL_SKILLS from '../utils/allSkills';
+import OCCUPATIONS from '../utils/occupations';
 
 const INITIAL_STATE = {
   currentStep: 1,
@@ -83,6 +84,58 @@ function canProceedFromStep(step, state) {
 
 export default function useCharacterCreation() {
   const [state, setState] = useState(INITIAL_STATE);
+
+  // ── Draft resume ───────────────────────────────────────────
+  const [resuming, setResuming] = useState(false);
+  // Auto-save stays off until the initial draft load finishes, so the
+  // empty mount state can never clobber an existing saved draft.
+  const draftReadyRef = useRef(false);
+
+  // On mount: load any saved draft and restore it
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await apiClient.get('/characters/draft');
+        if (!cancelled && res.data && res.data.wizard_state) {
+          const restored = { ...res.data.wizard_state };
+          // Occupation methods (skillPointsCalc, cashAndAssets) don't survive
+          // JSON — rehydrate the full object from canonical data by id.
+          if (restored.selectedOccupation?.id) {
+            const occ = OCCUPATIONS.find(o => o.id === restored.selectedOccupation.id);
+            if (occ) restored.selectedOccupation = occ;
+          }
+          restored.currentStep = res.data.current_step ?? restored.currentStep ?? 1;
+          setState(restored);
+          setResuming(true);
+        }
+      } catch { /* no draft / endpoint missing — start fresh silently */ }
+      finally { if (!cancelled) draftReadyRef.current = true; }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Auto-save whenever the user moves to a different step. The
+  // `state === INITIAL_STATE` reference check skips untouched/just-reset
+  // state, so "Start Fresh" doesn't immediately recreate the draft.
+  useEffect(() => {
+    if (!draftReadyRef.current) return;
+    if (state === INITIAL_STATE) return;
+    apiClient.put('/characters/draft', {
+      wizard_state: state,
+      current_step: state.currentStep,
+    }).catch(() => {});
+  }, [state.currentStep]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Continue → keep the restored state, just hide the banner
+  const dismissResume = useCallback(() => setResuming(false), []);
+
+  // Start Fresh → wipe state + clear the saved draft
+  const startFresh = useCallback(() => {
+    setState(INITIAL_STATE);
+    setResuming(false);
+    apiClient.delete('/characters/draft').catch(() => {});
+  }, []);
 
   const setField = useCallback((field, value) => {
     setState(s => ({ ...s, [field]: value }));
@@ -378,6 +431,8 @@ export default function useCharacterCreation() {
     };
 
     const response = await apiClient.post('/characters', { sheet_data });
+    // Character created — clear the saved draft so it won't resume next time
+    await apiClient.delete('/characters/draft').catch(() => {});
     return response.data;
   }, [state]);
 
@@ -398,5 +453,8 @@ export default function useCharacterCreation() {
     goToStep,
     canProceed,
     saveCharacter,
+    resuming,
+    dismissResume,
+    startFresh,
   };
 }

@@ -4,6 +4,7 @@ import SessionSkillRow    from './SessionSkillRow';
 import SkillRollPopup     from './SkillRollPopup';
 import apiClient          from '../api/client';
 import { useTheme }       from '../context/ThemeContext';
+import { accentLabel }    from './sheet/tokens';
 
 // ── Stat button ────────────────────────────────────────────────
 function StatButton({ label, value, sublabel, advMode, disMode, onRoll, scale = 1 }) {
@@ -46,11 +47,7 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll, scale = 
           e.currentTarget.style.borderColor = 'var(--border-main)';
         }}
       >
-        <span style={{
-          fontSize: '9px', fontWeight: '600',
-          textTransform: 'uppercase', letterSpacing: '0.07em',
-          color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-        }}>
+        <span style={accentLabel}>
           {label}
         </span>
         {sublabel && (

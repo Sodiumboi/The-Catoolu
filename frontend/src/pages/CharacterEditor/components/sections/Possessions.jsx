@@ -1,4 +1,4 @@
-import { Section } from '../../primitives';
+import Section from '../../../../components/sheet/Section';
 
 const stripDollar = v => String(v || '').replace(/^\$+/, '').trim();
 

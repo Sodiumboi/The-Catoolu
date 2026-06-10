@@ -43,10 +43,12 @@ export default function App() {
               <ProtectedRoute><ProfilePage /></ProtectedRoute>
             }/>
 
-            {/* Hidden creation engine — no NavBar link */}
-            <Route path="/plzwork" element={
+            {/* Character creation engine — official route */}
+            <Route path="/create" element={
               <ProtectedRoute><CharacterCreationPage /></ProtectedRoute>
             }/>
+            {/* Legacy shadow-build path — keep as an alias to the official route */}
+            <Route path="/plzwork" element={<Navigate to="/create" replace />} />
 
             {/* Fallbacks */}
             <Route path="/"  element={<Navigate to="/dashboard" replace />} />

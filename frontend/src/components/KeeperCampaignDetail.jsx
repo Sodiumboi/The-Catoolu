@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import ReadOnlySheet from './ReadOnlySheet';
@@ -195,19 +195,59 @@ function InfoTab({
   const [description, setDescription] = useState(campaign.description || '');
   const [saving,      setSaving]      = useState(false);
   const [saveMsg,     setSaveMsg]     = useState('');
-  const [sheetModal,  setSheetModal]  = useState(null);
+  const [selectedSheet, setSelectedSheet] = useState(null);
+
+  // ── Resizable side-by-side sheet panel (mirrors the in-room panel) ──
+  const [sheetWidth, setSheetWidth] = useState(() => {
+    const saved = parseInt(localStorage.getItem('keeper-sheet-panel-width'));
+    return saved && saved >= 480 && saved <= 1280 ? saved : 820;
+  });
+  const draggingRef   = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragStartWRef = useRef(820);
+
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!draggingRef.current) return;
+      // Panel sits on the right, so dragging the divider left widens it
+      const next = Math.max(480, Math.min(1280, dragStartWRef.current - (e.clientX - dragStartXRef.current)));
+      setSheetWidth(next);
+    };
+    const onUp = () => {
+      if (!draggingRef.current) return;
+      draggingRef.current = false;
+      document.body.style.cursor     = '';
+      document.body.style.userSelect = '';
+      setSheetWidth(w => { localStorage.setItem('keeper-sheet-panel-width', w); return w; });
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+    };
+  }, []);
+
+  const handleDragStart = (e) => {
+    draggingRef.current   = true;
+    dragStartXRef.current = e.clientX;
+    dragStartWRef.current = sheetWidth;
+    document.body.style.cursor     = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  };
 
   const handleOpenSheet = async (member) => {
     try {
       const res = await apiClient.get('/characters/' + member.character_uuid);
-      setSheetModal({
+      setSelectedSheet({
         name:        member.character_name,
         occupation:  member.character_occupation,
         characterId: member.character_uuid,
         charData:    res.data.character,
       });
     } catch {
-      setSheetModal({
+      setSelectedSheet({
         name:        member.character_name,
         occupation:  member.character_occupation,
         characterId: member.character_uuid,
@@ -235,7 +275,17 @@ function InfoTab({
   const players  = members.filter(m => m.role === 'player');
 
   return (
-    <div style={{ maxWidth:'600px' }}>
+    <div style={{ display:'flex', alignItems:'flex-start', gap:'0', width:'100%' }}>
+
+      {/* LEFT — campaign info + players.
+          When the sheet is open the left column fills the remaining space so
+          the panel sits flush against the right edge (pinned right). */}
+      <div style={{
+        flex: selectedSheet ? '1 1 0' : '1 1 100%',
+        minWidth:'300px',
+        maxWidth: selectedSheet ? 'none' : '600px',
+        overflow:'hidden',
+      }}>
 
       {/* Campaign name + description — editable */}
       <div style={{ marginBottom:'28px' }}>
@@ -450,8 +500,9 @@ function InfoTab({
                 display:'flex', alignItems:'center',
                 justifyContent:'space-between',
                 padding:'10px 14px', borderRadius:'10px',
-                background:'var(--bg-card)',
-                border:'1px solid var(--border-main)',
+                background: selectedSheet?.characterId === m.character_uuid ? 'var(--accent-bg)' : 'var(--bg-card)',
+                border:'1px solid ' + (selectedSheet?.characterId === m.character_uuid ? 'var(--accent)' : 'var(--border-main)'),
+                transition:'background 0.12s ease, border-color 0.12s ease',
               }}>
                 <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                   <div style={{
@@ -521,45 +572,62 @@ function InfoTab({
         )}
       </div>
 
-      {/* Character sheet floating placeholder */}
-      {sheetModal && (
+      </div>{/* end LEFT column */}
+
+      {/* RIGHT — resizable side-by-side sheet panel (replaces the popup) */}
+      {selectedSheet && (
         <div
-          onClick={() => setSheetModal(null)}
+          key={selectedSheet.characterId}
+          className="animate-slide-in-panel"
           style={{
-            position:'fixed', inset:0,
-            background:'rgba(0,0,0,0.5)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            zIndex:400, padding:'24px',
-            backdropFilter:'blur(4px)',
-          }}
-        >
+            position:'sticky', top:'0', alignSelf:'flex-start',
+            display:'flex', flexShrink:0,
+            maxWidth:'calc(100% - 300px)',  // keep ≥300px for the left column → never overflow
+            maxHeight:'calc(100vh - 150px)',
+          }}>
+          {/* Drag handle */}
           <div
-            onClick={e => e.stopPropagation()}
+            onMouseDown={handleDragStart}
+            title="Drag to resize"
             style={{
-              background:'var(--bg-card)',
-              border:'1px solid var(--border-main)',
-              borderRadius:'16px',
-              padding:'20px',
-              maxWidth:'780px', width:'100%',
-              maxHeight:'90vh',
-              boxShadow:'var(--shadow-dropdown)',
-              display:'flex', flexDirection:'column', gap:'12px',
+              width:'5px', flexShrink:0, cursor:'col-resize',
+              background:'var(--border-main)', borderRadius:'3px',
+              margin:'0 8px',
             }}
-          >
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--accent)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--border-main)'}
+          />
+
+          {/* Sheet panel — width is the drag target; shrinks within the
+              capped wrapper on narrow screens so nothing overflows */}
+          <div style={{
+            width: sheetWidth + 'px', minWidth:0, flexShrink:1,
+            display:'flex', flexDirection:'column',
+            border:'1px solid var(--border-main)', borderRadius:'12px',
+            overflow:'hidden', background:'var(--bg-card)',
+            boxShadow:'var(--shadow-dropdown)',
+            maxHeight:'calc(100vh - 150px)',
+          }}>
             {/* Header */}
-            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'12px' }}>
+            <div style={{
+              display:'flex', alignItems:'flex-start',
+              justifyContent:'space-between', gap:'12px',
+              padding:'14px 16px', flexShrink:0,
+              borderBottom:'1px solid var(--border-main)',
+            }}>
               <div>
-                <div style={{ fontFamily:'var(--font-serif)', fontSize:'20px', color:'var(--text-primary)' }}>
-                  {sheetModal.name}
+                <div style={{ fontFamily:'var(--font-serif)', fontSize:'18px', color:'var(--text-primary)' }}>
+                  {selectedSheet.name}
                 </div>
-                {sheetModal.occupation && (
+                {selectedSheet.occupation && (
                   <div style={{ fontSize:'12px', color:'var(--accent)' }}>
-                    {sheetModal.occupation}
+                    {selectedSheet.occupation}
                   </div>
                 )}
               </div>
               <button
-                onClick={() => setSheetModal(null)}
+                onClick={() => setSelectedSheet(null)}
+                title="Close"
                 style={{
                   background:'none', border:'none', cursor:'pointer',
                   color:'var(--text-muted)', padding:'2px', flexShrink:0,
@@ -570,17 +638,13 @@ function InfoTab({
             </div>
 
             {/* Sheet or error */}
-            {sheetModal.charData ? (
-              <div style={{
-                flex:1, overflowY:'auto', maxHeight:'72vh',
-                borderRadius:'10px', border:'1px solid var(--border-main)',
-                background:'var(--bg-page)',
-              }}>
-                <ReadOnlySheet charData={sheetModal.charData} />
+            {selectedSheet.charData ? (
+              <div style={{ flex:1, overflowY:'auto', background:'var(--bg-page)' }}>
+                <ReadOnlySheet charData={selectedSheet.charData} />
               </div>
             ) : (
               <div style={{
-                padding:'20px', borderRadius:'10px',
+                margin:'16px', padding:'20px', borderRadius:'10px',
                 border:'1px dashed var(--border-main)',
                 background:'var(--bg-section-hd)',
                 fontSize:'13px', color:'var(--text-faint)',
