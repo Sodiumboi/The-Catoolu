@@ -13,3 +13,6 @@ Srec
 package.json
 DeployGuide.md
 occupation/
+testfloder/
+socket-test.yml
+stress-test.js

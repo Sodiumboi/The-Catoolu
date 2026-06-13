@@ -1,11 +1,12 @@
-import { useState, useRef, useCallback } from 'react';
-import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
+import ReactCrop, { centerCrop, makeAspectCrop, convertToPixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 // ── Helper: get cropped canvas ────────────────────────────────
-function getCroppedCanvas(image, crop) {
-  const scaleX   = image.naturalWidth  / image.width;
-  const scaleY   = image.naturalHeight / image.height;
+function getCroppedCanvas(image, crop, displayWidth, displayHeight) {
+  const scaleX   = image.naturalWidth  / displayWidth;
+  const scaleY   = image.naturalHeight / displayHeight;
   const naturalW = crop.width  * scaleX;
   const naturalH = crop.height * scaleY;
 
@@ -40,38 +41,49 @@ function canvasToBlob(canvas) {
 export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
   const imgRef  = useRef(null);
   const [crop,  setCrop]  = useState();
-  const [completedCrop, setCompletedCrop] = useState();
+  const [completedCrop,  setCompletedCrop]  = useState();
+  const [imgDisplaySize, setImgDisplaySize] = useState(null);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
 
   // Centre a square crop on image load
+  // Use getBoundingClientRect for reliable rendered dimensions (image.width can
+  // return the intrinsic width instead of the CSS layout width in some browsers).
   const onImageLoad = useCallback((e) => {
-    const { width, height } = e.currentTarget;
+    const rect   = e.currentTarget.getBoundingClientRect();
+    const width  = rect.width;
+    const height = rect.height;
+    setImgDisplaySize({ width, height });
     const c = centerCrop(
       makeAspectCrop({ unit: '%', width: 80 }, 1, width, height),
       width, height
     );
     setCrop(c);
-    setCompletedCrop(c);
+    setCompletedCrop(convertToPixelCrop(c, width, height));
   }, []);
 
   const handleSave = async () => {
-    if (!completedCrop || !imgRef.current) return;
-    const canvas = getCroppedCanvas(imgRef.current, completedCrop);
+    if (!completedCrop || !imgRef.current || !imgDisplaySize) return;
+    const canvas = getCroppedCanvas(imgRef.current, completedCrop, imgDisplaySize.width, imgDisplaySize.height);
     const blob   = await canvasToBlob(canvas);
     onSave(blob);
   };
 
-  return (
+  return createPortal(
     <div
       style={{
         position:       'fixed',
         inset:          0,
-        background:     'rgba(0,0,0,0.75)',
+        background:     'rgba(0,0,0,0.6)',
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'center',
-        zIndex:         300,
+        zIndex:         400,
         padding:        '24px',
-        backdropFilter: 'blur(6px)',
+        backdropFilter: 'blur(4px)',
       }}
       onClick={onClose}
     >
@@ -140,9 +152,9 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
           <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
             Preview:
           </span>
-          <CropPreview imgRef={imgRef} crop={completedCrop} size={56} />
-          <CropPreview imgRef={imgRef} crop={completedCrop} size={36} />
-          <CropPreview imgRef={imgRef} crop={completedCrop} size={24} />
+          <CropPreview imgRef={imgRef} crop={completedCrop} size={56} displaySize={imgDisplaySize} />
+          <CropPreview imgRef={imgRef} crop={completedCrop} size={36} displaySize={imgDisplaySize} />
+          <CropPreview imgRef={imgRef} crop={completedCrop} size={24} displaySize={imgDisplaySize} />
           <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
             Saved at up to 800px
           </span>
@@ -184,27 +196,47 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
-// ── Live crop preview at multiple sizes ────────────────────────
-function CropPreview({ imgRef, crop, size }) {
-  if (!crop || !imgRef.current) {
+// ── Live crop preview at multiple sizes (canvas-drawn, always accurate) ──────
+function CropPreview({ imgRef, crop, size, displaySize }) {
+  const canvasRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    const image  = imgRef.current;
+    if (!canvas || !image || !crop || !displaySize) return;
+
+    const scaleX = image.naturalWidth  / displaySize.width;
+    const scaleY = image.naturalHeight / displaySize.height;
+
+    canvas.width  = size;
+    canvas.height = size;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width  * scaleX,
+      crop.height * scaleY,
+      0, 0, size, size,
+    );
+  }, [crop, size, displaySize]);
+
+  if (!crop || !displaySize) {
     return (
       <div style={{
-        width:        size,
-        height:       size,
+        width: size, height: size,
         borderRadius: '50%',
         background:   'var(--border-main)',
+        flexShrink:   0,
       }} />
     );
   }
-
-  const image  = imgRef.current;
-  const scaleX = image.naturalWidth  / image.width;
-  const scaleY = image.naturalHeight / image.height;
-  const scale  = size / crop.width;
 
   return (
     <div style={{
@@ -214,19 +246,8 @@ function CropPreview({ imgRef, crop, size }) {
       overflow:     'hidden',
       flexShrink:   0,
       border:       '2px solid var(--border-main)',
-      position:     'relative',
     }}>
-      <img
-        src={image.src}
-        alt="Preview"
-        style={{
-          position:  'absolute',
-          left:      -(crop.x * scaleX * scale) + 'px',
-          top:       -(crop.y * scaleY * scale) + 'px',
-          width:     (image.naturalWidth * scale) + 'px',
-          height:    'auto',
-        }}
-      />
+      <canvas ref={canvasRef} style={{ display: 'block', width: size, height: size }} />
     </div>
   );
 }

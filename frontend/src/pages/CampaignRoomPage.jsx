@@ -11,10 +11,13 @@ import SkillRollPopup      from '../components/SkillRollPopup';
 import { useSocket }       from '../context/SocketContext';
 import { useAuth }         from '../context/AuthContext';
 import { useCampaign }     from '../context/CampaignContext';
+import { useTheme }        from '../context/ThemeContext';
 import apiClient           from '../api/client';
 import SessionSheet        from '../components/SessionSheet';
 import ReadOnlySheet       from '../components/ReadOnlySheet';
 import RoomSubNav          from '../components/RoomSubNav';
+import NotesWindow         from '../components/NotesWindow';
+import NotesPane           from '../components/notes/NotesPane';
 
 // ── Roll context label builder ─────────────────────────────────
 function getRollLabel(skillName, statName) {
@@ -32,6 +35,7 @@ export default function CampaignRoomPage() {
   const { socket, connected }     = useSocket();
   const { user }                  = useAuth();
   const { enterRoom, leaveRoom }  = useCampaign();
+  const { sheetFontScale, roomFontScale } = useTheme();
 
   // ── Core state ────────────────────────────────────────────────
   const [campaign,      setCampaign]      = useState(null);
@@ -48,6 +52,7 @@ export default function CampaignRoomPage() {
 
   // ── UI state ──────────────────────────────────────────────────
   const [subTab,        setSubTab]        = useState('main');
+  const [notesState,    setNotesState]    = useState('closed');
   const [text,          setText]          = useState('');
   const [advMode,       setAdvMode]       = useState(false);
   const [disMode,       setDisMode]       = useState(false);
@@ -571,9 +576,19 @@ export default function CampaignRoomPage() {
         </div>
       )}
 
+      {/* Player / global floating notes window */}
+      {myRole !== 'keeper' && (
+        <NotesWindow
+          windowState={notesState}
+          onWindowStateChange={setNotesState}
+          contextTagType="session"
+          contextTag={campaign?.name}
+        />
+      )}
+
       <NavBar activeTab="campaign" />
 
-      <div className="animate-fade" style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden' }}>
+      <div className="animate-fade" style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden', '--room-font-scale': roomFontScale, zoom: roomFontScale }}>
 
       {/* Room header */}
       <div style={{
@@ -609,6 +624,29 @@ export default function CampaignRoomPage() {
         </div>
 
         <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
+          {/* Notes toggle (players only) */}
+          {myRole !== 'keeper' && (
+            <button
+              onClick={() => {
+                if (notesState === 'closed') setNotesState('bubble');
+                else if (notesState === 'bubble') setNotesState('full');
+                else setNotesState('bubble');
+              }}
+              style={{
+                display:     'flex', alignItems: 'center', gap: '4px',
+                padding:     '6px 12px', borderRadius: '8px', fontSize: '13px',
+                border:      notesState !== 'closed' ? '1px solid var(--accent)' : '1px solid var(--border-main)',
+                background:  notesState !== 'closed' ? 'var(--accent-bg)' : 'transparent',
+                color:       notesState !== 'closed' ? 'var(--accent)' : 'var(--text-muted)',
+                fontFamily:  'var(--font-sans)',
+                cursor:      'pointer', transition: 'all 0.15s',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>description</span>
+              Notes
+            </button>
+          )}
+
           {/* I'm Not Here toggle */}
           <button
             onClick={handleToggleAfk}
@@ -655,13 +693,12 @@ export default function CampaignRoomPage() {
         {/* Left: sub-nav + character sheet OR Keeper player cards */}
         {(() => {
           const playerTabs = [
-            { id: 'main',  label: 'Sheet' },
-            { id: 'notes', label: 'Notes', comingSoon: true },
+            { id: 'main', label: 'Sheet' },
           ];
           const keeperTabs = [
             { id: 'main',     label: 'Players' },
             { id: 'handouts', label: 'Handouts', comingSoon: true },
-            { id: 'notes',    label: 'Notes',    comingSoon: true },
+            { id: 'notes',    label: 'Notes' },
           ];
           const tabs = myRole === 'keeper' ? keeperTabs : playerTabs;
 
@@ -693,15 +730,20 @@ export default function CampaignRoomPage() {
               flexDirection: 'column',
               background:    'var(--bg-page)',
               overflow:      'hidden',
+              '--sheet-font-scale': sheetFontScale,
             }}>
               <RoomSubNav tabs={tabs} activeTab={subTab} onTabChange={setSubTab} />
 
               <div key={subTab} className="animate-fade" style={{
-                flex:      1,
-                overflowY: 'auto',
-                padding:   subTab === 'main' && myRole === 'keeper' && keeperSheetModal ? 0 : subTab === 'main' ? '12px' : 0,
+                flex:          1,
+                overflowY:     subTab === 'notes' ? 'hidden' : 'auto',
+                padding:       subTab === 'main' && myRole === 'keeper' && keeperSheetModal ? 0 : subTab === 'main' ? '12px' : 0,
+                display:       subTab === 'notes' ? 'flex' : undefined,
+                flexDirection: subTab === 'notes' ? 'column' : undefined,
               }}>
-                {subTab !== 'main' ? comingSoonPanel : myRole === 'keeper' ? (
+                {subTab === 'notes' && myRole === 'keeper' ? (
+                  <NotesPane contextTagType="session" contextTag={campaign?.name} />
+                ) : subTab !== 'main' ? comingSoonPanel : myRole === 'keeper' ? (
                   keeperSheetModal ? (
                     <>
                       <button

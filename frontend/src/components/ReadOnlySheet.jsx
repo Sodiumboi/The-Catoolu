@@ -13,10 +13,6 @@ import SkillList from './sheet/SkillList';
 import WeaponTable from './sheet/WeaponTable';
 import Backstory from './sheet/Backstory';
 
-const Divider = () => (
-  <div className="w-px self-stretch" style={{ background: 'var(--border-main)' }} />
-);
-
 const stripDollar = v => String(v || '').replace(/^\$+/, '').trim();
 
 const toArray = (x) => Array.isArray(x) ? x : x ? [x] : [];
@@ -42,13 +38,14 @@ export default function ReadOnlySheet({ charData }) {
 
       {/* ── Characteristics ── */}
       <Section title="Characteristics">
-        <div className="flex gap-6 mb-6 items-start flex-wrap">
-          <StatGrid chars={chars} />
-          <Divider />
-          <TrackedStats chars={chars} />
+        <TrackedStats chars={chars} horizontal compact />
+        <div style={{ borderTop: '1px solid var(--border-main)', margin: '14px 0 12px' }} />
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <StatGrid chars={chars} compact />
         </div>
-        <div className="border-t mb-4" style={{ borderColor: 'var(--border-main)' }} />
-        <DerivedBadges chars={chars} inv={inv} />
+        <div style={{ borderTop: '1px solid var(--border-main)', margin: '12px 0 0', paddingTop: '10px' }}>
+          <DerivedBadges chars={chars} inv={inv} compact />
+        </div>
       </Section>
 
       {/* ── Skills ── */}

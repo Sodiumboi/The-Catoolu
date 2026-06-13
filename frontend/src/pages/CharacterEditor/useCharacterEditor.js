@@ -285,14 +285,6 @@ export default function useCharacterEditor(uuid) {
   const handleExport = () => {
     const inv      = sheet?.Investigator;
     const details_ = inv?.PersonalDetails || {};
-    const hasNotes = inv?.Notes && inv.Notes.trim() !== '' && inv.Notes !== '<br>';
-    if (hasNotes) {
-      if (!window.confirm(
-        '⚠ Session Notes are not included in the JSON export.\n\n' +
-        'Your notes are saved in the database and will still be here ' +
-        'when you return.\n\nContinue with export?'
-      )) return;
-    }
     const exportData = JSON.parse(JSON.stringify(inv));
     delete exportData.Notes;
     const output = JSON.stringify({ Investigator: exportData }, null, 2);

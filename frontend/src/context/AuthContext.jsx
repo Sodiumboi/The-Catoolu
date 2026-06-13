@@ -67,7 +67,15 @@ export function AuthProvider({ children }) {
     localStorage.setItem('coc_user', JSON.stringify(updated));
   };
 
-  const value = { user, token, loading, login, register, logout, updateUser };
+  // ── OAuth callback: store token + user returned by the redirect ──
+  const loginWithToken = (token, userData) => {
+    localStorage.setItem('coc_token', token);
+    localStorage.setItem('coc_user', JSON.stringify(userData));
+    setUser(userData);
+    setToken(token);
+  };
+
+  const value = { user, token, loading, login, register, logout, updateUser, loginWithToken };
 
   return (
     <AuthContext.Provider value={value}>

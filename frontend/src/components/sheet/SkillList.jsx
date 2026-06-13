@@ -1,51 +1,37 @@
-import { useTheme } from '../../context/ThemeContext';
 import { FlatSkillRow } from './SkillRow';
 import SkillGroup from './SkillGroup';
 
 // ── SkillList ────────────────────────────────────────────────────────
-// The full skill section: groups skills into families (subskill clusters)
-// vs flat skills, splits them across two columns each with a Reg/½/⅕
-// header, and renders them. Pure display + theme-driven sizing.
-//
-// Skills are expected to arrive already filtered by the caller (e.g. a
-// search box). `onChangeSkill(index, updatedSkill)` is only used when
-// `editable` is true.
+// Full skill section: two-column layout with Reg/½/⅕ headers.
+// Font sizing comes from --sheet-font-scale CSS variable on the container.
 
-const SIZE_MAP = {
-  sm:   { cls: 'text-xs',   inputW: '40px', numW: '28px' },
-  base: { cls: 'text-sm',   inputW: '44px', numW: '32px' },
-  lg:   { cls: 'text-base', inputW: '50px', numW: '36px' },
-};
+const FS     = 'calc(9px * var(--sheet-font-scale))';
+const VAL_W  = 'calc(44px * var(--sheet-font-scale))';
+const NUM_W  = 'calc(32px * var(--sheet-font-scale))';
 
-function Header({ inputW, numW }) {
+function Header() {
   return (
     <div className="flex items-center gap-2 px-3 pb-1 mb-1 border-b"
          style={{ borderColor: 'var(--border-main)' }}>
       <span style={{ width: '8px' }} />
-      <span className="flex-1 text-xs uppercase tracking-widest"
-            style={{ color: 'var(--accent)' }}>Skill</span>
-      <span className="text-xs uppercase tracking-widest text-center"
-            style={{ width: inputW, color: 'var(--accent)' }}>Val</span>
-      <span className="text-xs uppercase tracking-widest text-center"
-            style={{ width: numW, color: 'var(--text-muted)' }}>½</span>
-      <span className="text-xs uppercase tracking-widest text-center"
-            style={{ width: numW, color: 'var(--text-muted)' }}>⅕</span>
+      <span className="flex-1 uppercase tracking-widest"
+            style={{ fontSize: FS, color: 'var(--accent)' }}>Skill</span>
+      <span className="uppercase tracking-widest text-center"
+            style={{ fontSize: FS, width: VAL_W, color: 'var(--accent)' }}>Val</span>
+      <span className="uppercase tracking-widest text-center"
+            style={{ fontSize: FS, width: NUM_W, color: 'var(--text-muted)' }}>½</span>
+      <span className="uppercase tracking-widest text-center"
+            style={{ fontSize: FS, width: NUM_W, color: 'var(--text-muted)' }}>⅕</span>
     </div>
   );
 }
 
 export default function SkillList({ skills = [], onChangeSkill, editable = false }) {
-  const { sheetSize } = useTheme();
-  const skillKey = { sm: 'sm', md: 'base', lg: 'lg' }[sheetSize] || 'sm';
-  const { cls, inputW, numW } = SIZE_MAP[skillKey];
-
-  // Group skills by name — entries with subskills cluster into a family
   const groups = [];
   const seen   = {};
 
   skills.forEach((skill, index) => {
     const isOcc = skill.occupation === 'true';
-
     if (skill.subskill !== undefined && skill.subskill !== null) {
       if (!seen[skill.name]) {
         seen[skill.name] = { type: 'group', parentName: skill.name, entries: [] };
@@ -57,7 +43,6 @@ export default function SkillList({ skills = [], onChangeSkill, editable = false
     }
   });
 
-  // Split into two halves for the two-column layout
   const half        = Math.ceil(groups.length / 2);
   const leftGroups  = groups.slice(0, half);
   const rightGroups = groups.slice(half);
@@ -67,7 +52,6 @@ export default function SkillList({ skills = [], onChangeSkill, editable = false
       key={g.index}
       skill={g.skill}
       onChange={editable ? (updated => onChangeSkill(g.index, updated)) : undefined}
-      cls={cls} inputW={inputW} numW={numW}
       isOcc={g.isOcc} editable={editable}
     />
   ) : (
@@ -76,7 +60,6 @@ export default function SkillList({ skills = [], onChangeSkill, editable = false
       parentName={g.parentName}
       entries={g.entries}
       onChangeEntry={editable ? ((idx, updated) => onChangeSkill(idx, updated)) : undefined}
-      cls={cls} inputW={inputW} numW={numW}
       editable={editable}
     />
   );
@@ -84,11 +67,11 @@ export default function SkillList({ skills = [], onChangeSkill, editable = false
   return (
     <div className="grid grid-cols-2 gap-x-4">
       <div>
-        <Header inputW={inputW} numW={numW} />
+        <Header />
         {leftGroups.map(renderGroup)}
       </div>
       <div>
-        <Header inputW={inputW} numW={numW} />
+        <Header />
         {rightGroups.map(renderGroup)}
       </div>
     </div>

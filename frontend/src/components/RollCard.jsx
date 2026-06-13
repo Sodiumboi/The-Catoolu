@@ -50,9 +50,27 @@ function DigitBox({ digit, severity = 'none' }) {
 }
 
 // ── Single die → digit boxes (adv/dis path) ───────────────────
-function RollDigits({ value, sides, severity = 'none' }) {
+function RollDigits({ value, sides, severity = 'none', groupHighlight }) {
+  const isWinner = groupHighlight === 'winner';
+  const isLoser  = groupHighlight === 'loser';
+  const borderColor = severity !== 'none'
+    ? `var(--roll-${severity}-border)`
+    : 'var(--accent)';
+  const bgColor = severity !== 'none'
+    ? `var(--roll-${severity}-bg)`
+    : 'var(--accent-bg)';
+
   return (
-    <div style={{ display: 'flex', gap: '2px', justifyContent: 'center' }}>
+    <div style={{
+      display:        'flex',
+      gap:            '2px',
+      justifyContent: 'center',
+      padding:        '4px 5px',
+      borderRadius:   '10px',
+      border:         isWinner ? `2px solid ${borderColor}` : '2px solid transparent',
+      background:     isWinner ? bgColor : 'transparent',
+      opacity:        isLoser ? 0.38 : 1,
+    }}>
       {formatDie(value, sides).map((d, i) => (
         <DigitBox key={i} digit={d} severity={severity} />
       ))}
@@ -243,30 +261,36 @@ export default function RollCard({ msg, isOwn }) {
               gap:            '8px',
               flexWrap:       'wrap',
             }}>
-              {hasAdvDis && raw.advDisRolls ? (
-                <>
-                  <RollDigits
-                    value={raw.advDisRolls[0].reduce((a, b) => a + b, 0)}
-                    sides={sides}
-                    severity={isAdv
-                      ? (raw.advDisRolls[0][0] <= raw.advDisRolls[1][0] ? severity : 'none')
-                      : (raw.advDisRolls[0][0] >= raw.advDisRolls[1][0] ? severity : 'none')}
-                  />
-                  <div style={{
-                    width:        '2px',
-                    height:       '56px',
-                    background:   'var(--border-main)',
-                    borderRadius: '2px',
-                  }} />
-                  <RollDigits
-                    value={raw.advDisRolls[1].reduce((a, b) => a + b, 0)}
-                    sides={sides}
-                    severity={isDis
-                      ? (raw.advDisRolls[1][0] >= raw.advDisRolls[0][0] ? severity : 'none')
-                      : (raw.advDisRolls[1][0] <= raw.advDisRolls[0][0] ? severity : 'none')}
-                  />
-                </>
-              ) : (
+              {hasAdvDis && raw.advDisRolls ? (() => {
+                // 0-sum means d100 rolled 00+0 = 100 (fumble)
+                const v0 = raw.advDisRolls[0].reduce((a, b) => a + b, 0) || 100;
+                const v1 = raw.advDisRolls[1].reduce((a, b) => a + b, 0) || 100;
+                // ADV = bonus = take lower; DIS = penalty = take higher
+                const g0w = isAdv ? v0 <= v1 : v0 >= v1;
+                const g1w = isAdv ? v1 <= v0 : v1 >= v0;
+                return (
+                  <>
+                    <RollDigits
+                      value={v0 === 100 ? 0 : v0}
+                      sides={sides}
+                      severity={g0w ? severity : 'none'}
+                      groupHighlight={g0w ? 'winner' : 'loser'}
+                    />
+                    <div style={{
+                      width:        '2px',
+                      height:       '56px',
+                      background:   'var(--border-main)',
+                      borderRadius: '2px',
+                    }} />
+                    <RollDigits
+                      value={v1 === 100 ? 0 : v1}
+                      sides={sides}
+                      severity={g1w ? severity : 'none'}
+                      groupHighlight={g1w ? 'winner' : 'loser'}
+                    />
+                  </>
+                );
+              })() : (
                 <MultiDieDisplay
                   rolls={raw.rolls || [raw.total]}
                   sides={sides}

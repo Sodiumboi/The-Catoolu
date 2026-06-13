@@ -3,6 +3,7 @@ import logo from '../../assets/vault-logo.png';
 import NavBar from '../../components/NavBar';
 import Footer from '../../components/Footer';
 import useCharacterEditor from './useCharacterEditor';
+import { useTheme } from '../../context/ThemeContext';
 import UnsavedChangesModal from './components/UnsavedChangesModal';
 import PersonalDetails     from './components/sections/PersonalDetails';
 import Characteristics     from './components/sections/Characteristics';
@@ -10,11 +11,14 @@ import Skills              from './components/sections/Skills';
 import Weapons             from './components/sections/Weapons';
 import Backstory           from './components/sections/Backstory';
 import Possessions         from './components/sections/Possessions';
+import NotesWindow         from '../../components/NotesWindow';
+import { loadWindowState, saveWindowState } from '../../components/notes/notesWindowState';
 import { useParams } from 'react-router-dom';
 
 export default function CharacterEditorPage() {
   const { uuid } = useParams();
   const editor = useCharacterEditor(uuid);
+  const { sheetFontScale } = useTheme();
 
   const {
     // State
@@ -34,6 +38,24 @@ export default function CharacterEditorPage() {
     updateCash, handlePortraitUpload, handleSave, handleExport,
     guardedNavigate, handleWarnCancel, handleWarnDiscard, handleWarnSave,
   } = editor;
+
+  // ── Notes window ──────────────────────────────────────────
+  const [notesState, setNotesState] = useState(() => {
+    const s = loadWindowState();
+    // Migration from old isOpen boolean
+    return s.windowState !== 'closed' ? s.windowState : s.isOpen ? 'full' : 'closed';
+  });
+
+  const handleNotesStateChange = (newState) => {
+    setNotesState(newState);
+    saveWindowState({ windowState: newState });
+  };
+
+  const handleNotesButton = () => {
+    if (notesState === 'closed') handleNotesStateChange('full');
+    else if (notesState === 'bubble') handleNotesStateChange('full');
+    else handleNotesStateChange('closed');
+  };
 
   // ── UUID reveal (press U five times while not in an input) ─
   const [showUuid,  setShowUuid]  = useState(false);
@@ -117,7 +139,7 @@ export default function CharacterEditorPage() {
 
   // ── Render ────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', '--sheet-font-scale': sheetFontScale }}>
 
       {/* Unsaved changes modal */}
       {showWarning && (
@@ -163,6 +185,21 @@ export default function CharacterEditorPage() {
         <div className="flex items-center gap-3">
           {error && <span style={{ fontSize: '12px', color: 'var(--danger)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">warning</span>{error}</span>}
           {saved && <span style={{ fontSize: '12px', color: 'var(--success)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">check</span>Saved!</span>}
+          <button
+            onClick={handleNotesButton}
+            title="Toggle notes"
+            style={{
+              display:    'flex', alignItems: 'center', gap: '4px',
+              padding:    '6px 12px', borderRadius: '8px', fontSize: '13px',
+              border:     notesState !== 'closed' ? '1px solid var(--accent)' : '1px solid var(--border-main)',
+              background: notesState !== 'closed' ? 'var(--accent-bg)' : 'transparent',
+              color:      notesState !== 'closed' ? 'var(--accent)' : 'var(--text-muted)',
+              cursor:     'pointer', transition: 'all 0.15s',
+            }}
+          >
+            <span className="icon icon-sm">description</span>
+            Notes
+          </button>
           <button onClick={handleExport}
                   style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '13px', border: '1px solid var(--success)', background: 'transparent', color: 'var(--success)', cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
@@ -197,7 +234,7 @@ export default function CharacterEditorPage() {
         />
 
         <Characteristics
-          chars={chars} inv={inv} characterId={uuid}
+          chars={chars} inv={inv}
           onUpdateChar={updateChar}
           onUpdateSheet={updateSheet}
         />
@@ -230,22 +267,17 @@ export default function CharacterEditorPage() {
           onUpdateCash={updateCash}
         />
 
-        {/* Bottom action bar */}
-        <div className="flex justify-end gap-3 mt-2 pb-8">
-          <button onClick={handleExport}
-                  className="px-6 py-3 rounded text-sm font-medium transition-all"
-                  style={{ background: '#1a3a1a', color: 'var(--success)', border: '1px solid var(--success)33' }}>
-            ↓ Export JSON
-          </button>
-          <button onClick={handleSave} disabled={saving}
-                  className="px-6 py-3 rounded text-sm font-bold"
-                  style={{ background: saving ? '#6b5000' : 'var(--accent)', color: 'var(--bg-input)' }}>
-            {saving ? 'Saving...' : <><span className="icon icon-sm">save</span>{' '}Save Character</>}
-          </button>
-        </div>
       </div>
 
       <Footer />
+
+      {/* Floating notes window */}
+      <NotesWindow
+        windowState={notesState}
+        onWindowStateChange={handleNotesStateChange}
+        contextTagType="character"
+        contextTag={details?.Name || 'Investigator'}
+      />
 
       {/* UUID reveal toast — press U five times to toggle */}
       {showUuid && (

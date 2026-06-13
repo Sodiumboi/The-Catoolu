@@ -4,7 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCampaign } from '../context/CampaignContext';
 import { useNavBarActions } from '../context/NavBarActionsContext';
+import { useSocket } from '../context/SocketContext';
 import logo from '../assets/vault-logo.png';
+import BugReportModal from './BugReportModal';
+import apiClient from '../api/client';
 
 // ── Tab definitions ────────────────────────────────────────
 // 'available' tabs are clickable, 'soon' tabs are greyed out
@@ -14,9 +17,10 @@ const TABS = [
   { id: 'campaign',      label: 'Campaign',      path: '/campaign', status: 'available' },
 ];
 
-// NavBar remounts on every page — this carries the pill's last measured position
-// across remounts so the sliding animation can play on navigation.
+// NavBar remounts on every page — these carry state across remounts.
 let _lastPillBounds = null;
+// Maintenance pill: persists so the pill stays visible on navigation while maintenance is on.
+let _maintState = { mounted: false, visible: false, message: '' };
 
 
 export default function NavBar({ activeTab = 'investigators' }) {
@@ -26,7 +30,38 @@ export default function NavBar({ activeTab = 'investigators' }) {
   const { onImport }              = useNavBarActions();
   const navigate                  = useNavigate();
   const location                  = useLocation();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [dropdownOpen,     setDropdownOpen]     = useState(false);
+  const [bugModalOpen,     setBugModalOpen]     = useState(false);
+  // maintPill: mounted = in DOM, visible = opacity 1 (drives fade transition).
+  // Initialized from module-level cache so pill stays visible across page navigations.
+  const [maintPill, setMaintPill] = useState(_maintState);
+  const maintTimerRef             = useRef(null);
+  const { socket } = useSocket();
+
+  const showMaintPill = (message) => {
+    _maintState = { mounted: true, visible: true, message };
+    clearTimeout(maintTimerRef.current);
+    // If pill isn't mounted yet, start invisible and fade in; otherwise just update message.
+    setMaintPill(p => p.mounted
+      ? { mounted: true, visible: true, message }
+      : { mounted: true, visible: false, message }
+    );
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        setMaintPill(p => ({ ...p, visible: true }))
+      )
+    );
+  };
+
+  const hideMaintPill = () => {
+    _maintState = { mounted: false, visible: false, message: '' };
+    clearTimeout(maintTimerRef.current);
+    setMaintPill(p => ({ ...p, visible: false }));
+    maintTimerRef.current = setTimeout(
+      () => setMaintPill({ mounted: false, visible: false, message: '' }),
+      350
+    );
+  };
   const [tooltip,      setTooltip]      = useState(null);
   const [panel,        setPanel]        = useState('main'); // 'main' | 'preferences'
   const dropdownRef                     = useRef(null);
@@ -52,6 +87,41 @@ export default function NavBar({ activeTab = 'investigators' }) {
     setDropdownOpen(false);
     setPanel('main'); // ← reset panel on navigation too
   }, [location.pathname]);
+
+  // ── Maintenance socket events ────────────────────────────
+  useEffect(() => {
+    if (!socket) return;
+
+    // On (re)connect: sync with server state in case event was missed
+    const onConnect = () => {
+      fetch('/api/health')
+        .then(r => r.json())
+        .then(d => {
+          if (d.status === 'maintenance') showMaintPill(d.message || '');
+          else hideMaintPill();
+        })
+        .catch(() => {});
+    };
+
+    const onWarning    = ({ message }) => showMaintPill(message);
+    const onCancelled  = ()            => hideMaintPill();
+    const onDisconnect = ()            => hideMaintPill();
+
+    socket.on('connect',               onConnect);
+    socket.on('maintenance:warning',   onWarning);
+    socket.on('maintenance:cancelled', onCancelled);
+    socket.on('disconnect',            onDisconnect);
+
+    // Already connected when this effect first runs
+    if (socket.connected) onConnect();
+
+    return () => {
+      socket.off('connect',               onConnect);
+      socket.off('maintenance:warning',   onWarning);
+      socket.off('maintenance:cancelled', onCancelled);
+      socket.off('disconnect',            onDisconnect);
+    };
+  }, [socket]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Derive active tab from URL so navigation always triggers re-measurement
   const currentActiveTab = TABS.find(
@@ -87,6 +157,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
     : '??';
 
   return (
+  <>
     <nav style={{
       background:   'var(--bg-nav)',
       borderBottom: '1px solid var(--border-main)',
@@ -101,6 +172,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
         alignItems: 'center',
         height:     '56px',
         gap:        '24px',
+        position:   'relative',
       }}>
 
         {/* ── Logo ── */}
@@ -114,7 +186,9 @@ export default function NavBar({ activeTab = 'investigators' }) {
             border:     'none',
             cursor:     'pointer',
             padding:    '0',
-            flex:       1,
+            outline:    'none',
+            flexShrink: 0,
+            marginRight:'auto',
           }}
         >
           <img
@@ -141,15 +215,16 @@ export default function NavBar({ activeTab = 'investigators' }) {
             </div>
           </div>
         </button>
-
-        {/* ── Tabs — sliding pill ── */}
+        {/* ── Tabs — absolutely centered regardless of logo/avatar width ── */}
         <div
           ref={containerRef}
           style={{
             display:   'flex',
             alignItems:'center',
             gap:       '4px',
-            position:  'relative',
+            position:  'absolute',
+            left:      '50%',
+            transform: 'translateX(-50%)',
           }}
         >
           {/* Single pill — slides across the container */}
@@ -248,6 +323,9 @@ export default function NavBar({ activeTab = 'investigators' }) {
           flex:           1,
           justifyContent: 'flex-end',
         }}>
+
+          {/* Maintenance warning pill — fades in/out, pulses like Return to Room */}
+          {maintPill.mounted && <MaintPill pill={maintPill} />}
 
           {/* Return to Room pill — only shown when in a session */}
           {activeRoom && (
@@ -361,7 +439,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
             >
               {user?.avatar_url ? (
                 <img
-                  src={(import.meta.env.VITE_API_URL || '') + user.avatar_url}
+                  src={user.avatar_url.startsWith('http') ? user.avatar_url : (import.meta.env.VITE_API_URL || '') + user.avatar_url}
                   alt={user.username}
                   style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
                 />
@@ -375,7 +453,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
                   position:   'absolute',
                   top:        'calc(100% + 8px)',
                   right:      0,
-                  width:      panel === 'preferences' ? '240px' : '200px',
+                  width:      panel === 'main' ? '200px' : '240px',
                   background: 'var(--bg-card)',
                   border:     '1px solid var(--border-main)',
                   borderRadius:'12px',
@@ -394,20 +472,26 @@ export default function NavBar({ activeTab = 'investigators' }) {
                         : 'slideInFromLeft 0.18s ease',
                     }}
                   >
-                    {panel === 'main'
-                      ? <MainMenuPanel
-                          user={user}
-                          navigate={navigate}
-                          setDropdownOpen={setDropdownOpen}
-                          setPanel={setPanel}
-                          handleLogout={handleLogout}
-                        />
-                      : <PreferencesPanel
-                          theme={theme}
-                          toggleTheme={toggleTheme}
-                          setPanel={setPanel}
-                        />
-                    }
+                    {panel === 'main' && (
+                      <MainMenuPanel
+                        user={user}
+                        navigate={navigate}
+                        setDropdownOpen={setDropdownOpen}
+                        setPanel={setPanel}
+                        handleLogout={handleLogout}
+                        setBugModalOpen={setBugModalOpen}
+                      />
+                    )}
+                    {panel === 'preferences' && (
+                      <PreferencesPanel
+                        theme={theme}
+                        toggleTheme={toggleTheme}
+                        setPanel={setPanel}
+                      />
+                    )}
+                    {panel === 'quota' && (
+                      <QuotaPanel setPanel={setPanel} />
+                    )}
                   </div>
                 </div>
               )}
@@ -415,6 +499,72 @@ export default function NavBar({ activeTab = 'investigators' }) {
         </div>
       </div>
     </nav>
+
+    {bugModalOpen && <BugReportModal onClose={() => setBugModalOpen(false)} />}
+  </>
+  );
+}
+
+// ── Maintenance pill with custom tooltip ──────────────────
+function MaintPill({ pill }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div style={{ position: 'relative' }}>
+      <div
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        style={{
+          display:       'flex',
+          alignItems:    'center',
+          gap:           '6px',
+          padding:       '5px 14px',
+          borderRadius:  '20px',
+          border:        '1.5px solid var(--danger, #E24B4A)',
+          background:    'var(--danger-bg, rgba(226,75,74,0.12))',
+          color:         'var(--danger, #E24B4A)',
+          fontFamily:    'var(--font-sans)',
+          fontSize:      '12px',
+          fontWeight:    500,
+          cursor:        'help',
+          userSelect:    'none',
+          overflow:      'hidden',
+          maxWidth:      '180px',
+          animation:     pill.visible ? 'pulse-danger 2s infinite' : 'none',
+          opacity:       pill.visible ? 1 : 0,
+          transform:     pill.visible ? 'translateY(0) scale(1)' : 'translateY(4px) scale(0.95)',
+          transition:    'opacity 0.3s ease, transform 0.3s ease',
+          pointerEvents: pill.visible ? 'auto' : 'none',
+        }}
+      >
+        <span className="icon icon-sm" style={{ flexShrink: 0 }}>warning</span>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          Maintenance soon
+        </span>
+      </div>
+
+      {/* Custom tooltip — faster than the native title attribute */}
+      {hover && pill.message && (
+        <div style={{
+          position:     'absolute',
+          top:          'calc(100% + 7px)',
+          right:        0,
+          background:   'var(--text-primary)',
+          color:        'var(--bg-page)',
+          fontSize:     '11px',
+          lineHeight:   1.5,
+          padding:      '6px 10px',
+          borderRadius: '7px',
+          whiteSpace:   'pre-wrap',
+          maxWidth:     '240px',
+          wordBreak:    'break-word',
+          pointerEvents:'none',
+          zIndex:       200,
+          boxShadow:    '0 2px 8px rgba(0,0,0,0.18)',
+        }}>
+          {pill.message}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -465,7 +615,7 @@ function DropdownItem({ label, icon, onClick, danger, chevron }) {
 
 // ── Main menu panel ────────────────────────────────────────
 function MainMenuPanel({
-  user, navigate, setDropdownOpen, setPanel, handleLogout
+  user, navigate, setDropdownOpen, setPanel, handleLogout, setBugModalOpen
 }) {
   return (
     <>
@@ -490,6 +640,11 @@ function MainMenuPanel({
           icon="👤"
           onClick={() => { navigate('/profile'); setDropdownOpen(false); }}
         />
+        <DropdownItem
+          label="About"
+          icon={<span className="icon icon-sm">info</span>}
+          onClick={() => { navigate('/about'); setDropdownOpen(false); }}
+        />
 
         {/* Preferences — navigates to prefs panel */}
         <DropdownItem
@@ -497,6 +652,27 @@ function MainMenuPanel({
           icon={<span className="icon icon-sm">settings</span>}
           onClick={() => setPanel('preferences')}
           chevron
+        />
+
+        <DropdownItem
+          label="Upload Quota"
+          icon={<span className="icon icon-sm">cloud_upload</span>}
+          onClick={() => setPanel('quota')}
+          chevron
+        />
+
+        {user?.is_admin && (
+          <DropdownItem
+            label="Admin"
+            icon={<span className="icon icon-sm">admin_panel_settings</span>}
+            onClick={() => { navigate('/admin'); setDropdownOpen(false); }}
+          />
+        )}
+
+        <DropdownItem
+          label="Report a Bug"
+          icon={<span className="icon icon-sm">bug_report</span>}
+          onClick={() => { setBugModalOpen(true); setDropdownOpen(false); }}
         />
 
         <div style={{ height: '1px', background: 'var(--border-main)', margin: '4px 0' }} />
@@ -513,9 +689,19 @@ function MainMenuPanel({
 }
 
 // ── Preferences panel ──────────────────────────────────────
+const SCALE_OPTIONS = [0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15];
+
+const HOME_OPTIONS = [
+  { value: '/',          label: 'Landing Page'  },
+  { value: '/dashboard', label: 'Investigators' },
+  { value: '/keeper',    label: 'Keeper Panel'  },
+  { value: '/campaign',  label: 'Campaigns'     },
+];
+
 function PreferencesPanel({ theme, toggleTheme, setPanel }) {
-  const { sheetSize, setSheetSize } = useTheme();
-  const [savedMsg, setSavedMsg]      = useState('');
+  const { sheetFontScale, setSheetFontScale, roomFontScale, setRoomFontScale } = useTheme();
+  const [savedMsg, setSavedMsg]   = useState('');
+  const [homePage, setHomePage]   = useState(() => localStorage.getItem('coc_home_page') || '/');
 
   // Flash "Saved" confirmation when a setting changes
   const applySetting = (fn) => {
@@ -643,7 +829,7 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
           </div>
         </div>
 
-        {/* ── Sheet Text Size ── */}
+        {/* ── Font Scale ── */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{
             fontFamily:    'var(--font-sans)',
@@ -654,61 +840,188 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
             color:         'var(--text-muted)',
             marginBottom:  '8px',
           }}>
-            Sheet Text Size
+            Font Scale
           </div>
 
-          <div style={{
-            display:      'flex',
-            border:       '1.5px solid var(--border-main)',
-            borderRadius: '8px',
-            overflow:     'hidden',
-          }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {[
-              { value: 'sm', label: 'S', title: 'Small',  fontSize: '11px' },
-              { value: 'md', label: 'M', title: 'Medium', fontSize: '13px' },
-              { value: 'lg', label: 'L', title: 'Large',  fontSize: '15px' },
-            ].map((opt, i) => {
-              const isActive = sheetSize === opt.value;
+              { label: 'Sheet text',   value: sheetFontScale, set: setSheetFontScale },
+              { label: 'Display text', value: roomFontScale,  set: setRoomFontScale  },
+            ].map(({ label, value, set }) => {
+              const idx = SCALE_OPTIONS.indexOf(value);
+              const step = (dir) => {
+                const next = SCALE_OPTIONS[idx + dir];
+                if (next !== undefined) applySetting(() => set(next));
+              };
               return (
-                <button
-                  key={opt.value}
-                  title={opt.title}
-                  onClick={() => applySetting(() => setSheetSize(opt.value))}
-                  style={{
-                    flex:       1,
-                    padding:    '6px 0',
-                    border:     'none',
-                    borderLeft: i > 0 ? '1px solid var(--border-main)' : 'none',
-                    background: isActive ? 'var(--accent)' : 'transparent',
-                    color:      isActive ? '#ffffff'       : 'var(--text-secondary)',
-                    fontFamily: 'var(--font-sans)',
-                    fontSize:   opt.fontSize,
-                    fontWeight: isActive ? '500' : '400',
-                    cursor:     isActive ? 'default' : 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {opt.label}
-                </button>
+                <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    {label}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <button
+                      onClick={() => step(-1)}
+                      disabled={idx <= 0}
+                      style={{
+                        width: '24px', height: '24px', borderRadius: '6px',
+                        border: '1px solid var(--border-main)',
+                        background: 'transparent',
+                        color: idx <= 0 ? 'var(--text-faint)' : 'var(--text-secondary)',
+                        fontFamily: 'var(--font-sans)', fontSize: '15px', lineHeight: 1,
+                        cursor: idx <= 0 ? 'default' : 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >−</button>
+                    <span style={{
+                      fontFamily: 'var(--font-sans)', fontSize: '12px',
+                      color: 'var(--text-primary)', minWidth: '36px', textAlign: 'center',
+                    }}>
+                      {Math.round(value * 100)}%
+                    </span>
+                    <button
+                      onClick={() => step(+1)}
+                      disabled={idx >= SCALE_OPTIONS.length - 1}
+                      style={{
+                        width: '24px', height: '24px', borderRadius: '6px',
+                        border: '1px solid var(--border-main)',
+                        background: 'transparent',
+                        color: idx >= SCALE_OPTIONS.length - 1 ? 'var(--text-faint)' : 'var(--text-secondary)',
+                        fontFamily: 'var(--font-sans)', fontSize: '15px', lineHeight: 1,
+                        cursor: idx >= SCALE_OPTIONS.length - 1 ? 'default' : 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >+</button>
+                  </div>
+                </div>
               );
             })}
           </div>
         </div>
 
-        {/* ── Coming soon ── */}
+        {/* ── Home Page ── */}
+        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '12px' }}>
+          <div style={{
+            fontFamily:    'var(--font-sans)',
+            fontSize:      '11px',
+            fontWeight:    '500',
+            textTransform: 'uppercase',
+            letterSpacing: '0.07em',
+            color:         'var(--text-muted)',
+            marginBottom:  '8px',
+          }}>
+            Home Page
+          </div>
+          <select
+            value={homePage}
+            onChange={e => {
+              setHomePage(e.target.value);
+              localStorage.setItem('coc_home_page', e.target.value);
+              applySetting(() => {});
+            }}
+            style={{
+              width:        '100%',
+              padding:      '6px 8px',
+              borderRadius: '7px',
+              border:       '1.5px solid var(--border-input)',
+              background:   'var(--bg-input)',
+              color:        'var(--text-primary)',
+              fontFamily:   'var(--font-sans)',
+              fontSize:     '12px',
+              cursor:       'pointer',
+              outline:      'none',
+            }}
+          >
+            {HOME_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Upload Quota panel ─────────────────────────────────────
+function QuotaPanel({ setPanel }) {
+  const [quota, setQuota] = useState(null);
+
+  const load = () => {
+    apiClient.get('/profile/upload-quota')
+      .then(r => setQuota(r.data))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  const used  = quota?.used  ?? 0;
+  const limit = quota?.limit ?? 20;
+  const pct   = Math.min(100, Math.round((used / limit) * 100));
+  const color = pct >= 90 ? 'var(--danger)' : pct >= 60 ? '#d97706' : 'var(--color-primary)';
+
+  return (
+    <>
+      {/* Header */}
+      <div style={{
+        padding:        '10px 12px',
+        borderBottom:   '1px solid var(--border-main)',
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'space-between',
+      }}>
+        <button
+          onClick={() => setPanel('main')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '4px',
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: 'var(--font-sans)', fontSize: '13px',
+            color: 'var(--text-secondary)', padding: '2px 6px',
+            borderRadius: '6px', transition: 'all 0.1s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--row-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+        >
+          <span className="icon icon-sm">arrow_back</span>{' '}Back
+        </button>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: '500', color: 'var(--text-primary)' }}>
+          Upload Quota
+        </span>
+        <span style={{ minWidth: '48px' }} />
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: '16px 14px 18px' }}>
+
+        {/* Counter */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+            Avatars uploaded
+          </span>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: '600', color }}>
+            {used} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>/ {limit}</span>
+          </span>
+        </div>
+
+        {/* Bar */}
         <div style={{
-          borderTop:  '1px solid var(--border-main)',
-          paddingTop: '10px',
+          height: '8px', borderRadius: '4px',
+          background: 'var(--border-main)', overflow: 'hidden', marginBottom: '10px',
         }}>
           <div style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize:   '11px',
-            color:      'var(--text-faint)',
-            fontStyle:  'italic',
-            textAlign:  'center',
-          }}>
-            More settings coming in v2.0
-          </div>
+            height: '100%', width: `${pct}%`,
+            borderRadius: '4px', background: color,
+            transition: 'width 0.4s ease, background 0.3s ease',
+          }} />
+        </div>
+
+        <div style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--text-faint)', lineHeight: 1.5 }}>
+          Limit resets every 60 seconds.
+          {quota?.resetIn > 0 && (
+            <> Oldest upload expires in ~{Math.ceil(quota.resetIn / 1000)}s.</>
+          )}
         </div>
       </div>
     </>

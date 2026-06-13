@@ -2,7 +2,9 @@
 // Appears at the bottom of every page.
 // Version number and build credit.
 
-const VERSION = 'V1.6 ·Atlach-Nacha';
+import { Link } from 'react-router-dom';
+
+const VERSION = 'V1.6 · Atlach-Nacha';
 const CREDIT  = 'Built by Someone at Saltlakes with an unreasonable amount of help from Claude';
 
 export default function Footer() {
@@ -12,14 +14,14 @@ export default function Footer() {
       marginTop: 'auto',
     }}>
       <div style={{
-        padding:        '16px 24px', // ระยะห่างจากขอบจอ 24px ซ้าย-ขวา
+        padding:        '16px 24px',
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'space-between',
         flexWrap:       'wrap',
         gap:            '16px',
       }}>
-        
+
         {/* Left Side: 2 Lines */}
         <div style={{
           display:       'flex',
@@ -45,9 +47,32 @@ export default function Footer() {
           textAlign:     'right',
         }}>
           <span>2026 · The Catoolu.</span>
-          <span style={{ fontStyle: 'italic' }}>
-            Ph'nglui mglw'nafh 🐙
-          </span>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <Link
+              to="/about"
+              style={{
+                color:          'var(--text-faint)',
+                textDecoration: 'none',
+                fontStyle:      'italic',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-faint)'; }}
+            >
+              About & Credits
+            </Link>
+            <Link
+              to="/legal"
+              style={{
+                color:          'var(--text-faint)',
+                textDecoration: 'none',
+                fontStyle:      'italic',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-faint)'; }}
+            >
+              Legal
+            </Link>
+          </div>
         </div>
 
       </div>

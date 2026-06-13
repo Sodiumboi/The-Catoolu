@@ -5,7 +5,7 @@
 
 // Small uppercase accent label (stat keys, money labels, field captions)
 export const accentLabel = {
-  fontSize:      '9px',
+  fontSize:      'calc(9px * var(--sheet-font-scale))',
   fontWeight:    '600',
   textTransform: 'uppercase',
   letterSpacing: '0.07em',

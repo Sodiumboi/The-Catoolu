@@ -2,14 +2,15 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext(null);
 
-const SHEET_SCALE = { sm: 0.9, md: 1.0, lg: 1.1 };
-
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(
     () => localStorage.getItem('coc_theme') || 'light'
   );
-  const [sheetSize, setSheetSizeState] = useState(
-    () => localStorage.getItem('coc_sheet_size') || 'md'
+  const [sheetFontScale, setSheetFontScaleState] = useState(
+    () => parseFloat(localStorage.getItem('sheet-font-scale')) || 1
+  );
+  const [roomFontScale, setRoomFontScaleState] = useState(
+    () => parseFloat(localStorage.getItem('room-font-scale')) || 1
   );
 
   useEffect(() => {
@@ -20,15 +21,22 @@ export function ThemeProvider({ children }) {
   const toggleTheme = () =>
     setTheme(t => (t === 'dark' ? 'light' : 'dark'));
 
-  const setSheetSize = (size) => {
-    setSheetSizeState(size);
-    localStorage.setItem('coc_sheet_size', size);
+  const setSheetFontScale = (v) => {
+    setSheetFontScaleState(v);
+    localStorage.setItem('sheet-font-scale', v);
   };
 
-  const sheetFontScale = SHEET_SCALE[sheetSize] ?? 1.0;
+  const setRoomFontScale = (v) => {
+    setRoomFontScaleState(v);
+    localStorage.setItem('room-font-scale', v);
+  };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, sheetSize, setSheetSize, sheetFontScale }}>
+    <ThemeContext.Provider value={{
+      theme, toggleTheme,
+      sheetFontScale, setSheetFontScale,
+      roomFontScale,  setRoomFontScale,
+    }}>
       {children}
     </ThemeContext.Provider>
   );

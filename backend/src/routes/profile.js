@@ -8,32 +8,21 @@
 const express = require('express');
 const bcrypt  = require('bcryptjs');
 const multer  = require('multer');
-const path    = require('path');
-const fs      = require('fs');
 const pool    = require('../config/db');
 const auth    = require('../middleware/auth');
+const { uploadToR2, deleteFromR2 }    = require('../utils/uploadToR2');
+const { uploadRateLimit, getUsage }   = require('../middleware/uploadRateLimit');
 
 // ── Multer config ─────────────────────────────────────────────
-const avatarStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../../uploads/avatars');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, req.user.id + '.jpg');
-  },
-});
-
 const avatarUpload = multer({
-  storage: avatarStorage,
-  limits:  { fileSize: 20 * 1024 * 1024 },
+  storage: multer.memoryStorage(),
+  limits:  { fileSize: 15 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only JPG, PNG, and WebP images are allowed.'));
+      cb(new Error('Only image files are allowed.'));
     }
   },
 });
@@ -45,7 +34,10 @@ router.use(auth);
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, username, email, avatar_url, created_at FROM users WHERE id = $1',
+      `SELECT id, username, email, avatar_url, created_at,
+              discord_id, google_id,
+              (password IS NOT NULL) AS has_password
+       FROM users WHERE id = $1`,
       [req.user.id]
     );
     if (result.rows.length === 0) {
@@ -154,15 +146,26 @@ router.put('/password', async (req, res) => {
   }
 });
 
+// ── GET /api/profile/upload-quota ────────────────────────────
+router.get('/upload-quota', (req, res) => {
+  res.json(getUsage(req.user.id));
+});
+
 // ── POST /api/profile/avatar ──────────────────────────────────
-router.post('/avatar', avatarUpload.single('avatar'), async (req, res) => {
+router.post('/avatar', uploadRateLimit, avatarUpload.single('avatar'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded.' });
     }
 
-    const avatarBase = '/uploads/avatars/' + req.user.id + '.jpg';
-    const avatarUrl  = avatarBase + '?v=' + Date.now();
+    // Delete old avatar from R2 if it was stored there
+    const existing = await pool.query('SELECT avatar_url FROM users WHERE id = $1', [req.user.id]);
+    const oldUrl = existing.rows[0]?.avatar_url;
+    if (oldUrl && oldUrl.startsWith(process.env.R2_PUBLIC_URL)) {
+      await deleteFromR2(oldUrl).catch(() => {});
+    }
+
+    const avatarUrl = await uploadToR2(req.file.buffer, 'avatars', req.file.originalname);
 
     await pool.query(
       'UPDATE users SET avatar_url = $1 WHERE id = $2',
@@ -172,7 +175,7 @@ router.post('/avatar', avatarUpload.single('avatar'), async (req, res) => {
     res.json({ avatar_url: avatarUrl });
   } catch (err) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ error: 'File too large. Maximum size is 20MB.' });
+      return res.status(400).json({ error: 'File too large. Maximum size is 15MB.' });
     }
     console.error('Avatar upload error:', err);
     res.status(500).json({ error: err.message || 'Failed to upload avatar.' });

@@ -38,7 +38,8 @@ const auth = (req, res, next) => {
     req.user = {
       id:       decoded.id,
       username: decoded.username,
-      email:    decoded.email
+      email:    decoded.email,
+      is_admin: decoded.is_admin || false,
     };
 
     next(); // ✅ Token is valid — pass control to the actual route handler

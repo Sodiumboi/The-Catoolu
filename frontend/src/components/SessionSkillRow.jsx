@@ -6,7 +6,6 @@ export default function SessionSkillRow({
   displayName,
   rollName,
   advMode, disMode, onRoll,
-  fontScale = 1,
 }) {
   const [showPopup,  setShowPopup]  = useState(false);
   const [buttonRect, setButtonRect] = useState(null);
@@ -19,7 +18,7 @@ export default function SessionSkillRow({
   if (val === 0 && !isCthulhuMythos) return null;
 
   const label = rollName || displayName || skill.name;
-  const fs = base => (base * fontScale) + 'px';
+  const fs = base => `calc(${base}px * var(--sheet-font-scale))`;
 
   return (
     <div style={{ position: 'relative' }}>

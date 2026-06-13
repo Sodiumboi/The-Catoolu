@@ -10,15 +10,16 @@ const bcrypt   = require('bcryptjs');
 const jwt      = require('jsonwebtoken');
 const pool     = require('../config/db');
 const auth     = require('../middleware/auth');
-const crypto                   = require('crypto');
-const { sendPasswordResetEmail } = require('../config/email');
+const crypto   = require('crypto');
+const passport = require('../config/passport');
+const { sendPasswordResetEmail, buildResetEmailHtml } = require('../config/email');
 
 const router = express.Router();
 
 // ── Helper: create a JWT token for a user ──────────────────
 function createToken(user) {
   return jwt.sign(
-    { id: user.id, username: user.username, email: user.email },
+    { id: user.id, username: user.username, email: user.email, is_admin: user.is_admin || false },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN }
   );
@@ -93,7 +94,7 @@ router.post('/login', async (req, res) => {
 
     // ── Find user by email or username ──
     const result = await pool.query(
-      'SELECT id, username, email, password, avatar_url FROM users WHERE email = $1 OR username = $2',
+      'SELECT id, username, email, password, avatar_url, is_admin FROM users WHERE email = $1 OR username = $2',
       [identifier.toLowerCase(), identifier]
     );
 
@@ -102,6 +103,11 @@ router.post('/login', async (req, res) => {
     }
 
     const user = result.rows[0];
+
+    // OAuth-only accounts have no password set
+    if (!user.password) {
+      return res.status(401).json({ error: 'This account uses Discord or Google login — no password is set.' });
+    }
 
     // ── Compare password against stored hash ──
     const passwordMatch = await bcrypt.compare(password, user.password);
@@ -119,6 +125,7 @@ router.post('/login', async (req, res) => {
         username:   user.username,
         email:      user.email,
         avatar_url: user.avatar_url || null,
+        is_admin:   user.is_admin || false,
       }
     });
 
@@ -264,6 +271,101 @@ router.post('/reset-password', async (req, res) => {
   } catch (err) {
     console.error('Reset password error:', err);
     res.status(500).json({ error: 'Server error. Please try again.' });
+  }
+});
+
+// ── GET /api/auth/preview/reset-email — dev-only HTML preview ──
+router.get('/preview/reset-email', (req, res) => {
+  if (process.env.NODE_ENV === 'production') return res.status(404).end();
+  const html = buildResetEmailHtml(
+    'Investigator',
+    'http://localhost:5173/reset-password?token=preview-token-1234'
+  );
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
+});
+
+// ── OAuth helpers ──────────────────────────────────────────
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+function oauthSuccess(user, res) {
+  const token    = createToken(user);
+  const userData = { id: user.id, username: user.username, email: user.email, avatar_url: user.avatar_url || null, is_admin: user.is_admin || false };
+  const q        = new URLSearchParams({ token, user: JSON.stringify(userData) });
+  res.redirect(`${FRONTEND_URL}/oauth-callback?${q.toString()}`);
+}
+
+function oauthFail(res, reason) {
+  res.redirect(`${FRONTEND_URL}/login?error=${encodeURIComponent(reason)}`);
+}
+
+// ── Discord OAuth ──────────────────────────────────────────
+router.get('/discord', passport.authenticate('discord'));
+
+router.get('/discord/callback',
+  passport.authenticate('discord', { session: false, failWithError: true }),
+  (req, res) => oauthSuccess(req.user, res),
+  (err, req, res, _next) => oauthFail(res, 'discord_failed')
+);
+
+// ── Google OAuth ───────────────────────────────────────────
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failWithError: true }),
+  (req, res) => oauthSuccess(req.user, res),
+  (err, req, res, _next) => oauthFail(res, 'google_failed')
+);
+
+// ── DELETE /api/auth/discord — disconnect Discord ──────────
+router.delete('/discord', auth, async (req, res) => {
+  try {
+    const row = await pool.query('SELECT password, google_id FROM users WHERE id = $1', [req.user.id]);
+    const u   = row.rows[0];
+    if (!u.password && !u.google_id) {
+      return res.status(400).json({ error: 'Cannot disconnect Discord — it is your only login method.' });
+    }
+    await pool.query('UPDATE users SET discord_id = NULL WHERE id = $1', [req.user.id]);
+    res.json({ message: 'Discord disconnected.' });
+  } catch (err) {
+    console.error('Disconnect Discord error:', err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// ── DELETE /api/auth/google — disconnect Google ────────────
+router.delete('/google', auth, async (req, res) => {
+  try {
+    const row = await pool.query('SELECT password, discord_id FROM users WHERE id = $1', [req.user.id]);
+    const u   = row.rows[0];
+    if (!u.password && !u.discord_id) {
+      return res.status(400).json({ error: 'Cannot disconnect Google — it is your only login method.' });
+    }
+    await pool.query('UPDATE users SET google_id = NULL WHERE id = $1', [req.user.id]);
+    res.json({ message: 'Google disconnected.' });
+  } catch (err) {
+    console.error('Disconnect Google error:', err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// ── POST /api/auth/set-password — add password to OAuth-only account ──
+router.post('/set-password', auth, async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+    }
+    const row = await pool.query('SELECT password FROM users WHERE id = $1', [req.user.id]);
+    if (row.rows[0].password) {
+      return res.status(400).json({ error: 'You already have a password. Use Change Password instead.' });
+    }
+    const hashed = await bcrypt.hash(password, 12);
+    await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashed, req.user.id]);
+    res.json({ message: 'Password set successfully!' });
+  } catch (err) {
+    console.error('Set password error:', err);
+    res.status(500).json({ error: 'Server error.' });
   }
 });
 

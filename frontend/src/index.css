@@ -7,6 +7,12 @@
    Components read from these variables — never hardcode.
    ══════════════════════════════════════════════════════════ */
 
+/* ── Scale variables (device-local, set per-container) ─── */
+:root {
+  --sheet-font-scale: 1;
+  --room-font-scale:  1;
+}
+
 /* ── Light Theme (default) ─────────────────────────────── */
 :root,
 [data-theme="light"] {
@@ -115,6 +121,56 @@
   --shadow-card:    0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
   --shadow-nav:     0 1px 0 #3A3A37;
   --shadow-dropdown:0 8px 24px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
+
+  /* Sheet background art — dark variant.
+     Set to url('/assets/sheet-bg-dark.png') when the artist delivers. */
+  --sheet-bg-art: none;
+}
+
+/* ── Notes Window Theme ─────────────────────────────────── */
+.notes-window {
+  --notes-bg:       var(--bg-card);
+  --notes-border:   var(--border-muted, var(--border-main));
+  --notes-titlebar: var(--bg-input);
+}
+
+/* TipTap editor resets */
+.notes-window .ProseMirror {
+  outline:     none;
+  min-height:  120px;
+  font-family: var(--font-sans);
+  font-size:   13px;
+  color:       var(--text-primary);
+  line-height: 1.6;
+}
+
+.notes-window .ProseMirror p { margin: 0 0 0.4em; }
+.notes-window .ProseMirror ul,
+.notes-window .ProseMirror ol { padding-left: 1.4em; margin: 0 0 0.4em; }
+.notes-window .ProseMirror p.is-editor-empty:first-child::before {
+  content:     attr(data-placeholder);
+  float:       left;
+  color:       var(--text-faint);
+  pointer-events: none;
+  height:      0;
+}
+
+@keyframes note-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(300%); }
+}
+
+@keyframes notes-bounce-open {
+  0%   { transform: scale(0.82); opacity: 0;   }
+  55%  { transform: scale(1.02); opacity: 1;   }
+  78%  { transform: scale(0.99);               }
+  100% { transform: scale(1);                  }
+}
+
+@keyframes notes-bounce-pill {
+  0%   { transform: scale(1);    }
+  45%  { transform: scale(1.07); }
+  100% { transform: scale(1);    }
 }
 
 /* ── Base Styles ────────────────────────────────────────── */
@@ -217,6 +273,10 @@ input[type='number'] {
 @keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(59, 109, 17, 0.4); }
   50%       { box-shadow: 0 0 0 6px rgba(59, 109, 17, 0); }
+}
+@keyframes pulse-danger {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(226, 75, 74, 0.45); }
+  50%       { box-shadow: 0 0 0 6px rgba(226, 75, 74, 0); }
 }
 
 /* ── CoC Roll Result Colours ────────────────────────────────── */

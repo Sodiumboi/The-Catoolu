@@ -13,8 +13,17 @@ const path    = require('path');
 require('dotenv').config();
 
 // Migrations
-const addCampaignUuid = require('./migrations/add_campaign_uuid');
+const addCampaignUuid    = require('./migrations/add_campaign_uuid');
 const createCharacterDrafts = require('./migrations/create_character_drafts');
+const addOAuthColumns    = require('./migrations/add_oauth_columns');
+const createBugReports   = require('./migrations/create_bug_reports');
+const addAdminColumn     = require('./migrations/add_admin_column');
+const createAppSettings  = require('./migrations/create_app_settings');
+const createNotes        = require('./migrations/create_notes');
+
+// Auth
+const session  = require('express-session');
+const passport = require('./config/passport');
 
 // Route handlers
 const authRoutes       = require('./routes/auth');
@@ -40,18 +49,40 @@ app.use(cors({
 // Without this, req.body would be undefined
 app.use(express.json({ limit: '10mb' })); // 10mb to allow base64 portrait images
 
+// Session — needed only for the OAuth state parameter (CSRF protection during OAuth dance)
+app.use(session({
+  secret:            process.env.SESSION_SECRET || 'dev-session-secret-change-in-prod',
+  resave:            false,
+  saveUninitialized: false,
+  cookie: {
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge:   10 * 60 * 1000, // 10 min — just enough for the OAuth redirect round-trip
+  },
+}));
+app.use(passport.initialize());
+
 // Serve uploaded files (avatars etc.) as static
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// ── Health Check ───────────────────────────────────────────
-// A simple endpoint to confirm the server is running
-// Try it in your browser: http://localhost:3001/api/health
-app.get('/api/health', (req, res) => {
-  res.json({
-    status:    'ok',
-    message:   '🐙 CoC Manager API is running',
-    timestamp: new Date().toISOString()
-  });
+// ── Health / Maintenance check ─────────────────────────────
+app.get('/api/health', async (req, res) => {
+  try {
+    const pool = require('./config/db');
+    const [modeRow, msgRow] = await Promise.all([
+      pool.query("SELECT value FROM app_settings WHERE key = 'maintenance_mode'"),
+      pool.query("SELECT value FROM app_settings WHERE key = 'maintenance_message'"),
+    ]);
+    if (modeRow.rows[0]?.value === 'true') {
+      return res.json({
+        status:  'maintenance',
+        message: msgRow.rows[0]?.value || 'We are updating. Back soon.',
+      });
+    }
+    res.json({ status: 'ok' });
+  } catch {
+    res.json({ status: 'ok' }); // DB hiccup ≠ maintenance
+  }
 });
 
 // ── Routes ─────────────────────────────────────────────────
@@ -60,6 +91,10 @@ app.use('/api/characters', characterRoutes);
 app.use('/api/profile',    profileRoutes);
 app.use('/api/campaigns',  require('./routes/campaigns'));
 app.use('/api/dice',       require('./routes/dice'));
+app.use('/api/bugs',       require('./routes/bugs'));
+app.use('/api/admin',      require('./routes/admin'));
+app.use('/api/notes',      require('./routes/notes'));
+
 
 // ── 404 Handler ────────────────────────────────────────────
 // Catches any request to a route that doesn't exist
@@ -89,6 +124,11 @@ app.set('io', io);
 async function startServer() {
   await addCampaignUuid();
   await createCharacterDrafts();
+  await addOAuthColumns();
+  await createBugReports();
+  await addAdminColumn();
+  await createAppSettings();
+  await createNotes();
 
   httpServer.listen(PORT, () => {
     console.log('');

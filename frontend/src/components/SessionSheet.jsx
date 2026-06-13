@@ -3,11 +3,10 @@ import SessionTrackedStat from './SessionTrackedStat';
 import SessionSkillRow    from './SessionSkillRow';
 import SkillRollPopup     from './SkillRollPopup';
 import apiClient          from '../api/client';
-import { useTheme }       from '../context/ThemeContext';
 import { accentLabel }    from './sheet/tokens';
 
 // ── Stat button ────────────────────────────────────────────────
-function StatButton({ label, value, sublabel, advMode, disMode, onRoll, scale = 1 }) {
+function StatButton({ label, value, sublabel, advMode, disMode, onRoll }) {
   const [showPopup, setShowPopup] = useState(false);
   const [buttonRect, setButtonRect] = useState(null);
   const buttonRef = useRef(null);
@@ -52,7 +51,7 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll, scale = 
         </span>
         {sublabel && (
           <span style={{
-            fontSize: '8px', fontWeight: '700',
+            fontSize: 'calc(8px * var(--sheet-font-scale))', fontWeight: '700',
             color: 'var(--text-muted)', fontFamily: 'var(--font-sans)',
             textTransform: 'uppercase', letterSpacing: '0.06em',
             background: 'var(--bg-section-hd)',
@@ -62,17 +61,17 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll, scale = 
           </span>
         )}
         <span style={{
-          fontSize: (18 * scale) + 'px', fontWeight: '700',
+          fontSize: 'calc(18px * var(--sheet-font-scale))', fontWeight: '700',
           fontFamily: 'var(--font-serif)', color: 'var(--text-primary)',
           lineHeight: 1,
         }}>
           {num}
         </span>
         <div style={{ display: 'flex', gap: '4px' }}>
-          <span style={{ fontSize: (9 * scale) + 'px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+          <span style={{ fontSize: 'calc(9px * var(--sheet-font-scale))', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
             {half}
           </span>
-          <span style={{ fontSize: (9 * scale) + 'px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+          <span style={{ fontSize: 'calc(9px * var(--sheet-font-scale))', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
             {fifth}
           </span>
         </div>
@@ -93,11 +92,11 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll, scale = 
 }
 
 // ── Section wrapper ────────────────────────────────────────────
-function Section({ title, children, scale = 1 }) {
+function Section({ title, children }) {
   return (
     <div style={{ marginBottom: '12px' }}>
       <div style={{
-        fontSize: (9 * scale) + 'px', fontWeight: '600',
+        fontSize: 'calc(9px * var(--sheet-font-scale))', fontWeight: '600',
         textTransform: 'uppercase', letterSpacing: '0.08em',
         color: 'var(--accent)', fontFamily: 'var(--font-sans)',
         padding: '4px 8px',
@@ -123,8 +122,6 @@ export default function SessionSheet({
   onWeaponAttack,  // (weapon, skills) => void
   onStatBlur,      // (statKey, oldVal, newVal) => void
 }) {
-  const { sheetFontScale } = useTheme();
-  const fs = (base) => base * sheetFontScale;
   const [skillSearch, setSkillSearch] = useState('');
 
   const inv      = charData?.sheet_data?.Investigator;
@@ -309,7 +306,7 @@ export default function SessionSheet({
       </div>
 
       {/* ── Characteristics ── */}
-      <Section title="Characteristics" scale={sheetFontScale}>
+      <Section title="Characteristics">
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
           {[...LEFT_STATS, ...RIGHT_STATS].map(({ key, sub }) => (
             <StatButton
@@ -320,7 +317,6 @@ export default function SessionSheet({
               advMode={advMode}
               disMode={disMode}
               onRoll={onStatRoll}
-              scale={sheetFontScale}
             />
           ))}
         </div>
@@ -361,7 +357,7 @@ export default function SessionSheet({
 
       {/* ── Weapons ── */}
       {weapons.length > 0 && (
-        <Section title="Weapons" scale={sheetFontScale}>
+        <Section title="Weapons">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {weapons.map((weapon, i) => (
               <WeaponButton
@@ -379,7 +375,7 @@ export default function SessionSheet({
 
       {/* ── Financial Status ── */}
       {(cash.spending || cash.cash || cash.assets) && (
-        <Section title="Financial Status" scale={sheetFontScale}>
+        <Section title="Financial Status">
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {[
               { label: 'Spending Limit', field: 'spending' },
@@ -411,7 +407,7 @@ export default function SessionSheet({
       )}
 
       {/* ── Skills ── */}
-      <Section title="Skills" scale={sheetFontScale}>
+      <Section title="Skills">
         {/* Search */}
         <input
           type="text"
@@ -453,7 +449,7 @@ export default function SessionSheet({
                     skill={g.skill}
                     displayName={g.skill.name}
                     advMode={advMode} disMode={disMode}
-                    onRoll={onStatRoll} fontScale={sheetFontScale}
+                    onRoll={onStatRoll}
                   />
                 ) : (
                   <div key={g.parentName} style={{
@@ -461,7 +457,7 @@ export default function SessionSheet({
                     border: '1px solid var(--border-main)',
                   }}>
                     <div style={{ padding: '3px 8px', background: 'var(--bg-section-hd)' }}>
-                      <span style={{ fontSize: (11 * sheetFontScale) + 'px', fontWeight: '600', color: 'var(--accent)' }}>
+                      <span style={{ fontSize: 'calc(11px * var(--sheet-font-scale))', fontWeight: '600', color: 'var(--accent)' }}>
                         {g.parentName}
                       </span>
                     </div>
@@ -475,7 +471,7 @@ export default function SessionSheet({
                             displayName={sub ?? '—'}
                             rollName={sub ? skill.name + ' (' + sub + ')' : skill.name}
                             advMode={advMode} disMode={disMode}
-                            onRoll={onStatRoll} fontScale={sheetFontScale}
+                            onRoll={onStatRoll}
                           />
                         );
                       })}
@@ -642,7 +638,7 @@ function MoneyField({ label, value, onSave }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
       <span style={{
-        fontSize: '9px', fontWeight: '600',
+        fontSize: 'calc(9px * var(--sheet-font-scale))', fontWeight: '600',
         textTransform: 'uppercase', letterSpacing: '0.07em',
         color: 'var(--accent)', fontFamily: 'var(--font-sans)',
       }}>

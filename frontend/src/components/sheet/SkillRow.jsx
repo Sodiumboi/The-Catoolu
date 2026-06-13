@@ -1,25 +1,23 @@
 import { calcHalf, calcFifth } from '../../utils/cocCalculations';
 
 // ── SkillRow ─────────────────────────────────────────────────────────
-// The two row shapes used in the skill list:
-//   • FlatSkillRow — a standalone skill (no subskill)
-//   • SubSkillRow  — one indented child inside a skill family
-// Both are pure display with an `editable` slot:
-//   editable → value (and subskill name) become inputs
-//   read-only → same-sized static cells
-// ½ and ⅕ are always derived and always static.
+// FlatSkillRow and SubSkillRow both use --sheet-font-scale CSS variable
+// for font sizes and column widths — no size props needed.
 
 const FIXED_SUBSKILLS = ['Brawl', 'Handgun', 'Rifle/Shotgun', 'English'];
 
-// Static cell that mirrors the editable value input's footprint
-function ValueCell({ val, inputW, cls }) {
+const FS  = 'calc(11px * var(--sheet-font-scale))';
+const VAL_W = 'calc(44px * var(--sheet-font-scale))';
+const NUM_W = 'calc(32px * var(--sheet-font-scale))';
+
+function ValueCell({ val }) {
   return (
     <span
-      className={`text-center rounded font-bold ${cls}`}
+      className="text-center rounded font-bold"
       style={{
-        width: inputW, background: 'var(--bg-input)',
+        width: VAL_W, background: 'var(--bg-input)',
         border: '1px solid var(--border-input)', color: 'var(--text-primary)',
-        padding: '1px 0', flexShrink: 0,
+        padding: '1px 0', flexShrink: 0, fontSize: FS,
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       }}
     >
@@ -28,7 +26,7 @@ function ValueCell({ val, inputW, cls }) {
   );
 }
 
-export function FlatSkillRow({ skill, onChange, cls, inputW, numW, isOcc, editable = false }) {
+export function FlatSkillRow({ skill, onChange, isOcc, editable = false }) {
   const val = parseInt(skill.value) || 0;
   return (
     <div
@@ -39,12 +37,12 @@ export function FlatSkillRow({ skill, onChange, cls, inputW, numW, isOcc, editab
     >
       {/* Occupation dot */}
       <span style={{ width: '8px', flexShrink: 0 }}>
-        {isOcc && <span style={{ color: 'var(--accent)', fontSize: '7px' }} title="Occupation">●</span>}
+        {isOcc && <span style={{ color: 'var(--accent)', fontSize: 'calc(7px * var(--sheet-font-scale))' }} title="Occupation">●</span>}
       </span>
 
       {/* Skill name */}
-      <span className={`flex-1 leading-tight ${cls}`}
-            style={{ color: isOcc ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+      <span className="flex-1 leading-tight"
+            style={{ fontSize: FS, color: isOcc ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
         {skill.name}
       </span>
 
@@ -54,9 +52,10 @@ export function FlatSkillRow({ skill, onChange, cls, inputW, numW, isOcc, editab
           type="number" min="0" max="99"
           value={skill.value}
           onChange={e => onChange({ ...skill, value: e.target.value })}
-          className={`text-center rounded outline-none ${cls}`}
+          className="text-center rounded outline-none"
           style={{
-            width: inputW, background: 'var(--bg-input)',
+            width: VAL_W, fontSize: FS,
+            background: 'var(--bg-input)',
             border: '1px solid var(--border-input)', color: 'var(--text-primary)',
             padding: '1px 0', flexShrink: 0,
           }}
@@ -64,25 +63,25 @@ export function FlatSkillRow({ skill, onChange, cls, inputW, numW, isOcc, editab
           onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
         />
       ) : (
-        <ValueCell val={skill.value} inputW={inputW} cls={cls} />
+        <ValueCell val={skill.value} />
       )}
 
       {/* Half */}
-      <span className={`text-center ${cls}`}
-            style={{ width: numW, color: 'var(--text-muted)', flexShrink: 0 }}>
+      <span className="text-center"
+            style={{ width: NUM_W, fontSize: FS, color: 'var(--text-muted)', flexShrink: 0 }}>
         {calcHalf(val)}
       </span>
 
       {/* Fifth */}
-      <span className={`text-center ${cls}`}
-            style={{ width: numW, color: 'var(--text-muted)', flexShrink: 0 }}>
+      <span className="text-center"
+            style={{ width: NUM_W, fontSize: FS, color: 'var(--text-muted)', flexShrink: 0 }}>
         {calcFifth(val)}
       </span>
     </div>
   );
 }
 
-export function SubSkillRow({ skill, index, isOcc, onChangeEntry, cls, inputW, numW, editable = false }) {
+export function SubSkillRow({ skill, index, isOcc, onChangeEntry, editable = false }) {
   const val = parseInt(skill.value) || 0;
   const isFixed = FIXED_SUBSKILLS.includes(skill.subskill);
   const subDisplay = skill.subskill && skill.subskill !== 'None' ? skill.subskill : '';
@@ -96,18 +95,19 @@ export function SubSkillRow({ skill, index, isOcc, onChangeEntry, cls, inputW, n
     >
       {/* Occupation dot */}
       <span style={{ width: '8px', flexShrink: 0 }}>
-        {isOcc && <span style={{ color: 'var(--accent)', fontSize: '7px' }} title="Occupation">●</span>}
+        {isOcc && <span style={{ color: 'var(--accent)', fontSize: 'calc(7px * var(--sheet-font-scale))' }} title="Occupation">●</span>}
       </span>
 
-      {/* Subskill name — editable when allowed and not a fixed specialisation */}
+      {/* Subskill name */}
       {editable && !isFixed ? (
         <input
           type="text"
           value={subDisplay}
           onChange={e => onChangeEntry(index, { ...skill, subskill: e.target.value || 'None' })}
           placeholder="Subskill..."
-          className={`flex-1 px-1 rounded outline-none italic ${cls}`}
+          className="flex-1 px-1 rounded outline-none italic"
           style={{
+            fontSize: FS,
             background: 'var(--bg-input)',
             border: '1px solid var(--border-input)',
             color: isOcc ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -117,8 +117,8 @@ export function SubSkillRow({ skill, index, isOcc, onChangeEntry, cls, inputW, n
           onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
         />
       ) : (
-        <span className={`flex-1 ${cls}`}
-              style={{ color: isOcc ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+        <span className="flex-1"
+              style={{ fontSize: FS, color: isOcc ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
           {subDisplay}
         </span>
       )}
@@ -129,9 +129,10 @@ export function SubSkillRow({ skill, index, isOcc, onChangeEntry, cls, inputW, n
           type="number" min="0" max="99"
           value={skill.value}
           onChange={e => onChangeEntry(index, { ...skill, value: e.target.value })}
-          className={`text-center rounded outline-none ${cls}`}
+          className="text-center rounded outline-none"
           style={{
-            width: inputW, background: 'var(--bg-input)',
+            width: VAL_W, fontSize: FS,
+            background: 'var(--bg-input)',
             border: '1px solid var(--border-input)', color: 'var(--text-primary)',
             padding: '1px 0', flexShrink: 0,
           }}
@@ -139,18 +140,18 @@ export function SubSkillRow({ skill, index, isOcc, onChangeEntry, cls, inputW, n
           onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
         />
       ) : (
-        <ValueCell val={skill.value} inputW={inputW} cls={cls} />
+        <ValueCell val={skill.value} />
       )}
 
       {/* Half */}
-      <span className={`text-center ${cls}`}
-            style={{ width: numW, color: 'var(--text-muted)', flexShrink: 0 }}>
+      <span className="text-center"
+            style={{ width: NUM_W, fontSize: FS, color: 'var(--text-muted)', flexShrink: 0 }}>
         {calcHalf(val)}
       </span>
 
       {/* Fifth */}
-      <span className={`text-center ${cls}`}
-            style={{ width: numW, color: 'var(--text-muted)', flexShrink: 0 }}>
+      <span className="text-center"
+            style={{ width: NUM_W, fontSize: FS, color: 'var(--text-muted)', flexShrink: 0 }}>
         {calcFifth(val)}
       </span>
     </div>
