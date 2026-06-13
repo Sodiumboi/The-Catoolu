@@ -1,6 +1,6 @@
 # 🐙 The Catoolu
 
-<img width="3518" height="769" alt="Catoolu banner" src="https://github.com/user-attachments/assets/e9152550-067b-4385-a2e9-9634fdabaa04" />
+<img width="3518" height="769" alt="Catoolu_baner_2" src="https://github.com/user-attachments/assets/06008ee2-57fc-47e1-b483-6f35602f7f84" />
 
 ### A Self-Hosted Call of Cthulhu 7e Character Manager & Lightweight VTT
 
