@@ -19,23 +19,9 @@ As the platform grows, so do the horrors it contains.
 | v1.1    | _Dagon_          | The Half-Deep One    | Familiar, but transformed — the bridge between worlds                   |
 | v1.2    | _Hypnos_         | The God of Sleep     | Catches you at the threshold — before you drift away and lose your work |
 | v1.5    | _Nyarlathotep_   | The Crawling Chaos   | The messenger — the one who connects things                             |
-| v2.0    | _Shub-Niggurath_ | The Black Goat       | Fertile and multiplying — many branches                                 |
-| v2.5    | _Yog-Sothoth_    | The Key and the Gate | Omniscient — sees all times and places                                  |
-| v3.0    | _Cthulhu_        | The Great Dreamer    | The final form — the one it was all named for                           |
-
----
-
-## Version Naming Convention
-
-Each version is named after a Great Old One from the Cthulhu Mythos.
-As the platform grows, so do the horrors it contains.
-
-| Version | Codename         | Entity               | Meaning                                                                 |
-| ------- | ---------------- | -------------------- | ----------------------------------------------------------------------- |
-| v1.0    | _Azathoth_       | The Blind Idiot God  | The chaotic origin — the first thing that existed                       |
-| v1.1    | _Dagon_          | The Half-Deep One    | Familiar, but transformed — the bridge between worlds                   |
-| v1.2    | _Hypnos_         | The God of Sleep     | Catches you at the threshold — before you drift away and lose your work |
-| v1.5    | _Nyarlathotep_   | The Crawling Chaos   | The messenger — the one who connects things                             |
+| v1.6    | _Atlach-Nacha_   | The Spider God       | Eternally weaves the web — the threads connect                          |
+| v1.7    | _Eihort_         | The Pale Beast       | Lives in the tunnels beneath — the deep internal work nobody sees       |
+| v1.8    | _Glaaki_         | Lord of Dead Dreams  | Pulls things out of the deep and gives them new life                    |
 | v2.0    | _Shub-Niggurath_ | The Black Goat       | Fertile and multiplying — many branches                                 |
 | v2.5    | _Yog-Sothoth_    | The Key and the Gate | Omniscient — sees all times and places                                  |
 | v3.0    | _Cthulhu_        | The Great Dreamer    | The final form — the one it was all named for                           |
@@ -157,7 +143,76 @@ The social layer. The Catoolu becomes a shared space with real-time campaigns, d
 
 ---
 
+## ✅ v1.6 — Atlach-Nacha
+
+**Status: Released — June 2026**
+_"The Spider God weaves the web. The threads connect. The investigators can now take notes, log in with Discord, and file bug reports while their characters descend into madness."_
+
+The feature release. A unified sheet engine, a full notes system, OAuth login, cloud file storage, a new domain, and everything the table actually needed.
+
+- [x] Unified sheet module library — OG Editor, KeeperSheet, and RoomSheet draw from shared components
+- [x] KeeperSheet rebuilt to match the Editor layout exactly — read-only, full detail
+- [x] Keeper panel redesigned — resizable side panel replacing the old fixed modal
+- [x] Create/Import modal — animated unified entry point on the dashboard
+- [x] Font scale system — independent sheet text and display text scales, per-device
+- [x] ADV/DIS winner highlighting — winner accented, loser dimmed
+- [x] Notes window — floating, draggable, resizable with bubble/full morph animation
+- [x] TipTap v3 rich text editor in notes — full toolbar
+- [x] Notes tagged to character or session context, private per user
+- [x] Discord OAuth login + Google OAuth login (backwards compatible)
+- [x] Character creation engine promoted to `/create` — official, accessible from dashboard
+- [x] Creation engine draft resume — close the tab, come back later
+- [x] Bug report form with screenshot upload from NavBar dropdown
+- [x] Admin dashboard — bug reports, maintenance toggle, live stats
+- [x] Maintenance flag — socket broadcast, red NavBar pill, health endpoint
+- [x] MaintenancePage + ServerDownPage
+- [x] Cloudflare R2 cloud file storage — avatars and screenshots survive redeployments
+- [x] Image crop modal rewritten — canvas drawImage preview, portal, scroll lock
+- [x] Upload rate limiting (20 uploads per 60 seconds)
+- [x] catoolu.quest domain via Cloudflare Tunnel
+- [x] Cloudflare DDNS — automatic IP updates
+- [x] Cloudflare Worker maintenance fallback page
+- [x] Background art engine scaffold — ready for artist delivery
+- [x] `/legal` page — Terms of Service + Privacy Policy in English and Thai
+- [x] Legal modal on login page
+- [x] About page — GitHub badge, artist monument block, full content
+- [x] Roll popup positioning fix
+- [x] Double `$$` in Financial Status fixed
+- [x] Sheet panel minimum width raised to 480px
+- [x] `(None)` placeholder skills hidden correctly
+- [x] Cthulhu Mythos always visible regardless of value
+- [x] Campaign UUID URLs (`/campaign/uuid` replacing `/campaign/4`)
+- [x] Username change now updates auth context immediately
+
+---
+
 ## Planned
+
+### v1.7 — Eihort
+
+**Status: Planned — Target Q3 2026**
+_"The Pale Beast. Lives in the tunnels. Does the deep internal work nobody sees."_
+
+The migration. No new features — just bringing the stylesheet up to standard.
+
+- [ ] Tailwind migration — one page at a time, visually identical after
+
+---
+
+### v1.8 — Glaaki
+
+**Status: Planned — Target Q4 2026**
+_"Lord of Dead Dreams. Pulls things out of the deep and gives them new life."_
+
+The refactor. No new features — just making the code readable and maintainable.
+
+- [ ] Break large components into smaller focused ones
+- [ ] Remove prop drilling where it has gotten out of hand
+- [ ] Consistent naming conventions throughout
+- [ ] Remove dead code and commented-out blocks
+- [ ] Add comments on anything non-obvious
+
+---
 
 ### v2.0 — Shub-Niggurath
 
@@ -238,11 +293,14 @@ _"Ph'nglui mglw'nafh. The Great Dreamer wakes. The platform is complete."_
  May  ████████████████  v1.1 Dagon          ✅ Released
  May  ████████████████  v1.2 Hypnos         ✅ Released
  May  ████████████████  v1.5 Nyarlathotep   ✅ Released
- Sep  ░░░░░░░░░░░░░░░░  v2.0 Shub-Niggurath 🔮 Planned
+ Jun  ████████████████  v1.6 Atlach-Nacha   ✅ Released
+ Q3   ░░░░░░░░░░░░░░░░  v1.7 Eihort         🔮 Planned
+ Q4   ░░░░░░░░░░░░░░░░  v1.8 Glaaki         🔮 Planned
 
 2027
- Jan  ░░░░░░░░░░░░░░░░  v2.5 Yog-Sothoth    🔮 Planned
- May  ░░░░░░░░░░░░░░░░  v3.0 Cthulhu        🔮 Planned
+ Q1   ░░░░░░░░░░░░░░░░  v2.0 Shub-Niggurath 🔮 Planned
+ Q2   ░░░░░░░░░░░░░░░░  v2.5 Yog-Sothoth    🔮 Planned
+ Q3   ░░░░░░░░░░░░░░░░  v3.0 Cthulhu        🔮 Planned
 ```
 
 ---
