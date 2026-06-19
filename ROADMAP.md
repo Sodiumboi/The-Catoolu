@@ -227,13 +227,13 @@ _"A thousand young. The platform branches and multiplies."_
 - [ ] Live push of HP/Sanity changes from Keeper to players
 - [ ] NPC stat blocks — create and track enemies
 - [ ] Initiative tracker — drag-to-reorder, visible to all
-- [ ] Handouts system — share images and text with players
-- [ ] Session notes (Keeper-only)
+- [x] Handouts system — share images and text with players
+- [x] Session notes
 
 **Character Sheet**
 
 - [ ] Portrait upload directly on the sheet
-- [ ] Backstory section visible during session
+- [x] Backstory section visible during session
 - [ ] Contacts and allies
 
 **Campaign**
@@ -313,4 +313,4 @@ Feature requests from the Ancient Ones are not.
 
 ---
 
-_Ia! Ia! The Catoolu fhtagn!_ 🐙
+_Ph'nglui mglw'nafh Nat-One d20 wgah'nagl Advantage._ 🐙

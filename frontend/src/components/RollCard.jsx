@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import wojakRight from '../assets/wojak-point_andy_right.png';
 import wojakLeft  from '../assets/wojak-point_andy_left.png';
 
@@ -117,6 +118,7 @@ function MultiDieDisplay({ rolls, sides, severity = 'none' }) {
 
 // ── Main RollCard component ────────────────────────────────────
 export default function RollCard({ msg, isOwn }) {
+  const { memeEnabled } = useTheme();
   const [revealed, setRevealed] = useState(false);
   const delay = useRef(Math.floor(Math.random() * 400) + 300);
 
@@ -129,24 +131,26 @@ export default function RollCard({ msg, isOwn }) {
     ? (() => { try { return JSON.parse(msg.content); } catch { return null; } })()
     : msg.content;
 
-  const showMeme  = (raw?.notation?.toLowerCase().includes('d100') &&
-    (raw?.total === 1 || raw?.total === 100)) || !!msg._forceMeme;
-  const memeTotal = raw?.total;
+  const showMeme = memeEnabled && (
+    (raw?.notation?.toLowerCase().includes('d100') &&
+      (raw?.total === 1 || raw?.total === 100)) || !!msg._forceMeme
+  );
 
   if (!raw) return null;
   if (!revealed) return <RollCardSkeleton isOwn={isOwn} />;
 
-  const sl           = raw.successLevel;
-  const severity     = sl?.severity || 'none';
-  const isHit        = ['critical', 'extreme', 'hard', 'regular'].includes(severity);
-  const sides        = getSides(raw.notation);
+  const sl        = raw.successLevel;
+  const severity  = sl?.severity || 'none';
+  const isHit     = ['critical', 'extreme', 'hard', 'regular'].includes(severity);
+  const sides     = getSides(raw.notation);
 
   const showPortrait = msg.portrait || msg.avatar_url;
   const isAdv        = raw.advantage;
   const isDis        = raw.disadvantage;
   const hasAdvDis    = isAdv || isDis;
+  const showSum      = raw.rolls && raw.rolls.length > 1 && !hasAdvDis;
+  const hasResultLine = sl || raw.isDamage || showSum;
 
-  // Full name (up to two words) for header
   const displayName = msg.character_name
     ? msg.character_name.split(' ')[0] + ' ' + (msg.character_name.split(' ')[1] || '')
     : (msg.username || 'Someone');
@@ -172,88 +176,106 @@ export default function RollCard({ msg, isOwn }) {
     hour: '2-digit', minute: '2-digit',
   });
 
+  const borderRadius = isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px';
+
   return (
     <div style={{
       display:        'flex',
       justifyContent: isOwn ? 'flex-end' : 'flex-start',
       marginBottom:   '10px',
       paddingLeft:    isOwn ? '80px' : '0',
-      paddingRight:   isOwn ? '0'    : '80px',
+      paddingRight:   isOwn ? '0' : '80px',
+      minWidth:       0,
     }}>
       {/* Card */}
       <div style={{
         display:      'flex',
-        borderRadius: '12px',
+        borderRadius,
+        minWidth:     0,
+        maxWidth:     'min(440px, 100%)',
         overflow:     'hidden',
         border:       msg._hidden
-          ? '2px dashed var(--roll-' + severity + '-border)'
-          : '1px solid var(--roll-' + severity + '-border)',
-        background:   'var(--roll-' + severity + '-bg)',
-        maxWidth:     '100%',
-        minWidth:     '260px',
+          ? `2px dashed var(--roll-${severity}-border)`
+          : `1px solid var(--roll-${severity}-border)`,
+        // Opaque parchment base under the (sometimes translucent) severity tint
+        // so the feed background can't bleed through the card.
+        backgroundColor: 'var(--bg-page)',
+        backgroundImage: `linear-gradient(var(--roll-${severity}-bg), var(--roll-${severity}-bg))`,
       }}>
 
         {/* Left colour bar */}
         <div style={{
           width:      '5px',
           flexShrink: 0,
-          background: 'var(--roll-' + severity + '-border)',
+          background: `var(--roll-${severity}-border)`,
         }} />
 
         {/* Main content */}
-        <div style={{ flex: 1, padding: '12px 14px' }}>
+        <div style={{ flex: 1, padding: '12px 14px', minWidth: 0 }}>
 
-          {/* Header pill */}
+          {/* Top section: [action pill + skill name] alongside [portrait] */}
           <div style={{
-            display:      'inline-flex',
-            alignItems:   'center',
-            background:   severity === 'none'
-              ? 'var(--bg-section-hd)'
-              : 'var(--roll-' + severity + '-border)',
-            color:        severity === 'none' ? 'var(--text-secondary)' : '#ffffff',
-            border:       severity === 'none' ? '1px solid var(--border-main)' : 'none',
-            borderRadius: '20px',
-            padding:      '3px 12px',
-            fontSize:     '11px',
-            fontWeight:   '700',
-            letterSpacing:'0.05em',
-            marginBottom: '10px',
-            maxWidth:     '100%',
+            display:      'flex',
+            alignItems:   'flex-start',
+            gap:          10,
+            marginBottom: 12,
           }}>
-            {header}
-          </div>
+            {/* Left: action pill stacked above skill name */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                display:      'inline-flex',
+                alignItems:   'center',
+                background:   severity === 'none'
+                  ? 'var(--bg-section-hd)'
+                  : `var(--roll-${severity}-border)`,
+                color:        severity === 'none' ? 'var(--text-secondary)' : '#ffffff',
+                border:       severity === 'none' ? '1px solid var(--border-main)' : 'none',
+                borderRadius: '20px',
+                padding:      '3px 10px',
+                fontSize:     '11px',
+                fontWeight:   '700',
+                letterSpacing:'0.05em',
+                width:        '100%',
+                overflow:     'hidden',
+                marginBottom: '10px',
+              }}>
+                <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontWeight: '800', textDecoration: 'underline' }}>
+                    {displayName.trim()}
+                  </span>
+                  {header.slice(displayName.trim().length)}
+                </span>
+              </div>
 
-          {/* Skill / notation label */}
-          {raw.skillName && (
-            <div style={{
-              fontFamily:   'var(--font-serif)',
-              fontSize:     '16px',
-              color:        'var(--roll-' + severity + '-text)',
-              fontWeight:   '700',
-              marginBottom: '8px',
-              textAlign:    'center',
-            }}>
-              {raw.skillName}
-              {raw.advantage    && ' (Advantage)'}
-              {raw.disadvantage && ' (Disadvantage)'}
-            </div>
-          )}
+              {raw.skillName && (
+                <div style={{
+                  fontFamily:   'var(--font-serif)',
+                  fontSize:     '15px',
+                  color:        `var(--roll-${severity}-text)`,
+                  fontWeight:   '700',
+                  textAlign:    'center',
+                  marginBottom: '10px',
+                }}>
+                  {raw.skillName}
+                  {raw.advantage    && ' (Advantage)'}
+                  {raw.disadvantage && ' (Disadvantage)'}
+                </div>
+              )}
 
-          {/* Dice display */}
-          <div style={{
-            display:        'flex',
-            alignItems:     'center',
-            justifyContent: 'center',
-            gap:            '10px',
-            padding:        '12px 0',
-          }}>
+              {/* Dice */}
+              <div style={{
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'center',
+                gap:            '8px',
+                flexWrap:       'wrap',
+              }}>
             {showMeme && (
               <img src={wojakLeft} alt="" style={{
-                height: '80px', width: 'auto',
+                height: '60px', width: 'auto',
                 opacity: 0.85, pointerEvents: 'none', flexShrink: 0,
               }} />
             )}
-
             <div style={{
               display:        'flex',
               alignItems:     'center',
@@ -262,10 +284,8 @@ export default function RollCard({ msg, isOwn }) {
               flexWrap:       'wrap',
             }}>
               {hasAdvDis && raw.advDisRolls ? (() => {
-                // 0-sum means d100 rolled 00+0 = 100 (fumble)
                 const v0 = raw.advDisRolls[0].reduce((a, b) => a + b, 0) || 100;
                 const v1 = raw.advDisRolls[1].reduce((a, b) => a + b, 0) || 100;
-                // ADV = bonus = take lower; DIS = penalty = take higher
                 const g0w = isAdv ? v0 <= v1 : v0 >= v1;
                 const g1w = isAdv ? v1 <= v0 : v1 >= v0;
                 return (
@@ -298,106 +318,112 @@ export default function RollCard({ msg, isOwn }) {
                 />
               )}
             </div>
-
             {showMeme && (
               <img src={wojakRight} alt="" style={{
-                height: '80px', width: 'auto',
+                height: '60px', width: 'auto',
                 opacity: 0.85, pointerEvents: 'none', flexShrink: 0,
               }} />
             )}
           </div>
 
-          {/* Sum line for multi-die rolls */}
-          {raw.rolls && raw.rolls.length > 1 && !hasAdvDis && (
-            <div style={{
-              textAlign:  'center',
-              fontSize:   '12px',
-              color:      'var(--text-muted)',
-              marginTop:  '6px',
-              fontFamily: 'var(--font-sans)',
-            }}>
-              {raw.rolls.join(' + ')}
-              {raw.modifier !== 0
-                ? (raw.modifier > 0 ? ' + ' : ' − ') + Math.abs(raw.modifier)
-                : ''}
-              {' = '}
-              <strong style={{ color: 'var(--roll-' + severity + '-text)' }}>
-                {raw.total}
-              </strong>
             </div>
-          )}
 
-          {/* Damage total */}
-          {raw.isDamage && (
-            <div style={{
-              textAlign:  'center',
-              fontSize:   '12px',
-              color:      'var(--roll-none-text)',
-              marginTop:  '4px',
-              fontFamily: 'var(--font-sans)',
-            }}>
-              {raw.weaponName} · {raw.rolls.join(' + ')}
-              {raw.modifier !== 0
-                ? (raw.modifier > 0 ? ' + ' : ' − ') + Math.abs(raw.modifier)
-                : ''}
-              {' = '}
-              <strong>{raw.total}</strong>
-            </div>
-          )}
-
-          {/* Result label */}
-          <div style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize:   '12px',
-            color:      'var(--roll-' + severity + '-text)',
-            fontWeight: '600',
-            textAlign:  'center',
-            marginTop:  '6px',
-          }}>
-            {sl ? sl.emoji + ' ' + sl.label : ''}
-            {raw.skillValue && (
-              <span style={{ fontWeight: '400', opacity: 0.7, marginLeft: '4px' }}>
-                ({raw.total})
-              </span>
+            {/* Portrait — right, spans the content block height */}
+            {showPortrait && (
+              <div style={{ flexShrink: 0, width: '56px', height: '64px' }}>
+                <img
+                  src={msg.portrait
+                    ? 'data:image/jpeg;base64,' + msg.portrait
+                    : (import.meta.env.VITE_API_URL || '') + msg.avatar_url}
+                  alt={msg.username}
+                  style={{
+                    width:        '100%',
+                    height:       '100%',
+                    borderRadius: '4px',
+                    objectFit:    'cover',
+                    border:       '1px solid var(--border-main)',
+                    display:      'block',
+                  }}
+                />
+              </div>
             )}
           </div>
 
-          {/* Reg success threshold */}
-          {sl && raw.skillValue && (
-            <div style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize:   '11px',
-              color:      'var(--text-faint)',
-              textAlign:  'center',
-              marginTop:  '2px',
-            }}>
-              Reg ({raw.skillValue})
-            </div>
-          )}
-
-          {/* Hit / miss label for weapon attack rolls */}
-          {!raw.isDamage && raw.skillName?.startsWith('Attack') && sl && (
-            <div style={{
-              fontSize:   '12px',
-              fontWeight: '700',
-              textAlign:  'center',
-              color:      isHit ? 'var(--roll-regular-text)' : 'var(--roll-failure-text)',
-              marginTop:  '2px',
-              fontFamily: 'var(--font-sans)',
-            }}>
-              {isHit
-                ? 'Hit! (' + raw.skillValue + ')'
-                : 'Not Hit! (' + raw.skillValue + ')'}
-            </div>
-          )}
-
+          {/* Bottom row: result (left) + time pill (right) */}
           <div style={{
-            fontSize:  '10px',
-            color:     'var(--text-faint)',
-            marginTop: '4px',
-            textAlign: 'center',
+            display:        'flex',
+            alignItems:     'center',
+            justifyContent: hasResultLine ? 'space-between' : 'flex-end',
+            gap:            8,
+            marginTop:      10,
+            fontFamily:     'var(--font-sans)',
           }}>
-            {time}
+            {/* Result */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontSize: '12px', minWidth: 0 }}>
+              {sl && (
+                <>
+                  <span style={{ color: `var(--roll-${severity}-text)`, fontWeight: 600 }}>
+                    {sl.emoji} {sl.label}
+                    {raw.skillValue && (
+                      <span style={{ fontWeight: '400', opacity: 0.7, marginLeft: 4 }}>
+                        ({raw.total})
+                      </span>
+                    )}
+                  </span>
+                  {raw.skillValue && (
+                    <>
+                      <span style={{ color: 'var(--text-faint)' }}>||</span>
+                      <span style={{ color: 'var(--text-faint)' }}>Reg ({raw.skillValue})</span>
+                    </>
+                  )}
+                </>
+              )}
+              {/* Sum line for multi-die rolls */}
+              {showSum && (
+                <span style={{ color: 'var(--text-muted)' }}>
+                  {raw.rolls.join(' + ')}
+                  {raw.modifier !== 0 ? (raw.modifier > 0 ? ' + ' : ' − ') + Math.abs(raw.modifier) : ''}
+                  {' = '}
+                  <strong style={{ color: `var(--roll-${severity}-text)` }}>{raw.total}</strong>
+                </span>
+              )}
+              {/* Damage total */}
+              {raw.isDamage && (
+                <span style={{ color: 'var(--roll-none-text)' }}>
+                  {raw.weaponName} · {raw.rolls.join(' + ')}
+                  {raw.modifier !== 0 ? (raw.modifier > 0 ? ' + ' : ' − ') + Math.abs(raw.modifier) : ''}
+                  {' = '}
+                  <strong>{raw.total}</strong>
+                </span>
+              )}
+              {!raw.isDamage && raw.skillName?.startsWith('Attack') && sl && (
+                <span style={{
+                  fontWeight: '700',
+                  color:      isHit ? 'var(--roll-regular-text)' : 'var(--roll-failure-text)',
+                  marginLeft: 4,
+                }}>
+                  {isHit ? '· Hit! (' + raw.skillValue + ')' : '· Miss! (' + raw.skillValue + ')'}
+                </span>
+              )}
+            </div>
+
+            {/* Time pill */}
+            <div style={{
+              background:   severity === 'none'
+                ? 'var(--bg-section-hd)'
+                : `var(--roll-${severity}-border)`,
+              border:       severity === 'none' ? '1px solid var(--border-main)' : 'none',
+              borderRadius: '20px',
+              padding:      '3px 10px',
+              fontSize:     '11px',
+              fontWeight:   '700',
+              letterSpacing:'0.05em',
+              color:        severity === 'none' ? 'var(--text-muted)' : 'rgba(255,255,255,0.85)',
+              flexShrink:   0,
+              whiteSpace:   'nowrap',
+            }}>
+              {time}
+            </div>
           </div>
 
           {/* Hidden roll indicator */}
@@ -406,39 +432,13 @@ export default function RollCard({ msg, isOwn }) {
               fontSize:  '10px',
               color:     'var(--text-faint)',
               fontStyle: 'italic',
-              marginTop: '4px',
+              marginTop: '8px',
               textAlign: 'center',
             }}>
               <span className="icon icon-sm">lock</span>{' '}Only visible to you
             </div>
           )}
         </div>
-
-        {/* Portrait — right column */}
-        {showPortrait && (
-          <div style={{
-            width:          '80px',
-            flexShrink:     0,
-            padding:        '12px 12px 12px 0',
-            display:        'flex',
-            alignItems:     'center',
-            justifyContent: 'center',
-          }}>
-            <img
-              src={msg.portrait
-                ? 'data:image/jpeg;base64,' + msg.portrait
-                : (import.meta.env.VITE_API_URL || '') + msg.avatar_url}
-              alt={msg.username}
-              style={{
-                width:        '72px',
-                height:       '72px',
-                borderRadius: '8px',
-                objectFit:    'cover',
-                border:       '1px solid var(--border-main)',
-              }}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
@@ -452,23 +452,27 @@ function RollCardSkeleton({ isOwn }) {
       justifyContent: isOwn ? 'flex-end' : 'flex-start',
       marginBottom:   '10px',
       paddingLeft:    isOwn ? '80px' : '0',
-      paddingRight:   isOwn ? '0'    : '80px',
+      paddingRight:   isOwn ? '0' : '80px',
     }}>
       <div style={{
+        display:      'flex',
         background:   'var(--bg-card)',
         border:       '1px solid var(--border-main)',
-        borderRadius: '12px',
-        padding:      '12px 14px',
+        borderRadius: isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+        overflow:     'hidden',
         minWidth:     '200px',
-        display:      'flex',
-        flexDirection:'column',
-        gap:          '10px',
       }}>
-        <div className="skeleton-box" style={{ height: '22px', width: '60%', borderRadius: '20px' }} />
-        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', padding: '8px 0' }}>
-          {[1, 2].map(i => (
-            <div key={i} className="skeleton-box" style={{ width: '48px', height: '56px', borderRadius: '6px' }} />
-          ))}
+        <div style={{ width: '5px', flexShrink: 0, background: 'var(--border-main)' }} />
+        <div style={{ flex: 1, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+            <div className="skeleton-box" style={{ height: '22px', flex: 1, borderRadius: '20px' }} />
+            <div className="skeleton-box" style={{ height: '22px', width: '48px', borderRadius: '20px' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', padding: '4px 0' }}>
+            {[1, 2].map(i => (
+              <div key={i} className="skeleton-box" style={{ width: '42px', height: '50px', borderRadius: '6px' }} />
+            ))}
+          </div>
         </div>
       </div>
     </div>

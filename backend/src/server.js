@@ -20,6 +20,8 @@ const createBugReports   = require('./migrations/create_bug_reports');
 const addAdminColumn     = require('./migrations/add_admin_column');
 const createAppSettings  = require('./migrations/create_app_settings');
 const createNotes        = require('./migrations/create_notes');
+const createHandouts     = require('./migrations/create_handouts');
+const createUserUploads  = require('./migrations/create_user_uploads');
 
 // Auth
 const session  = require('express-session');
@@ -94,6 +96,7 @@ app.use('/api/dice',       require('./routes/dice'));
 app.use('/api/bugs',       require('./routes/bugs'));
 app.use('/api/admin',      require('./routes/admin'));
 app.use('/api/notes',      require('./routes/notes'));
+app.use('/api/campaigns',  require('./routes/handouts'));
 
 
 // ── 404 Handler ────────────────────────────────────────────
@@ -129,6 +132,8 @@ async function startServer() {
   await addAdminColumn();
   await createAppSettings();
   await createNotes();
+  await createHandouts();
+  await createUserUploads();
 
   httpServer.listen(PORT, () => {
     console.log('');

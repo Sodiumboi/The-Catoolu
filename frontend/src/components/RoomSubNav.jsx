@@ -38,6 +38,14 @@ export default function RoomSubNav({ tabs, activeTab, onTabChange }) {
             }}
           >
             {tab.label}
+            {tab.badge > 0 && (
+              <span style={{
+                marginLeft: 2, background: '#3B6D11', color: '#EAF3DE',
+                fontSize: 9, padding: '1px 4px', borderRadius: 10, lineHeight: '1.4',
+              }}>
+                {tab.badge}
+              </span>
+            )}
             {tab.comingSoon && (
               <span style={{
                 fontSize:       '10px',

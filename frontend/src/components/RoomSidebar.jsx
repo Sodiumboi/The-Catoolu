@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import FairnessTester from './FairnessTester';
+import { useTheme } from '../context/ThemeContext';
 
 const TABS = [
   { id: 'chat',     icon: 'chat',     label: 'Chat',     hasPanel: false },
@@ -186,19 +187,102 @@ function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters,
 }
 
 // ── Settings panel ────────────────────────────────────────────
-function SettingsPanel({ campaignId }) {
+function SettingsPanel() {
+  const {
+    memeEnabled, setMemeEnabled,
+    feedBackground, setFeedBackground,
+  } = useTheme();
+
   return (
     <div>
-      <SectionLabel>Campaign Settings</SectionLabel>
+      <SectionLabel>Roll Feed</SectionLabel>
+
+      <ToggleRow
+        label="Crit memes"
+        desc="Show the meme on a natural 01 or 100"
+        checked={memeEnabled}
+        onChange={() => setMemeEnabled(!memeEnabled)}
+      />
+      <ToggleRow
+        label="Feed background"
+        desc="Decorative backdrop behind the roll feed"
+        checked={feedBackground}
+        onChange={() => setFeedBackground(!feedBackground)}
+      />
+
       <p style={{
-        fontSize:  '13px',
-        color:     'var(--text-faint)',
-        fontStyle: 'italic',
-        textAlign: 'center',
-        paddingTop:'20px',
+        fontSize:   '11px',
+        color:      'var(--text-faint)',
+        fontStyle:  'italic',
+        marginTop:  '12px',
+        fontFamily: 'var(--font-sans)',
       }}>
-        More settings coming soon.
+        These settings are saved on this device only.
       </p>
+    </div>
+  );
+}
+
+// ── Toggle switch row ─────────────────────────────────────────
+function ToggleRow({ label, desc, checked, onChange }) {
+  return (
+    <div style={{
+      display:        'flex',
+      alignItems:     'center',
+      justifyContent: 'space-between',
+      gap:            '10px',
+      padding:        '8px 0',
+      borderBottom:   '1px solid var(--border-main)',
+    }}>
+      <div style={{ minWidth: 0 }}>
+        <div style={{
+          fontSize:   '13px',
+          fontWeight: '500',
+          color:      'var(--text-primary)',
+          fontFamily: 'var(--font-sans)',
+        }}>
+          {label}
+        </div>
+        <div style={{
+          fontSize:   '11px',
+          color:      'var(--text-muted)',
+          fontFamily: 'var(--font-sans)',
+          lineHeight: 1.4,
+        }}>
+          {desc}
+        </div>
+      </div>
+
+      <button
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        onClick={onChange}
+        style={{
+          flexShrink:   0,
+          width:        '38px',
+          height:       '22px',
+          borderRadius: '999px',
+          border:       'none',
+          cursor:       'pointer',
+          padding:      0,
+          position:     'relative',
+          background:   checked ? 'var(--accent)' : 'var(--border-input)',
+          transition:   'background 0.15s ease',
+        }}
+      >
+        <span style={{
+          position:     'absolute',
+          top:          '2px',
+          left:         checked ? '18px' : '2px',
+          width:        '18px',
+          height:       '18px',
+          borderRadius: '50%',
+          background:   '#fff',
+          boxShadow:    '0 1px 2px rgba(0,0,0,0.25)',
+          transition:   'left 0.15s ease',
+        }} />
+      </button>
     </div>
   );
 }

@@ -47,6 +47,9 @@
   --accent-bg:      #EAF3DE;
   --accent-hover:   #C0DD97;
 
+  /* Breathing-ring colour (roll-request pill) — rgb triplet for rgba() */
+  --pulse-ring-rgb: 59, 109, 17;
+
   /* Semantic */
   --danger:         #c0392b;
   --danger-bg:      #fceae8;
@@ -107,6 +110,9 @@
   --accent:         #639922;
   --accent-bg:      #173404;
   --accent-hover:   #27500A;
+
+  /* Breathing-ring colour (roll-request pill) — brighter green for dark bg */
+  --pulse-ring-rgb: 151, 196, 89;
 
   /* Semantic */
   --danger:         #F09595;
@@ -242,6 +248,18 @@ input[type='number'] {
 ::-webkit-scrollbar-thumb { background: var(--border-main); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+/* ── Roll feed decorative background (toggleable in room Settings) ── */
+/* Fixed wallpaper behind the message feed — stays put while cards scroll. */
+.roll-feed-bg {
+  background-color: var(--bg-page);
+  background-image:
+    radial-gradient(circle at 50% -5%, var(--accent-bg), transparent 55%),
+    radial-gradient(var(--border-input) 1.5px, transparent 1.6px);
+  background-size: 100% 340px, 20px 20px;
+  background-repeat: no-repeat, repeat;
+  background-position: top center, center;
+}
+
 /* Hide scrollbar on dice row */
 .dice-row::-webkit-scrollbar { display: none; }
 
@@ -277,6 +295,13 @@ input[type='number'] {
 @keyframes pulse-danger {
   0%, 100% { box-shadow: 0 0 0 0 rgba(226, 75, 74, 0.45); }
   50%       { box-shadow: 0 0 0 6px rgba(226, 75, 74, 0); }
+}
+/* Breathing ring for pending roll-request pills — mirrors the maintenance pill,
+   but keeps the card's resting shadow underneath the pulsing accent ring.
+   --pulse-ring-rgb is theme-aware (brighter green on dark backgrounds). */
+@keyframes pulse-accent {
+  0%, 100% { box-shadow: var(--shadow-card), 0 0 0 0 rgba(var(--pulse-ring-rgb), 0.55); }
+  50%       { box-shadow: var(--shadow-card), 0 0 0 7px rgba(var(--pulse-ring-rgb), 0); }
 }
 
 /* ── CoC Roll Result Colours ────────────────────────────────── */
@@ -366,6 +391,9 @@ input[type='number'] {
 @keyframes popIn {
   from { transform: scale(0.5); opacity: 0; }
   to   { transform: scale(1);   opacity: 1; }
+}
+.animate-pop {
+  animation: popIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 /* ── Skeleton shimmer ────────────────────────────────────────── */
 @keyframes shimmer {

@@ -2,19 +2,10 @@ import { useState } from 'react';
 import logo from '../assets/vault-logo.png';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
+import { TEAM_MEMBERS } from '../utils/aboutTeam';
 
-const VERSION    = 'V1.6 · Atlach-Nacha';
+const VERSION    = 'V1.6a · Atlach-Nacha - Jade Palace';
 const GITHUB_URL = 'https://github.com/Sodiumboi/Catoolu-coc-sheet-manager';
-
-// ── Team lineup — fill in when announced ────────────────────────────
-const TEAM_MEMBERS = [
-  // { name: 'Someone', role: 'Keeper', badge: 'Founder', avatar: null },
-  { name: 'Natrium', role: 'System Designer', badge: 'Founder and THE แบก', avatar: 'https://scontent.fbkk4-1.fna.fbcdn.net/v/t39.30808-6/534744139_1946179189466892_5861722509146875756_n.jpg?stp=dst-jpg_tt6&cstp=mx1000x1000&ctp=s1000x1000&_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeGeXvDlKWpSM_Y-ECmNj68uzOK7GA0vxoLM4rsYDS_Ggm5YVlGRPqxFIIgcM0I5xleUKkoWuR2A_t7CIn8nsYuX&_nc_ohc=uykYqgZKwL4Q7kNvwEe9R_t&_nc_oc=Adoe18HDhJCVsi-mwxLLLjNX5zHgn6wziHAN2-gP89UqHyT6HeoCytMMqujzwbd_M4g&_nc_zt=23&_nc_ht=scontent.fbkk4-1.fna&_nc_gid=pN6gTeo6vp4okv5_xQQRCg&_nc_ss=7b2a8&oh=00_Af-OhRc8n90KwdC2gO2VbeyGAmlbkSL7GDZop-srQn2YYw&oe=6A334E39' },
-  { name: 'Alistair', role: 'Consultant', badge: 'Founder', avatar: 'https://assets.catoolu.quest/team/1f5db6a9-dbf9-4e3f-a80c-d8f1ee8c4a73.jpg' },
-  { name: 'Un_sa', role: 'Animator', badge: 'Commissioner', avatar: 'https://scontent.fbkk4-1.fna.fbcdn.net/v/t39.30808-6/541522910_815656044459544_2736778812907127737_n.jpg?stp=dst-jpg_tt6&cstp=mx1008x1008&ctp=s1008x1008&_nc_cat=107&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGoJ1pduhXZrVeaReWQCHdZXp7JZlDNUN5enslmUM1Q3ixa4bBZ0W7iFJFE60zE6c0TsDDpRcEJW8UCrokWo-vQ&_nc_ohc=-PPacYxWjBoQ7kNvwGOkpXO&_nc_oc=Adqh9luUip4gb4WNAmcrHDeUR7EDA_C_wwqNHUOwaoxH1pv6CpP91M8z1IDLyQwO6_4&_nc_zt=23&_nc_ht=scontent.fbkk4-1.fna&_nc_gid=gBGYu3gUpBmN0IQb_0padg&_nc_ss=7b2a8&oh=00_Af-JYVW6kgh_1JpZ8zKXR30YNkGWh47jG4sb7Aefo4R5aw&oe=6A3379CB' },
-  { name: 'Momoru', role: 'Oliver Artist', badge: 'Commissioner', avatar: 'https://assets.catoolu.quest/team/4e03d549-f051-4757-9427-b55e5265b8ff.jpg' },
-  { name: 'WaWa', role: 'Background Artist', badge: 'Commissioner', avatar: null }
-];
 
 // ── Localised content ────────────────────────────────────────────────
 const CONTENT = {
@@ -31,7 +22,7 @@ const CONTENT = {
     whoTitle:    'Who built it',
     who1:        'Hey there!',
     who2:        'I\'m Someone at Saltlakes — call me \'K\'. Started out as a CoC player, became a developer second, and somehow ended up writing character sheet software instead of actually playing Call of Cthulhu.',
-    who6:        'It started when I was complaining to Alistair after a one-shot — "these notes on paper are definitely going to get lost." He said, "well what are you going to do about it? We don\'t have Foundry."',
+    who6:        'It started when I was complaining to Alistair after his one-shot campaign — "these notes on paper are definitely going to get lost." He said, "well what are you going to do about it? We don\'t have Foundry."',
     who3:        'So I just went and built the thing myself. (Instead of buying Foundry like a normal person — would\'ve saved me the headache, haha.) I\'d been wanting to try building a web app anyway, so I made something for my group — and figured if anyone else wanted to use it, they could too.',
     who4:        'This site would not exist without Claude. I\'m still kind of amazed that the fastest, lowest-tier AI model could push something like this out. Me and this whole site started from zero — I\'d never studied or written JavaScript, never touched Socket.IO. Claude taught me all of it. Every design decision, every bug, every "why won\'t this box center" went through that guy. (haha)',
     who5:        'But even though the whole site was written with AI, I can promise you: every colour pair, every design, every piece of artwork is the work of real humans with their own dreams — friends I personally know, people who actually exist. Here, we value art. We value creativity.',
@@ -60,7 +51,7 @@ const CONTENT = {
     whoTitle:    'ใครสร้างเจ้านี่ขึ้นมา',
     who1:        'หวัดดีค้าบ!',
     who2:        'ผม Someone at Saltlakes จะเรียกว่า \'K\' ก็ได้คับ — ตอนแรกเป็นคนเล่น CoC ก่อน แล้วตอนนี้ก็นักพัฒนาทีหลัง และตอนนี้ดูเหมือนกลายเป็นคนเขียนซอฟต์แวร์ชีทตัวละครแทนที่จะได้เล่น Call of Cthulhu จริงๆ',
-    who6:        'จริงก็คือผมบ่นกับ Consultant หลังเล่น OneShot แกจบว่า "จดลง PDF แบบนี้หายแน่" เค้าก็เลยบอก "เอ้า แล้วคุณจะทำไงอ่ะ เราไม่มี Foundry นิ"',
+    who6:        'จริงก็คือผมบ่นกับ Consultant หลังเล่น แคมเปญ OneShot ของแกจบว่า "จดลง PDF แบบนี้หายแน่" เค้าก็เลยบอก "เอ้า แล้วคุณจะทำไงอ่ะ เราไม่มี Foundry นิ"',
     who3:        'ผมก็เลยควักเงินสร้างเว็ปเองมันซะเลย (แทนที่จะซึ้อ Foundry แต่แรก ไม่ต้องมานั่งปวดหัว ฮ่า) ซึ่งประกอบกับผมอยากลองทำ web app อยู่แล้ว ทำมาเอามาใช้กับกลุ่มของผม และก็ไว้เผื่อคนอื่นอยากใช้ด้วย ก็เลยกลายเป็นโปรเจ็คนี้มาฮะ',
     who4:        'ซึ่งเว็ปนี้จะไม่ได้เกิดถ้าไม่มีความช่วยเหลือจากลูกพี่ผม Claude คือผมอื้งมากกับการที่ว่า Ai ตัวไวสุด ความสามารถต่ำสุด สามารถเข็นเว็ปนี้ออกมาได้ คือทั้งเว็ปนี้และผมเริ่มจาก 0 นะครับ ผมไม่เคยเรียนหรือเขียน javascript หรือเรื่องการสื่อสาร Socket.IO งี้ก็ไม่เคยเลย ได้ Claude นี่แหละสอน ก็คือทุกดีไซน์ ทุกบั๊ก ทุก "ทำไมกล่องนี้ไม่อยู่ตรงกลางวะ" ผ่านลูกพี่คนนี้หมด (ฮ่า)',
     who5:        'แต่แม้ว่าทั้งเว็ปจะถูกเขียนด้วย Ai แต่ผมขอรับรองว่า ทุกคู่สี ทุกการออกแบบ ทุกงานวาด เป็นฝีมือของมนุษย์ที่มีความฝันเป็นของตัวเอง เป็นเพื่อนของผมที่ผมรู้จัก มีตัวตนจับต้องได้ ที่นี่เราให้ค่างานศิลป์ ให้ค่าความคิดสร้างสรรค์ครับ',

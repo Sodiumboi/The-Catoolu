@@ -12,6 +12,14 @@ export function ThemeProvider({ children }) {
   const [roomFontScale, setRoomFontScaleState] = useState(
     () => parseFloat(localStorage.getItem('room-font-scale')) || 1
   );
+  // Show the crit/fumble meme on nat 1 / nat 100 d100 rolls (default on)
+  const [memeEnabled, setMemeEnabledState] = useState(
+    () => localStorage.getItem('coc_meme_enabled') !== 'false'
+  );
+  // Decorative background behind the roll feed (default off)
+  const [feedBackground, setFeedBackgroundState] = useState(
+    () => localStorage.getItem('coc_feed_bg') === 'true'
+  );
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -31,11 +39,23 @@ export function ThemeProvider({ children }) {
     localStorage.setItem('room-font-scale', v);
   };
 
+  const setMemeEnabled = (v) => {
+    setMemeEnabledState(v);
+    localStorage.setItem('coc_meme_enabled', String(v));
+  };
+
+  const setFeedBackground = (v) => {
+    setFeedBackgroundState(v);
+    localStorage.setItem('coc_feed_bg', String(v));
+  };
+
   return (
     <ThemeContext.Provider value={{
       theme, toggleTheme,
       sheetFontScale, setSheetFontScale,
       roomFontScale,  setRoomFontScale,
+      memeEnabled,    setMemeEnabled,
+      feedBackground, setFeedBackground,
     }}>
       {children}
     </ThemeContext.Provider>

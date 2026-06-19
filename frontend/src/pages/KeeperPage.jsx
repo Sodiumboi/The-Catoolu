@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import NavBar    from '../components/NavBar';
 import Footer    from '../components/Footer';
 import apiClient from '../api/client';
@@ -6,16 +7,17 @@ import KeeperCampaignDetail  from '../components/KeeperCampaignDetail';
 import CreateCampaignModal   from '../components/CreateCampaignModal';
 
 export default function KeeperPage() {
-  const [campaigns,   setCampaigns]  = useState([]);
-  const [loading,     setLoading]    = useState(true);
-  const [selected,    setSelected]   = useState(null); // campaign object
-  const [showCreate,  setShowCreate] = useState(false);
+  const location = useLocation();
+  const [campaigns,    setCampaigns]   = useState([]);
+  const [loading,      setLoading]     = useState(true);
+  const [selected,     setSelected]    = useState(null); // campaign object
+  const [initialTab,   setInitialTab]  = useState(null);
+  const [showCreate,   setShowCreate]  = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
       const res  = await apiClient.get('/campaigns');
-      // Only campaigns where user is keeper
       const kept = res.data.campaigns.filter(c => c.role === 'keeper');
       setCampaigns(kept);
     } catch { /* silent */ }
@@ -23,6 +25,19 @@ export default function KeeperPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  // Open campaign+tab from navigation state (e.g. from KeeperHandoutPanel)
+  useEffect(() => {
+    const { openCampaignUuid, openTab } = location.state || {};
+    if (!openCampaignUuid || loading || campaigns.length === 0) return;
+    const target = campaigns.find(c => c.uuid === openCampaignUuid);
+    if (target) {
+      setInitialTab(openTab ?? null);
+      setSelected(target);
+      // Clear state so back-navigation doesn't re-trigger
+      window.history.replaceState({}, '');
+    }
+  }, [loading, campaigns]);
 
   // If a campaign is selected, show the detail view
   if (selected) {
@@ -34,7 +49,8 @@ export default function KeeperPage() {
         <NavBar activeTab="keeper" />
         <KeeperCampaignDetail
           campaign={selected}
-          onBack={() => { setSelected(null); load(); }}
+          initialTab={initialTab}
+          onBack={() => { setSelected(null); setInitialTab(null); load(); }}
         />
         <Footer />
       </div>

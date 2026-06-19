@@ -16,3 +16,12 @@ occupation/
 testfloder/
 socket-test.yml
 stress-test.js
+process/
+.vibecode-backup/
+.codex/
+.claude/
+.agents/
+.vc-version
+.vc-installed-files
+AGENTS.md
+CLAUDE.md

@@ -10,6 +10,7 @@ import CharacterEditorPage   from './pages/CharacterEditor';
 import ForgotPasswordPage    from './pages/ForgotPasswordPage';
 import ResetPasswordPage     from './pages/ResetPasswordPage';
 import ProfilePage           from './pages/ProfilePage';
+import FileManagerPage        from './pages/FileManagerPage';
 import KeeperPage            from './pages/KeeperPage';
 import CampaignPage          from './pages/CampaignPage';
 import InboxPage             from './pages/InboxPage';
@@ -20,6 +21,8 @@ import LegalPage             from './pages/LegalPage';
 import OAuthCallbackPage     from './pages/OAuthCallbackPage';
 import MaintenancePage       from './pages/MaintenancePage';
 import ServerDownPage        from './pages/ServerDownPage';
+import { preloadWhenIdle }   from './utils/preloadImages';
+import { ABOUT_PRELOAD_IMAGES } from './utils/aboutTeam';
 
 function RootRoute() {
   const { user, loading } = useAuth();
@@ -86,6 +89,10 @@ export default function App() {
     return () => clearInterval(id);
   }, [poll]);
 
+  // Warm the cache for the About page's remote team avatars during idle time,
+  // so they render instantly whenever the user navigates there.
+  useEffect(() => preloadWhenIdle(ABOUT_PRELOAD_IMAGES), []);
+
   // Only admins bypass the maintenance gate so they can still reach /admin to turn it off.
   // All other users (logged-in or not) see the static maintenance page on refresh.
   const storedUser = JSON.parse(localStorage.getItem('coc_user') || 'null');
@@ -115,6 +122,9 @@ export default function App() {
             <Route path="/character/:uuid" element={<CharacterEditorWithKey />} />
             <Route path="/profile" element={
               <ProtectedRoute><ProfilePage /></ProtectedRoute>
+            }/>
+            <Route path="/files" element={
+              <ProtectedRoute><FileManagerPage /></ProtectedRoute>
             }/>
 
             <Route path="/create" element={

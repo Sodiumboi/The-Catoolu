@@ -4,7 +4,7 @@
 
 import { Link } from 'react-router-dom';
 
-const VERSION = 'V1.6 · Atlach-Nacha';
+const VERSION = 'V1.6a · Atlach-Nacha - Jade Palace';
 const CREDIT  = 'Built by Someone at Saltlakes with an unreasonable amount of help from Claude';
 
 export default function Footer() {
