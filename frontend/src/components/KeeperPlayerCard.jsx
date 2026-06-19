@@ -1,5 +1,16 @@
-export default function KeeperPlayerCard({ member, onOpenSheet }) {
+import { useRef } from 'react';
+
+export default function KeeperPlayerCard({
+  member,
+  onOpenSheet,
+  onRequestRoll,
+  pendingRequests,
+  onCancelRequest,
+}) {
   const { character_name, character_occupation, username } = member;
+  const rollBtnRef = useRef(null);
+
+  const pending = pendingRequests || [];
 
   return (
     <div style={{
@@ -10,30 +21,53 @@ export default function KeeperPlayerCard({ member, onOpenSheet }) {
       marginBottom: '10px',
       position:     'relative',
     }}>
-      {member.character_id && onOpenSheet && (
-        <button
-          onClick={e => { e.stopPropagation(); onOpenSheet(member); }}
-          title="View character sheet"
-          style={{
-            position:     'absolute',
-            top:          '10px',
-            right:        '10px',
-            background:   'none',
-            border:       'none',
-            cursor:       'pointer',
-            color:        'var(--text-faint)',
-            display:      'flex',
-            alignItems:   'center',
-            padding:      '2px',
-            borderRadius: '4px',
-            transition:   'color 0.1s ease',
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
-        >
-          <span className="icon icon-sm">open_in_new</span>
-        </button>
-      )}
+      {/* Top-right action buttons */}
+      <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '4px' }}>
+        {member.character_id && onRequestRoll && (
+          <button
+            ref={rollBtnRef}
+            onClick={e => { e.stopPropagation(); onRequestRoll(member, rollBtnRef.current?.getBoundingClientRect()); }}
+            title="Request a roll"
+            style={{
+              background:   'none',
+              border:       'none',
+              cursor:       'pointer',
+              color:        'var(--text-faint)',
+              display:      'flex',
+              alignItems:   'center',
+              padding:      '2px',
+              borderRadius: '4px',
+              transition:   'color 0.1s ease',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+          >
+            <span className="icon icon-sm">casino</span>
+          </button>
+        )}
+        {member.character_id && onOpenSheet && (
+          <button
+            onClick={e => { e.stopPropagation(); onOpenSheet(member); }}
+            title="View character sheet"
+            style={{
+              background:   'none',
+              border:       'none',
+              cursor:       'pointer',
+              color:        'var(--text-faint)',
+              display:      'flex',
+              alignItems:   'center',
+              padding:      '2px',
+              borderRadius: '4px',
+              transition:   'color 0.1s ease',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+          >
+            <span className="icon icon-sm">open_in_new</span>
+          </button>
+        )}
+      </div>
+
       {/* Header */}
       <div style={{
         display:       'flex',
@@ -72,10 +106,10 @@ export default function KeeperPlayerCard({ member, onOpenSheet }) {
 
         <div>
           <div style={{
-            fontFamily:  'var(--font-serif)',
-            fontSize:    '15px',
-            color:       'var(--text-primary)',
-            lineHeight:  '1.2',
+            fontFamily: 'var(--font-serif)',
+            fontSize:   '15px',
+            color:      'var(--text-primary)',
+            lineHeight: '1.2',
           }}>
             {character_name || 'No investigator'}
           </div>
@@ -89,7 +123,7 @@ export default function KeeperPlayerCard({ member, onOpenSheet }) {
         </div>
       </div>
 
-      {/* Stats — placeholder values until live sheet data arrives */}
+      {/* Stats */}
       <div style={{
         display:             'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
@@ -101,11 +135,11 @@ export default function KeeperPlayerCard({ member, onOpenSheet }) {
           { label: 'SAN', cur: member.sanity,     max: member.sanity_max,    color: 'var(--warning)' },
         ].map(stat => (
           <div key={stat.label} style={{
-            textAlign:  'center',
-            background: 'var(--bg-section-hd)',
+            textAlign:   'center',
+            background:  'var(--bg-section-hd)',
             borderRadius:'6px',
-            padding:    '6px 4px',
-            border:     '1px solid var(--border-main)',
+            padding:     '6px 4px',
+            border:      '1px solid var(--border-main)',
           }}>
             <div style={{
               fontSize:      '10px',
@@ -127,6 +161,48 @@ export default function KeeperPlayerCard({ member, onOpenSheet }) {
           </div>
         ))}
       </div>
+
+      {/* Pending roll requests */}
+      {pending.length > 0 && (
+        <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {pending.map(({ requestId, rollName }) => (
+            <div
+              key={requestId}
+              style={{
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'space-between',
+                padding:        '4px 8px',
+                background:     'var(--accent-bg)',
+                border:         '1px solid var(--accent)',
+                borderRadius:   '6px',
+                fontSize:       '12px',
+                color:          'var(--accent)',
+                fontFamily:     'var(--font-sans)',
+              }}
+            >
+              <span>{rollName} requested...</span>
+              <button
+                onClick={() => onCancelRequest(requestId)}
+                title="Cancel request"
+                style={{
+                  background:   'none',
+                  border:       'none',
+                  cursor:       'pointer',
+                  color:        'var(--accent)',
+                  padding:      '0 2px',
+                  display:      'flex',
+                  alignItems:   'center',
+                  lineHeight:   1,
+                  fontSize:     '14px',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

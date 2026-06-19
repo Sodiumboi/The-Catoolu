@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import ReadOnlySheet from './ReadOnlySheet';
+import HandoutLibrary from './handouts/HandoutLibrary';
 
 const TABS = [
   { id: 'info',        label: 'Info'        },
@@ -9,9 +10,9 @@ const TABS = [
   { id: 'danger-zone', label: 'Danger Zone', icon: 'warning' },
 ];
 
-export default function KeeperCampaignDetail({ campaign, onBack }) {
+export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
   const navigate = useNavigate();
-  const [activeTab,    setActiveTab]    = useState('info');
+  const [activeTab,    setActiveTab]    = useState(initialTab ?? 'info');
   const [members,      setMembers]      = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [showInvite,   setShowInvite]   = useState(false);
@@ -150,18 +151,7 @@ export default function KeeperCampaignDetail({ campaign, onBack }) {
 
         {/* ── HANDOUTS TAB ── */}
         {activeTab === 'handouts' && (
-          <div style={{ textAlign:'center', padding:'60px 20px' }}>
-            <div style={{ fontSize:'48px', marginBottom:'12px', opacity:0.3 }}>📎</div>
-            <p style={{
-              fontFamily:'var(--font-serif)', fontSize:'18px',
-              color:'var(--text-primary)', margin:'0 0 8px',
-            }}>
-              Handouts
-            </p>
-            <p style={{ fontSize:'13px', color:'var(--text-muted)' }}>
-              Coming in v2.0 — Shub-Niggurath
-            </p>
-          </div>
+          <HandoutLibrary campaignUuid={campaign.uuid} />
         )}
 
         {/* ── DANGER ZONE TAB ── */}

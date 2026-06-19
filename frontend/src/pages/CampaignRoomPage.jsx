@@ -18,6 +18,26 @@ import ReadOnlySheet       from '../components/ReadOnlySheet';
 import RoomSubNav          from '../components/RoomSubNav';
 import NotesWindow         from '../components/NotesWindow';
 import NotesPane           from '../components/notes/NotesPane';
+import RollRequestPill     from '../components/RollRequestPill';
+import KeeperRollPicker    from '../components/KeeperRollPicker';
+import KeeperHandoutPanel  from '../components/handouts/KeeperHandoutPanel';
+import PlayerHandoutTab    from '../components/handouts/PlayerHandoutTab';
+import HandoutViewer       from '../components/handouts/HandoutViewer';
+
+// ── Resolve a skill/stat value from full character data ────────
+function resolveRollValue(charData, rollType, rollName) {
+  if (!charData?.sheet_data?.Investigator) return null;
+  const inv = charData.sheet_data.Investigator;
+  if (rollType === 'stat') return parseInt(inv.Characteristics?.[rollName]) || null;
+  const skills = inv?.Skills?.Skill || [];
+  for (const s of skills) {
+    const display = s.subskill && s.subskill.toLowerCase() !== 'none'
+      ? s.name + ' (' + s.subskill + ')'
+      : s.name;
+    if (display === rollName || s.name === rollName) return parseInt(s.value) || null;
+  }
+  return null;
+}
 
 // ── Roll context label builder ─────────────────────────────────
 function getRollLabel(skillName, statName) {
@@ -35,7 +55,7 @@ export default function CampaignRoomPage() {
   const { socket, connected }     = useSocket();
   const { user }                  = useAuth();
   const { enterRoom, leaveRoom }  = useCampaign();
-  const { sheetFontScale, roomFontScale } = useTheme();
+  const { sheetFontScale, roomFontScale, memeEnabled } = useTheme();
 
   // ── Core state ────────────────────────────────────────────────
   const [campaign,      setCampaign]      = useState(null);
@@ -63,34 +83,61 @@ export default function CampaignRoomPage() {
   const [rollPopup,          setRollPopup]          = useState(null);
   const [keeperSheetModal,   setKeeperSheetModal]   = useState(null);
   const [myCharFullData, setMyCharFullData] = useState(null);
+  const [rollRequests,      setRollRequests]      = useState([]);
+  const [pendingRollReqs,   setPendingRollReqs]   = useState({});
+  const [memberSheetCache,  setMemberSheetCache]  = useState({});
+  const [attachedFile,      setAttachedFile]      = useState(null);
+  const [sharedHandouts,    setSharedHandouts]    = useState([]);
+  const [newHandoutCount,   setNewHandoutCount]   = useState(0);
+  const [viewingHandout,    setViewingHandout]    = useState(null);
+  const [keeperRollPicker,  setKeeperRollPicker]  = useState(null);
   const [leftWidth,     setLeftWidth]     = useState(() => {
     const saved = parseInt(localStorage.getItem('sheet-panel-width'));
     return saved && saved >= 480 && saved <= 640 ? saved : 480;
   });
   // rollPopup: { label, value, mode, top, left }
   const forceMemeNextRollRef  = useRef(false);
+  const memeEnabledRef        = useRef(memeEnabled);
   const historyLoadedRef      = useRef(false);
   const isDraggingRef         = useRef(false);
   const dragStartXRef         = useRef(0);
   const dragStartWidthRef     = useRef(400);
 
+  // Keep meme-toggle ref current for use inside socket-handler closures
+  useEffect(() => { memeEnabledRef.current = memeEnabled; }, [memeEnabled]);
+
   // ── Load campaign + messages ──────────────────────────────────
   useEffect(() => {
     const load = async () => {
       try {
-        const [campRes, msgRes, charRes] = await Promise.all([
+        const [campRes, msgRes, charRes, sharedRes] = await Promise.all([
           apiClient.get('/campaigns/' + uuid),
           apiClient.get('/campaigns/' + uuid + '/messages?limit=50'),
           apiClient.get('/characters'),
+          apiClient.get('/campaigns/' + uuid + '/handouts/shared'),
         ]);
 
         const camp = campRes.data.campaign;
         setCampaign(camp);
         setMembers(camp.members || []);
         setMyRole(camp.my_role);
-        setMessages(msgRes.data.messages);
+        const shares = sharedRes.data || [];
+        // Synthesize handout shares into the chat feed (they're not in the messages table)
+        const handoutFeedItems = shares.map(s => ({
+          id:         s.share_uuid,
+          type:       'handout_share',
+          handout:    s.handout,
+          user_id:    s.shared_by_id,
+          username:   s.shared_by,
+          avatar_url: s.avatar_url,
+          created_at: s.shared_at,
+        }));
+        const allMessages = [...msgRes.data.messages, ...handoutFeedItems]
+          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        setMessages(allMessages);
         historyLoadedRef.current = true;
         setMyCharacters(charRes.data.characters || []);
+        setSharedHandouts(shares);
 
         // Check if character already registered
         const me = camp.members?.find(m => m.id === user?.id);
@@ -152,6 +199,27 @@ export default function CampaignRoomPage() {
                 m.id === msg.user_id ? { ...m, [field]: String(parsed.newVal) } : m
               ));
             }
+            // Keep the sheet cache in sync so the roll picker always shows current values
+            setMemberSheetCache(prev => {
+              const cached = prev[msg.user_id];
+              if (!cached) return prev;
+              return {
+                ...prev,
+                [msg.user_id]: {
+                  ...cached,
+                  sheet_data: {
+                    ...cached.sheet_data,
+                    Investigator: {
+                      ...cached.sheet_data?.Investigator,
+                      Characteristics: {
+                        ...cached.sheet_data?.Investigator?.Characteristics,
+                        [parsed.stat]: String(parsed.newVal),
+                      },
+                    },
+                  },
+                },
+              };
+            });
           }
         } catch {}
       }
@@ -160,7 +228,8 @@ export default function CampaignRoomPage() {
         const raw = typeof msg.content === 'string'
           ? (() => { try { return JSON.parse(msg.content); } catch { return null; } })()
           : msg.content;
-        if (raw?.notation?.toLowerCase().includes('d100') &&
+        if (memeEnabledRef.current &&
+            raw?.notation?.toLowerCase().includes('d100') &&
             (raw.total === 1 || raw.total === 100)) {
           const colors = raw.total === 100
             ? ['#7f0000', '#ff6b6b', '#1a0000']
@@ -214,24 +283,82 @@ export default function CampaignRoomPage() {
       ));
     };
 
-    socket.on('joined',           onJoined);
-    socket.on('receive_message',  onMessage);
-    socket.on('user_joined',      onUserJoined);
-    socket.on('user_left',        onUserLeft);
-    socket.on('typing_start',     onTypingStart);
-    socket.on('typing_stop',      onTypingStop);
-    socket.on('afk_change',       onAfkChange);
-    socket.on('character_change', onCharacterChange);
+    const onKeeperRollRequest = (data) => {
+      setRollRequests(prev => {
+        if (prev.some(r => r.requestId === data.requestId)) return prev;
+        return [...prev, data];
+      });
+    };
+
+    const onKeeperRollRequestCancel = ({ requestId }) => {
+      setRollRequests(prev => prev.filter(r => r.requestId !== requestId));
+    };
+
+    const onPlayerRollResponse = ({ requestId }) => {
+      setPendingRollReqs(prev => {
+        const next = { ...prev };
+        delete next[requestId];
+        return next;
+      });
+    };
+
+    const onHandoutShared = (data) => {
+      setMessages(prev => {
+        if (prev.some(m => m.id === data.share_uuid)) return prev;
+        return [...prev, {
+          id:         data.share_uuid,
+          type:       'handout_share',
+          handout:    data.handout,
+          user_id:    data.shared_by_id,
+          username:   data.shared_by,
+          avatar_url: data.avatar_url,
+          created_at: data.shared_at,
+        }];
+      });
+      setSharedHandouts(prev => {
+        if (prev.some(s => s.share_uuid === data.share_uuid)) return prev;
+        return [...prev, {
+          share_uuid: data.share_uuid,
+          shared_at:  data.shared_at,
+          shared_by:  data.shared_by,
+          handout:    data.handout,
+        }];
+      });
+      setNewHandoutCount(prev => prev + 1);
+    };
+
+    const onMessageDeleted = ({ id }) => {
+      setMessages(prev => prev.filter(m => m.id !== id));
+    };
+
+    socket.on('joined',                    onJoined);
+    socket.on('receive_message',           onMessage);
+    socket.on('user_joined',               onUserJoined);
+    socket.on('user_left',                 onUserLeft);
+    socket.on('typing_start',              onTypingStart);
+    socket.on('typing_stop',               onTypingStop);
+    socket.on('afk_change',               onAfkChange);
+    socket.on('character_change',          onCharacterChange);
+    socket.on('keeper:roll_request',       onKeeperRollRequest);
+    socket.on('keeper:roll_request_cancel', onKeeperRollRequestCancel);
+    socket.on('player:roll_response',      onPlayerRollResponse);
+    socket.on('handout:shared',            onHandoutShared);
+    socket.on('message:deleted',           onMessageDeleted);
 
     return () => {
-      socket.off('joined',           onJoined);
-      socket.off('receive_message',  onMessage);
-      socket.off('user_joined',      onUserJoined);
-      socket.off('user_left',        onUserLeft);
-      socket.off('typing_start',     onTypingStart);
-      socket.off('typing_stop',      onTypingStop);
-      socket.off('afk_change',       onAfkChange);
-      socket.off('character_change', onCharacterChange);
+      socket.off('joined',                    onJoined);
+      socket.off('receive_message',           onMessage);
+      socket.off('user_joined',               onUserJoined);
+      socket.off('user_left',                 onUserLeft);
+      socket.off('typing_start',              onTypingStart);
+      socket.off('typing_stop',               onTypingStop);
+      socket.off('afk_change',               onAfkChange);
+      socket.off('character_change',          onCharacterChange);
+      socket.off('keeper:roll_request',       onKeeperRollRequest);
+      socket.off('keeper:roll_request_cancel', onKeeperRollRequestCancel);
+      socket.off('player:roll_response',      onPlayerRollResponse);
+      socket.off('handout:shared',            onHandoutShared);
+      socket.off('message:deleted',           onMessageDeleted);
     };
   }, [socket, connected, loading, error, uuid, campaign]);
 
@@ -240,6 +367,19 @@ export default function CampaignRoomPage() {
       enterRoom(campaign?.id, campaign.name, campaign?.uuid);
     }
   }, [campaign, inRoom]);
+
+  const handleDeleteMessage = async (msg) => {
+    try {
+      if (msg.type === 'handout_share') {
+        await apiClient.delete(`/campaigns/${uuid}/handouts/shares/${msg.id}`);
+      } else {
+        await apiClient.delete(`/campaigns/${uuid}/messages/${msg.id}`);
+      }
+      // Socket event 'message:deleted' will remove it from all clients' feeds
+    } catch (err) {
+      console.error('Delete message failed', err);
+    }
+  };
 
   // Fetch full sheet data whenever the active character changes
   useEffect(() => {
@@ -281,11 +421,40 @@ export default function CampaignRoomPage() {
     e.preventDefault();
   };
 
+  // ── Attachment file validation ────────────────────────────────
+  const handleFileSelect = (file) => {
+    if (!file.type.startsWith('image/')) { alert('Only image files can be attached.'); return; }
+    if (file.size > 5 * 1024 * 1024)    { alert('Image must be under 5MB.');           return; }
+    setAttachedFile(file);
+  };
+
   // ── Send handler ──────────────────────────────────────────────
   const handleSend = async (inputText, shiftKey = false) => {
     if (!socket || !inRoom) return;
 
     if (afk) handleToggleAfk();
+
+    // Upload + share attachment if present
+    if (attachedFile) {
+      const file = attachedFile;
+      setAttachedFile(null);
+      try {
+        const fd = new FormData();
+        fd.append('type', 'image');
+        fd.append('title', file.name.replace(/\.[^/.]+$/, ''));
+        fd.append('file', file);
+        const uploadRes = await apiClient.post(
+          '/campaigns/' + uuid + '/handouts',
+          fd,
+          { headers: { 'Content-Type': 'multipart/form-data' } }
+        );
+        await apiClient.post(
+          '/campaigns/' + uuid + '/handouts/' + uploadRes.data.uuid + '/share'
+        );
+      } catch (err) {
+        console.error('[attach send] failed:', err?.response?.data || err?.message);
+      }
+    }
 
     const trimmed = inputText.trim();
     const isRoll  = trimmed.startsWith('/roll') || trimmed.startsWith('/r ') || trimmed === '/r';
@@ -299,7 +468,7 @@ export default function CampaignRoomPage() {
       }
 
       const isD100 = notation.toLowerCase().includes('d100');
-      if (shiftKey && isD100) {
+      if (shiftKey && isD100 && memeEnabledRef.current) {
         [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(o =>
           confetti({ particleCount: 100, spread: 80, origin: o, colors: ['#3B6D11', '#C0DD97', '#F59E0B'] })
         );
@@ -484,6 +653,124 @@ export default function CampaignRoomPage() {
     }
   };
 
+  // ── Keeper roll request ────────────────────────────────────────
+  const handleOpenRollPicker = async (member, anchorRect) => {
+    const cached = memberSheetCache[member.id];
+    if (cached) {
+      setKeeperRollPicker({ member, charData: cached, anchorRect, allMode: false });
+      return;
+    }
+    try {
+      const res = await apiClient.get('/characters/' + member.character_uuid);
+      const data = res.data.character;
+      setMemberSheetCache(prev => ({ ...prev, [member.id]: data }));
+      setKeeperRollPicker({ member, charData: data, anchorRect, allMode: false });
+    } catch { /* silently fail */ }
+  };
+
+  const handleOpenAllRollPicker = async (anchorRect) => {
+    const players = members.filter(m => m.role === 'player' && m.character_uuid);
+    if (!players.length) return;
+    // Use first available cached sheet; fall back to fetching the first player's sheet for skill names
+    const cached = memberSheetCache[players[0].id];
+    if (cached) {
+      setKeeperRollPicker({ member: null, charData: cached, anchorRect, allMode: true });
+      return;
+    }
+    try {
+      const res = await apiClient.get('/characters/' + players[0].character_uuid);
+      const data = res.data.character;
+      setMemberSheetCache(prev => ({ ...prev, [players[0].id]: data }));
+      setKeeperRollPicker({ member: null, charData: data, anchorRect, allMode: true });
+    } catch { /* silently fail */ }
+  };
+
+  const handlePickerSelect = async (rollType, rollName, rollValue) => {
+    setKeeperRollPicker(null);
+    if (!socket || !inRoom) return;
+    const requestId = crypto.randomUUID();
+    const { member, allMode } = keeperRollPicker;
+
+    if (allMode) {
+      const players = members.filter(m => m.role === 'player' && m.character_uuid);
+      // Fetch any un-cached sheets so we can send per-player values
+      const sheets = await Promise.all(
+        players.map(async m => {
+          if (memberSheetCache[m.id]) return { userId: m.id, charData: memberSheetCache[m.id] };
+          try {
+            const res = await apiClient.get('/characters/' + m.character_uuid);
+            setMemberSheetCache(prev => ({ ...prev, [m.id]: res.data.character }));
+            return { userId: m.id, charData: res.data.character };
+          } catch { return { userId: m.id, charData: null }; }
+        })
+      );
+
+      const playerValues = sheets.map(({ userId, charData }) => {
+        const val = resolveRollValue(charData, rollType, rollName);
+        return { userId, rollValue: val };
+      });
+
+      socket.emit('keeper:roll_request', {
+        campaignId:   campaign?.id,
+        targetUserId: 'all',
+        rollType,
+        rollName,
+        players:      playerValues,
+        requestId,
+      });
+
+      const newPending = {};
+      players.forEach(m => {
+        newPending[requestId + ':' + m.id] = { memberId: m.id, rollName, requestId };
+      });
+      setPendingRollReqs(prev => ({ ...prev, ...newPending }));
+    } else {
+      socket.emit('keeper:roll_request', {
+        campaignId:   campaign?.id,
+        targetUserId: member.id,
+        rollType,
+        rollName,
+        rollValue,
+        requestId,
+      });
+      setPendingRollReqs(prev => ({
+        ...prev,
+        [requestId]: { memberId: member.id, rollName, requestId },
+      }));
+    }
+  };
+
+  const handleCancelRollRequest = (requestId) => {
+    if (!socket || !inRoom) return;
+    socket.emit('keeper:roll_request_cancel', { campaignId: campaign?.id, requestId });
+    setPendingRollReqs(prev => {
+      const next = { ...prev };
+      // Remove both plain requestId and composite "requestId:userId" keys
+      Object.keys(next).forEach(k => {
+        if (k === requestId || k.startsWith(requestId + ':')) delete next[k];
+      });
+      return next;
+    });
+  };
+
+  const handlePillRoll = (rollName, rollValue, requestId) => {
+    if (!socket || !inRoom) return;
+    const suffix   = advMode ? 'adv' : disMode ? 'dis' : '';
+    const notation = '1d100' + suffix;
+    socket.emit('player:roll_response', {
+      campaignId: campaign?.id,
+      requestId,
+      rollName,
+      rollValue,
+      notation,
+    });
+    setRollRequests(prev => prev.filter(r => r.requestId !== requestId));
+  };
+
+  const handlePillDismiss = (requestId) => {
+    setRollRequests(prev => prev.filter(r => r.requestId !== requestId));
+  };
+
   // ── Adv/Dis toggle ────────────────────────────────────────────
   const handleToggleAdv = () => { setAdvMode(p => !p); setDisMode(false); };
   const handleToggleDis = () => { setDisMode(p => !p); setAdvMode(false); };
@@ -556,6 +843,27 @@ export default function CampaignRoomPage() {
       overflow:      'hidden',
     }}>
 
+
+{/* Player: incoming keeper roll request pills */}
+      {myRole !== 'keeper' && (
+        <RollRequestPill
+          requests={rollRequests}
+          myCharFullData={myCharFullData}
+          onRoll={handlePillRoll}
+          onDismiss={handlePillDismiss}
+        />
+      )}
+
+      {/* Keeper: skill/stat picker popover */}
+      {keeperRollPicker && (
+        <KeeperRollPicker
+          charData={keeperRollPicker.charData}
+          anchorRect={keeperRollPicker.anchorRect}
+          allMode={keeperRollPicker.allMode}
+          onPick={handlePickerSelect}
+          onClose={() => setKeeperRollPicker(null)}
+        />
+      )}
 
 {/* Skill roll popup */}
       {rollPopup && (
@@ -693,11 +1001,12 @@ export default function CampaignRoomPage() {
         {/* Left: sub-nav + character sheet OR Keeper player cards */}
         {(() => {
           const playerTabs = [
-            { id: 'main', label: 'Sheet' },
+            { id: 'main',     label: 'Sheet' },
+            { id: 'handouts', label: 'Handouts', badge: newHandoutCount },
           ];
           const keeperTabs = [
             { id: 'main',     label: 'Players' },
-            { id: 'handouts', label: 'Handouts', comingSoon: true },
+            { id: 'handouts', label: 'Handouts' },
             { id: 'notes',    label: 'Notes' },
           ];
           const tabs = myRole === 'keeper' ? keeperTabs : playerTabs;
@@ -732,7 +1041,14 @@ export default function CampaignRoomPage() {
               overflow:      'hidden',
               '--sheet-font-scale': sheetFontScale,
             }}>
-              <RoomSubNav tabs={tabs} activeTab={subTab} onTabChange={setSubTab} />
+              <RoomSubNav
+                tabs={tabs}
+                activeTab={subTab}
+                onTabChange={(tab) => {
+                  setSubTab(tab);
+                  if (tab === 'handouts') setNewHandoutCount(0);
+                }}
+              />
 
               <div key={subTab} className="animate-fade" style={{
                 flex:          1,
@@ -743,6 +1059,13 @@ export default function CampaignRoomPage() {
               }}>
                 {subTab === 'notes' && myRole === 'keeper' ? (
                   <NotesPane contextTagType="session" contextTag={campaign?.name} />
+                ) : subTab === 'handouts' && myRole === 'keeper' ? (
+                  <KeeperHandoutPanel campaignUuid={campaign?.uuid} />
+                ) : subTab === 'handouts' ? (
+                  <PlayerHandoutTab
+                    sharedHandouts={sharedHandouts}
+                    onView={(handout) => setViewingHandout(handout)}
+                  />
                 ) : subTab !== 'main' ? comingSoonPanel : myRole === 'keeper' ? (
                   keeperSheetModal ? (
                     <>
@@ -786,21 +1109,64 @@ export default function CampaignRoomPage() {
                   ) : (
                     <>
                       <div style={{
-                        fontSize:      '11px',
-                        fontWeight:    '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.07em',
-                        color:         'var(--text-muted)',
-                        marginBottom:  '10px',
-                        fontFamily:    'var(--font-sans)',
+                        display:        'flex',
+                        alignItems:     'center',
+                        justifyContent: 'space-between',
+                        marginBottom:   '10px',
                       }}>
-                        Investigators ({members.filter(m => m.role === 'player').length})
+                        <div style={{
+                          fontSize:      '11px',
+                          fontWeight:    '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.07em',
+                          color:         'var(--text-muted)',
+                          fontFamily:    'var(--font-sans)',
+                        }}>
+                          Investigators ({members.filter(m => m.role === 'player').length})
+                        </div>
+                        {members.some(m => m.role === 'player' && m.character_uuid) && (
+                          <button
+                            onClick={e => handleOpenAllRollPicker(e.currentTarget.getBoundingClientRect())}
+                            title="Request a roll from all players"
+                            style={{
+                              display:      'flex',
+                              alignItems:   'center',
+                              gap:          '4px',
+                              padding:      '3px 8px',
+                              borderRadius: '6px',
+                              border:       '1px solid var(--border-main)',
+                              background:   'none',
+                              color:        'var(--text-muted)',
+                              fontFamily:   'var(--font-sans)',
+                              fontSize:     '11px',
+                              cursor:       'pointer',
+                              transition:   'all 0.1s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-main)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                          >
+                            <span className="icon icon-sm">casino</span>
+                            Request All
+                          </button>
+                        )}
                       </div>
                       {members
                         .filter(m => m.role === 'player')
-                        .map(member => (
-                          <KeeperPlayerCard key={member.id} member={member} onOpenSheet={handleOpenKeeperSheet} />
-                        ))
+                        .map(member => {
+                          const memberPending = Object.values(pendingRollReqs).filter(
+                            p => p.memberId === member.id
+                          );
+                          return (
+                            <KeeperPlayerCard
+                              key={member.id}
+                              member={member}
+                              onOpenSheet={handleOpenKeeperSheet}
+                              onRequestRoll={handleOpenRollPicker}
+                              pendingRequests={memberPending}
+                              onCancelRequest={handleCancelRollRequest}
+                            />
+                          );
+                        })
                       }
                       {members.filter(m => m.role === 'player').length === 0 && (
                         <div style={{
@@ -868,6 +1234,8 @@ export default function CampaignRoomPage() {
           <RollFeed
             messages={messages}
             currentUserId={user?.id}
+            myRole={myRole}
+            onDeleteMessage={handleDeleteMessage}
           />
 
           {/* Typing indicator */}
@@ -890,7 +1258,7 @@ export default function CampaignRoomPage() {
             onToggleVisibility={() => setRollVisibility(p => p === 'everyone' ? 'only_me' : 'everyone')}
             onRoll={(notation, shiftKey) => {
               const isD100 = notation.toLowerCase().includes('d100');
-              if (shiftKey && isD100) {
+              if (shiftKey && isD100 && memeEnabledRef.current) {
                 [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(origin =>
                   confetti({ particleCount: 100, spread: 80, origin,
                     colors: ['#3B6D11', '#C0DD97', '#F59E0B'] })
@@ -936,6 +1304,9 @@ export default function CampaignRoomPage() {
             onTyping={handleTyping}
             onStopTyping={handleStopTyping}
             disabled={!connected || !inRoom}
+            attachedFile={attachedFile}
+            onFileSelect={handleFileSelect}
+            onClearAttachment={() => setAttachedFile(null)}
           />
         </div>
 
@@ -954,6 +1325,13 @@ export default function CampaignRoomPage() {
       </div>
 
       </div>{/* end animate-fade-rise wrapper */}
+
+      {viewingHandout && (
+        <HandoutViewer
+          handout={viewingHandout}
+          onClose={() => setViewingHandout(null)}
+        />
+      )}
 
     </div>
   );

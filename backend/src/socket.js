@@ -14,6 +14,10 @@ const EVENTS = {
   STOP_TYPING:     'stop_typing',
   AFK_CHANGE:        'afk_change',
   CHARACTER_CHANGE:  'character_change',
+  KEEPER_ROLL_REQUEST:        'keeper:roll_request',
+  KEEPER_ROLL_REQUEST_CANCEL: 'keeper:roll_request_cancel',
+  PLAYER_ROLL_RESPONSE:       'player:roll_response',
+  HANDOUT_SHARED:             'handout:shared',
 
   // Server → Client
   JOINED:          'joined',
@@ -424,6 +428,85 @@ function setupSocket(httpServer) {
       } catch (err) {
         console.error('character_change error:', err);
       }
+    });
+
+    // ── KEEPER_ROLL_REQUEST ────────────────────────────────────
+    // Routes a roll request to one player (via their personal room) or all players.
+    socket.on(EVENTS.KEEPER_ROLL_REQUEST, ({ campaignId, targetUserId, rollType, rollName, rollValue, players, requestId }) => {
+      if (targetUserId === 'all' && players) {
+        players.forEach(({ userId, rollValue: pVal }) => {
+          io.to('user:' + userId).emit(EVENTS.KEEPER_ROLL_REQUEST, {
+            rollType, rollName, rollValue: pVal, requestId,
+          });
+        });
+      } else {
+        io.to('user:' + targetUserId).emit(EVENTS.KEEPER_ROLL_REQUEST, {
+          rollType, rollName, rollValue, requestId,
+        });
+      }
+    });
+
+    // ── PLAYER_ROLL_RESPONSE ────────────────────────────────────
+    // Player responds to a keeper roll request — server rolls, saves, and broadcasts.
+    socket.on(EVENTS.PLAYER_ROLL_RESPONSE, async ({ campaignId, requestId, rollName, rollValue, notation }) => {
+      try {
+        const safeNotation = /^1d100(adv|dis)?$/i.test(notation ?? '') ? notation : '1d100';
+        const result = roll(safeNotation, rollValue, rollName);
+        if (result.error) return;
+
+        const [userRes, charRes] = await Promise.all([
+          pool.query('SELECT avatar_url FROM users WHERE id = $1', [socket.user.id]),
+          pool.query(
+            `SELECT c.portrait_data AS portrait,
+                    sheet_data->'Investigator'->'PersonalDetails'->>'Name' AS character_name
+             FROM characters c
+             JOIN campaign_members cm ON cm.character_id = c.id
+             WHERE cm.campaign_id = $1 AND cm.user_id = $2
+             LIMIT 1`,
+            [campaignId, socket.user.id]
+          ),
+        ]);
+
+        const avatarUrl     = userRes.rows[0]?.avatar_url     || null;
+        const portrait      = charRes.rows[0]?.portrait       || null;
+        const characterName = charRes.rows[0]?.character_name || null;
+
+        const rollContent = { ...result, forced: true };
+
+        const dbResult = await pool.query(
+          `INSERT INTO messages
+             (campaign_id, user_id, type, content, avatar_url, portrait, character_name)
+           VALUES ($1, $2, 'roll', $3, $4, $5, $6)
+           RETURNING id, type, content, created_at, avatar_url, portrait, character_name`,
+          [campaignId, socket.user.id, JSON.stringify(rollContent), avatarUrl, portrait, characterName]
+        );
+
+        const message = {
+          ...dbResult.rows[0],
+          campaign_id:   campaignId,
+          campaign_name: socket.currentCampaignName,
+          user_id:       socket.user.id,
+          username:      socket.user.username,
+          content:       rollContent,
+        };
+
+        io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, message);
+
+        // Notify clients to clear the pending request indicator
+        io.to(roomName(campaignId)).emit(EVENTS.PLAYER_ROLL_RESPONSE, {
+          requestId,
+          userId:   socket.user.id,
+          username: socket.user.username,
+        });
+      } catch (err) {
+        console.error('player:roll_response error:', err);
+      }
+    });
+
+    // ── KEEPER_ROLL_REQUEST_CANCEL ──────────────────────────────
+    // Keeper cancels a pending roll request — removes pill from player's screen.
+    socket.on(EVENTS.KEEPER_ROLL_REQUEST_CANCEL, ({ campaignId, requestId }) => {
+      io.to(roomName(campaignId)).emit(EVENTS.KEEPER_ROLL_REQUEST_CANCEL, { requestId });
     });
 
     // ── DISCONNECT ─────────────────────────────────────────────
