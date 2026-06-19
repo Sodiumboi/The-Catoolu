@@ -1,4 +1,4 @@
-const { PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { PutObjectCommand, DeleteObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
 const r2 = require('../config/r2');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
@@ -36,6 +36,26 @@ async function deleteFromR2(publicUrl) {
   }));
 }
 
+/**
+ * Look up an object's size (bytes) from R2 by its public URL.
+ * Returns 0 if the object is missing or the HEAD request fails.
+ * @param {string} publicUrl
+ * @returns {Promise<number>}
+ */
+async function getR2Size(publicUrl) {
+  if (!publicUrl || !publicUrl.startsWith(process.env.R2_PUBLIC_URL)) return 0;
+  const key = publicUrl.replace(`${process.env.R2_PUBLIC_URL}/`, '');
+  try {
+    const res = await r2.send(new HeadObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: key,
+    }));
+    return Number(res.ContentLength) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 function getContentType(ext) {
   const types = {
     '.jpg': 'image/jpeg',
@@ -47,4 +67,4 @@ function getContentType(ext) {
   return types[ext] || 'application/octet-stream';
 }
 
-module.exports = { uploadToR2, deleteFromR2 };
+module.exports = { uploadToR2, deleteFromR2, getR2Size };

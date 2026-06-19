@@ -490,7 +490,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
                       />
                     )}
                     {panel === 'quota' && (
-                      <QuotaPanel setPanel={setPanel} />
+                      <QuotaPanel setPanel={setPanel} navigate={navigate} onClose={() => setDropdownOpen(false)} />
                     )}
                   </div>
                 </div>
@@ -942,7 +942,7 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
 }
 
 // ── Upload Quota panel ─────────────────────────────────────
-function QuotaPanel({ setPanel }) {
+function QuotaPanel({ setPanel, navigate, onClose }) {
   const [quota, setQuota] = useState(null);
 
   const load = () => {
@@ -957,10 +957,18 @@ function QuotaPanel({ setPanel }) {
     return () => clearInterval(id);
   }, []);
 
-  const used  = quota?.used  ?? 0;
-  const limit = quota?.limit ?? 20;
-  const pct   = Math.min(100, Math.round((used / limit) * 100));
-  const color = pct >= 90 ? 'var(--danger)' : pct >= 60 ? '#d97706' : 'var(--color-primary)';
+  const fmt = (b) => {
+    const m = b / (1024 * 1024);
+    return m >= 10 ? Math.round(m) : Math.round(m * 10) / 10;
+  };
+  const barColor = (pct) => pct >= 90 ? 'var(--danger)' : pct >= 60 ? '#d97706' : 'var(--color-primary)';
+
+  const totalUsed  = quota?.totalUsed  ?? 0;
+  const totalLimit = quota?.totalLimit ?? 200 * 1024 * 1024;
+  const winUsed    = quota?.windowUsed ?? 0;
+  const winLimit   = quota?.windowLimit ?? 50 * 1024 * 1024;
+  const totalPct   = Math.min(100, Math.round((totalUsed / totalLimit) * 100));
+  const winPct     = Math.min(100, Math.round((winUsed / winLimit) * 100));
 
   return (
     <>
@@ -995,34 +1003,53 @@ function QuotaPanel({ setPanel }) {
       {/* Content */}
       <div style={{ padding: '16px 14px 18px' }}>
 
-        {/* Counter */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+        {/* Total storage */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
           <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Avatars uploaded
+            Storage used
           </span>
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: '600', color }}>
-            {used} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>/ {limit}</span>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: '600', color: barColor(totalPct) }}>
+            {fmt(totalUsed)} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>/ {fmt(totalLimit)} MB</span>
           </span>
+        </div>
+        <div style={{ height: '8px', borderRadius: '4px', background: 'var(--border-main)', overflow: 'hidden', marginBottom: '14px' }}>
+          <div style={{ height: '100%', width: `${totalPct}%`, borderRadius: '4px', background: barColor(totalPct), transition: 'width 0.4s ease, background 0.3s ease' }} />
         </div>
 
-        {/* Bar */}
-        <div style={{
-          height: '8px', borderRadius: '4px',
-          background: 'var(--border-main)', overflow: 'hidden', marginBottom: '10px',
-        }}>
-          <div style={{
-            height: '100%', width: `${pct}%`,
-            borderRadius: '4px', background: color,
-            transition: 'width 0.4s ease, background 0.3s ease',
-          }} />
+        {/* 5-minute rate */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+            Uploaded · last 5 min
+          </span>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: '600', color: barColor(winPct) }}>
+            {fmt(winUsed)} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>/ {fmt(winLimit)} MB</span>
+          </span>
+        </div>
+        <div style={{ height: '8px', borderRadius: '4px', background: 'var(--border-main)', overflow: 'hidden', marginBottom: '10px' }}>
+          <div style={{ height: '100%', width: `${winPct}%`, borderRadius: '4px', background: barColor(winPct), transition: 'width 0.4s ease, background 0.3s ease' }} />
         </div>
 
-        <div style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--text-faint)', lineHeight: 1.5 }}>
-          Limit resets every 60 seconds.
-          {quota?.resetIn > 0 && (
-            <> Oldest upload expires in ~{Math.ceil(quota.resetIn / 1000)}s.</>
-          )}
+        <div style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--text-faint)', lineHeight: 1.5, marginBottom: '14px' }}>
+          200&nbsp;MB total &middot; 50&nbsp;MB per 5 minutes.
         </div>
+
+        {/* Manage files → */}
+        <button
+          onClick={() => { navigate('/files'); onClose?.(); }}
+          style={{
+            width: '100%', padding: '8px 12px',
+            border: '1px solid var(--color-primary-mid)', borderRadius: '8px',
+            background: 'var(--accent-bg)', color: 'var(--accent)',
+            fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 500,
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', gap: '6px', transition: 'background 0.1s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-hover)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--accent-bg)'}
+        >
+          <span className="icon icon-sm">folder_open</span>
+          Manage files
+        </button>
       </div>
     </>
   );

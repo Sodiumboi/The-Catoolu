@@ -3,6 +3,7 @@ const multer  = require('multer');
 const pool    = require('../config/db');
 const auth    = require('../middleware/auth');
 const { uploadToR2 } = require('../utils/uploadToR2');
+const quota = require('../utils/uploadQuota');
 
 const router = express.Router();
 
@@ -24,9 +25,16 @@ router.post('/', auth, bugUpload.single('image'), async (req, res) => {
     if (!title?.trim())       return res.status(400).json({ error: 'Title is required.' });
     if (!description?.trim()) return res.status(400).json({ error: 'Description is required.' });
 
-    const imageUrl = req.file
-      ? await uploadToR2(req.file.buffer, 'bugs', req.file.originalname)
-      : null;
+    // Attach the screenshot only if it fits the uploader's quota — never block
+    // the bug report itself over quota.
+    let imageUrl = null;
+    if (req.file) {
+      const check = await quota.canUpload(req.user.id, req.file.size);
+      if (check.ok) {
+        imageUrl = await uploadToR2(req.file.buffer, 'bugs', req.file.originalname);
+        await quota.recordUpload(req.user.id, { url: imageUrl, size: req.file.size, kind: 'bug' });
+      }
+    }
 
     const result = await pool.query(
       `INSERT INTO bug_reports (user_id, title, description, image_url, page_url, user_agent)
