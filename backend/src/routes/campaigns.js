@@ -378,6 +378,43 @@ router.get('/:uuid/messages', async (req, res) => {
   }
 });
 
+// ── DELETE /api/campaigns/:uuid/messages/:messageId ──────────
+// Delete a message. Own message or keeper only.
+router.delete('/:uuid/messages/:messageId', async (req, res) => {
+  try {
+    const campaign = await getCampaignByUuid(req.params.uuid);
+    if (!campaign) return res.status(404).json({ error: 'Campaign not found.' });
+
+    const memberRes = await pool.query(
+      'SELECT role FROM campaign_members WHERE campaign_id = $1 AND user_id = $2',
+      [campaign.id, req.user.id]
+    );
+    if (!memberRes.rows.length) return res.status(403).json({ error: 'Not a member.' });
+    const callerIsKeeper = memberRes.rows[0].role === 'keeper';
+
+    const msgRes = await pool.query(
+      'SELECT * FROM messages WHERE id = $1 AND campaign_id = $2',
+      [req.params.messageId, campaign.id]
+    );
+    if (!msgRes.rows.length) return res.status(404).json({ error: 'Message not found.' });
+    const message = msgRes.rows[0];
+
+    if (message.user_id !== req.user.id && !callerIsKeeper) {
+      return res.status(403).json({ error: 'Cannot delete this message.' });
+    }
+
+    await pool.query('DELETE FROM messages WHERE id = $1', [message.id]);
+
+    const io = req.app.get('io');
+    io.to(`campaign:${campaign.id}`).emit('message:deleted', { id: message.id });
+
+    res.status(204).send();
+  } catch (err) {
+    console.error('Delete message error:', err);
+    res.status(500).json({ error: 'Failed to delete message.' });
+  }
+});
+
 // ── POST /api/campaigns/:uuid/messages ───────────────────────
 // Post a message via REST (Socket.io will use this internally too).
 router.post('/:uuid/messages', async (req, res) => {

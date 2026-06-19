@@ -1,21 +1,35 @@
-export default function ChatBubble({ msg, isOwn }) {
+import { useState } from 'react';
+
+export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
+  const [hovered,  setHovered]  = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const time = new Date(msg.created_at).toLocaleTimeString([], {
     hour: '2-digit', minute: '2-digit',
   });
 
-  // Use character first name if available, else username
   const displayName = msg.character_name
     ? msg.character_name.split(' ')[0]
     : msg.username;
 
+  const handleDelete = () => {
+    setMenuOpen(false);
+    onDelete?.(msg);
+  };
+
   return (
-    <div style={{
-      display:       'flex',
-      flexDirection: isOwn ? 'row-reverse' : 'row',
-      alignItems:    'flex-end',
-      gap:           '8px',
-      marginBottom:  '8px',
-    }}>
+    <div
+      style={{
+        display:       'flex',
+        flexDirection: isOwn ? 'row-reverse' : 'row',
+        alignItems:    'flex-end',
+        gap:           '8px',
+        marginBottom:  '8px',
+        position:      'relative',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); setMenuOpen(false); }}
+    >
       {/* Portrait / avatar */}
       {!isOwn && (
         <div style={{
@@ -56,18 +70,6 @@ export default function ChatBubble({ msg, isOwn }) {
       )}
 
       <div style={{ maxWidth: '65%' }}>
-        {!isOwn && (
-          <div style={{
-            fontSize:    '11px',
-            color:       'var(--accent)',
-            marginBottom:'2px',
-            fontWeight:  '500',
-            fontFamily:  'var(--font-sans)',
-          }}>
-            {displayName}
-          </div>
-        )}
-
         <div style={{
           background:   isOwn ? 'var(--color-primary)' : 'var(--bg-card)',
           color:        isOwn ? '#ffffff' : 'var(--text-primary)',
@@ -80,17 +82,101 @@ export default function ChatBubble({ msg, isOwn }) {
           fontFamily:   'var(--font-sans)',
         }}>
           {msg.content}
-        </div>
-
-        <div style={{
-          fontSize:  '10px',
-          color:     'var(--text-faint)',
-          marginTop: '3px',
-          textAlign: isOwn ? 'right' : 'left',
-        }}>
-          {time}
+          <div style={{
+            display:        'flex',
+            alignItems:     'center',
+            justifyContent: 'flex-end',
+            gap:            '5px',
+            marginTop:      '4px',
+          }}>
+            {!isOwn && (
+              <>
+                <span style={{
+                  fontSize:   '10px',
+                  color:      'var(--accent)',
+                  fontWeight: '600',
+                }}>
+                  {displayName}
+                </span>
+                <span style={{ fontSize: '10px', color: 'var(--text-faint)' }}>·</span>
+              </>
+            )}
+            <span style={{
+              fontSize: '10px',
+              color:    isOwn ? 'rgba(255,255,255,0.6)' : 'var(--text-faint)',
+            }}>
+              {time}
+            </span>
+          </div>
         </div>
       </div>
+
+      {/* Three-dot action button */}
+      {canDelete && (hovered || menuOpen) && (
+        <div style={{
+          alignSelf:   'center',
+          flexShrink:  0,
+          position:    'relative',
+        }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
+            style={{
+              background:    'var(--bg-card)',
+              border:        '1px solid var(--border-subtle)',
+              borderRadius:  6,
+              cursor:        'pointer',
+              color:         'var(--text-muted)',
+              padding:       '2px 4px',
+              display:       'flex',
+              alignItems:    'center',
+              justifyContent:'center',
+            }}
+            title="Message actions"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>more_vert</span>
+          </button>
+
+          {menuOpen && (
+            <div style={{
+              position:   'absolute',
+              top:        '100%',
+              right:      isOwn ? 0 : 'auto',
+              left:       isOwn ? 'auto' : 0,
+              marginTop:  4,
+              background: 'var(--bg-card)',
+              border:     '1px solid var(--border-subtle)',
+              borderRadius: 8,
+              boxShadow:  'var(--shadow-dropdown)',
+              zIndex:     200,
+              minWidth:   120,
+              overflow:   'hidden',
+            }}>
+              <button
+                onClick={handleDelete}
+                style={{
+                  display:     'flex',
+                  alignItems:  'center',
+                  gap:         6,
+                  width:       '100%',
+                  padding:     '8px 12px',
+                  background:  'none',
+                  border:      'none',
+                  cursor:      'pointer',
+                  color:       '#dc2626',
+                  fontSize:    13,
+                  fontFamily:  'var(--font-sans)',
+                  textAlign:   'left',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
