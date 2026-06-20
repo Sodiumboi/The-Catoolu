@@ -67,7 +67,11 @@ function canProceedFromStep(step, state) {
       if (!state.selectedOccupation) return false;
       const occ = state.selectedOccupation;
       // All specialty groups must have a selection (vacuously true if none exist)
-      const allSpecialtiesPicked = occ.specialtyChoices.every((_, i) => state.specialtyChoices[i]);
+      const allSpecialtiesPicked = occ.specialtyChoices.every((group, i) => {
+        const sel = state.specialtyChoices?.[i];
+        const count = Array.isArray(sel) ? sel.length : (sel ? 1 : 0);
+        return count >= group.pick;
+      });
       if (!allSpecialtiesPicked) return false;
       const totalPts = occ.skillPointsCalc(state.stats);
       const spent = Object.values(state.occupationSkills ?? {}).reduce((s, v) => s + v, 0);
@@ -250,7 +254,11 @@ export default function useCharacterCreation() {
 
     // ── Build occupation skill name sets ──────────────────────
     const chosenSpecialties = selectedOccupation
-      ? selectedOccupation.specialtyChoices.map((_, i) => (specialtyChoices ?? {})[i]).filter(Boolean)
+      ? selectedOccupation.specialtyChoices.flatMap((_, i) => {
+          const sel = (specialtyChoices ?? {})[i];
+          if (!sel) return [];
+          return Array.isArray(sel) ? sel : [sel];
+        })
       : [];
     const allOccSkills = selectedOccupation
       ? [...new Set([...selectedOccupation.compulsorySkills, ...chosenSpecialties])]

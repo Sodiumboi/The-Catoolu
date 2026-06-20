@@ -99,7 +99,11 @@ export default function StepOccupationSkills({
   const edu      = stats.EDU;
 
   // Build full skill list: compulsory + chosen specialties (deduped)
-  const chosenSpecialties = occ.specialtyChoices.map((_, i) => specialtyChoices[i]).filter(Boolean);
+  const chosenSpecialties = occ.specialtyChoices.flatMap((_, i) => {
+    const sel = specialtyChoices[i];
+    if (!sel) return [];
+    return Array.isArray(sel) ? sel : [sel];
+  });
   const skillSet = [...new Set([...occ.compulsorySkills, ...chosenSpecialties])];
 
   // Points spent (above base) across all occupation skills + credit rating
@@ -109,7 +113,11 @@ export default function StepOccupationSkills({
 
   // All specialty choices filled?
   const allSpecialtiesPicked = occ.specialtyChoices.length === 0 ||
-    occ.specialtyChoices.every((_, i) => specialtyChoices[i]);
+    occ.specialtyChoices.every((group, i) => {
+      const sel = specialtyChoices[i];
+      const count = Array.isArray(sel) ? sel.length : (sel ? 1 : 0);
+      return count >= group.pick;
+    });
 
   return (
     <div>
@@ -133,38 +141,57 @@ export default function StepOccupationSkills({
             Personal Specialty Skills
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-            {occ.specialtyChoices.map((group, gi) => (
-              <div key={gi}>
-                <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                  Pick {group.pick} — <em>{group.label}</em>:
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                  {group.from.map(skill => {
-                    const selected = specialtyChoices[gi] === skill;
-                    return (
-                      <button
-                        key={skill}
-                        onClick={() => setSpecialtyChoice(gi, selected ? null : skill)}
-                        style={{
-                          padding: '0.3rem 0.85rem',
-                          borderRadius: '9999px',
-                          border: `2px solid ${selected ? 'var(--color-primary)' : 'var(--border-input)'}`,
-                          background: selected ? 'var(--color-primary)' : 'var(--bg-card)',
-                          color: selected ? '#fff' : 'var(--text-secondary)',
-                          fontFamily: 'var(--font-sans)',
-                          fontSize: '0.82rem',
-                          fontWeight: selected ? 600 : 400,
-                          cursor: 'pointer',
-                          transition: 'all 0.12s',
-                        }}
-                      >
-                        {skill}
-                      </button>
-                    );
-                  })}
+            {occ.specialtyChoices.map((group, gi) => {
+              const currentSel = Array.isArray(specialtyChoices[gi])
+                ? specialtyChoices[gi]
+                : (specialtyChoices[gi] ? [specialtyChoices[gi]] : []);
+              const atMax = currentSel.length >= group.pick;
+              return (
+                <div key={gi}>
+                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                    Pick {group.pick} — <em>{group.label}</em>
+                    {group.pick > 1 && (
+                      <span style={{ marginLeft: '0.5rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                        ({currentSel.length} of {group.pick} selected)
+                      </span>
+                    )}:
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    {group.from.map(skill => {
+                      const selected = currentSel.includes(skill);
+                      const unselectable = !selected && atMax;
+                      return (
+                        <button
+                          key={skill}
+                          onClick={() => {
+                            if (selected) {
+                              setSpecialtyChoice(gi, currentSel.filter(s => s !== skill));
+                            } else if (!atMax) {
+                              setSpecialtyChoice(gi, [...currentSel, skill]);
+                            }
+                          }}
+                          style={{
+                            padding: '0.3rem 0.85rem',
+                            borderRadius: '9999px',
+                            border: `2px solid ${selected ? 'var(--color-primary)' : 'var(--border-input)'}`,
+                            background: selected ? 'var(--color-primary)' : 'var(--bg-card)',
+                            color: selected ? '#fff' : unselectable ? 'var(--text-faint)' : 'var(--text-secondary)',
+                            fontFamily: 'var(--font-sans)',
+                            fontSize: '0.82rem',
+                            fontWeight: selected ? 600 : 400,
+                            cursor: unselectable ? 'not-allowed' : 'pointer',
+                            opacity: unselectable ? 0.5 : 1,
+                            transition: 'all 0.12s',
+                          }}
+                        >
+                          {skill}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           {!allSpecialtiesPicked && (
             <p style={{ marginTop: '0.75rem', fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: 'var(--warning)' }}>
