@@ -438,7 +438,10 @@ export default function useCharacterCreation() {
       },
     };
 
-    const response = await apiClient.post('/characters', { sheet_data });
+    // `source` tags this as a creation-wizard submission so the backend can
+    // reject it when the creation engine is disabled, without affecting
+    // Dhole's House import (which posts the same shape without `source`).
+    const response = await apiClient.post('/characters', { sheet_data, source: 'creation-wizard' });
     // Character created — clear the saved draft so it won't resume next time
     await apiClient.delete('/characters/draft').catch(() => {});
     return response.data;

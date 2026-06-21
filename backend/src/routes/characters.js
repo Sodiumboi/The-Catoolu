@@ -46,7 +46,17 @@ router.get('/', async (req, res) => {
 // Creates a new character from imported JSON or blank template
 router.post('/', async (req, res) => {
   try {
-    const { sheet_data } = req.body;
+    const { sheet_data, source } = req.body;
+
+    // Safety net: when the creation engine is disabled, reject submissions
+    // tagged as coming from the creation wizard. Dhole's House import omits
+    // `source`, so it stays fully functional. This guards against direct API
+    // hits and stale browser tabs that loaded the wizard before deploy.
+    if (process.env.CREATION_ENGINE_ENABLED === 'false' && source === 'creation-wizard') {
+      return res.status(503).json({
+        error: "Character creation is temporarily unavailable. Please use Dhole's House import instead.",
+      });
+    }
 
     if (!sheet_data) {
       return res.status(400).json({ error: 'sheet_data is required.' });

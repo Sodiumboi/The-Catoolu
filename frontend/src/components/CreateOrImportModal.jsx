@@ -46,7 +46,7 @@ function Option({ icon, title, subtitle, onClick }) {
   );
 }
 
-export default function CreateOrImportModal({ open, onClose, onCreate, onImport }) {
+export default function CreateOrImportModal({ open, onClose, onCreate, onImport, creationEnabled = true }) {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -114,12 +114,14 @@ export default function CreateOrImportModal({ open, onClose, onCreate, onImport 
 
         {/* Options */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <Option
-            icon="person_add"
-            title="Create New Investigator"
-            subtitle="Start from scratch with the character creation wizard"
-            onClick={onCreate}
-          />
+          {creationEnabled && (
+            <Option
+              icon="person_add"
+              title="Create New Investigator"
+              subtitle="Start from scratch with the character creation wizard"
+              onClick={onCreate}
+            />
+          )}
           <Option
             icon="upload_file"
             title="Import from Dhole's House"

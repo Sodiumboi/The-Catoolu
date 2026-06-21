@@ -7,6 +7,7 @@ import CreateOrImportModal from '../components/CreateOrImportModal';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/vault-logo.png';
+import { CREATION_ENGINE_ENABLED } from '../config/features';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -403,6 +404,7 @@ export default function DashboardPage() {
         onClose={() => setShowCreateImport(false)}
         onCreate={handleChooseCreate}
         onImport={handleChooseImport}
+        creationEnabled={CREATION_ENGINE_ENABLED}
       />
 
       <Footer />
