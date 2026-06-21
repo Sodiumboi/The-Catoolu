@@ -171,7 +171,11 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
   const totalPts = stats.INT * 2;
 
   const chosenSpecialties = occ
-    ? occ.specialtyChoices.map((_, i) => specialtyChoices?.[i]).filter(Boolean)
+    ? occ.specialtyChoices.flatMap((_, i) => {
+        const sel = specialtyChoices?.[i];
+        if (!sel) return [];
+        return Array.isArray(sel) ? sel : [sel];
+      })
     : [];
   const occSkillSet = occ
     ? [...new Set([...occ.compulsorySkills, ...chosenSpecialties])]
