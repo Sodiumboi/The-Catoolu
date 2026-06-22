@@ -24,6 +24,12 @@ import KeeperHandoutPanel  from '../components/handouts/KeeperHandoutPanel';
 import PlayerHandoutTab    from '../components/handouts/PlayerHandoutTab';
 import HandoutViewer       from '../components/handouts/HandoutViewer';
 
+// ── Feed dedup key ─────────────────────────────────────────────
+// Message items carry a numeric `id`; handout-share items carry a UUID-string `id`.
+// Keying on `type:id` makes dedup correctness independent of the number-vs-string
+// coincidence, and works uniformly for realtime and paginated (load-older) items.
+const keyOf = (m) => `${m.type}:${m.id}`;
+
 // ── Resolve a skill/stat value from full character data ────────
 function resolveRollValue(charData, rollType, rollName) {
   if (!charData?.sheet_data?.Investigator) return null;
@@ -91,6 +97,8 @@ export default function CampaignRoomPage() {
   const [newHandoutCount,   setNewHandoutCount]   = useState(0);
   const [viewingHandout,    setViewingHandout]    = useState(null);
   const [keeperRollPicker,  setKeeperRollPicker]  = useState(null);
+  const [hasMoreHistory,    setHasMoreHistory]    = useState(false);
+  const [loadingOlder,      setLoadingOlder]      = useState(false);
   const [leftWidth,     setLeftWidth]     = useState(() => {
     const saved = parseInt(localStorage.getItem('sheet-panel-width'));
     return saved && saved >= 480 && saved <= 640 ? saved : 480;
@@ -102,6 +110,11 @@ export default function CampaignRoomPage() {
   const isDraggingRef         = useRef(false);
   const dragStartXRef         = useRef(0);
   const dragStartWidthRef     = useRef(400);
+  // Chat-history pagination
+  const loadingOlderRef       = useRef(false);  // sync guard against concurrent load-older fetches
+  const prependingRef         = useRef(false);  // signals RollFeed to preserve scroll on prepend
+  const feedCursorRef         = useRef(null);   // { before_ts, before_msg_id, before_share_id }
+  const scrollCaptureFnRef    = useRef(null);   // RollFeed registers a scrollHeight-capture fn here
 
   // Keep meme-toggle ref current for use inside socket-handler closures
   useEffect(() => { memeEnabledRef.current = memeEnabled; }, [memeEnabled]);
@@ -110,9 +123,12 @@ export default function CampaignRoomPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [campRes, msgRes, charRes, sharedRes] = await Promise.all([
+        // Unified feed drives the chat stream (messages + handout shares, server-merged,
+        // oldest-first, paginated). The separate /handouts/shared fetch is retained so the
+        // handouts panel tabs keep the COMPLETE share list (the feed is capped at 50).
+        const [campRes, feedRes, charRes, sharedRes] = await Promise.all([
           apiClient.get('/campaigns/' + uuid),
-          apiClient.get('/campaigns/' + uuid + '/messages?limit=50'),
+          apiClient.get('/campaigns/' + uuid + '/feed?limit=50'),
           apiClient.get('/characters'),
           apiClient.get('/campaigns/' + uuid + '/handouts/shared'),
         ]);
@@ -121,23 +137,25 @@ export default function CampaignRoomPage() {
         setCampaign(camp);
         setMembers(camp.members || []);
         setMyRole(camp.my_role);
-        const shares = sharedRes.data || [];
-        // Synthesize handout shares into the chat feed (they're not in the messages table)
-        const handoutFeedItems = shares.map(s => ({
-          id:         s.share_uuid,
-          type:       'handout_share',
-          handout:    s.handout,
-          user_id:    s.shared_by_id,
-          username:   s.shared_by,
-          avatar_url: s.avatar_url,
-          created_at: s.shared_at,
-        }));
-        const allMessages = [...msgRes.data.messages, ...handoutFeedItems]
-          .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-        setMessages(allMessages);
+
+        // Feed items already arrive oldest-first in the unified shapes the feed renders.
+        const items   = feedRes.data.items    || [];
+        const hasMore = feedRes.data.has_more || false;
+        setMessages(items);
+        setHasMoreHistory(hasMore);
+        // Cursor = oldest item currently in the feed (items[0] after oldest-first ordering).
+        if (items.length > 0) {
+          const oldest = items[0];
+          feedCursorRef.current = {
+            before_ts:       oldest.created_at,
+            before_msg_id:   oldest.type !== 'handout_share' ? oldest.id : 0,
+            before_share_id: oldest.type === 'handout_share' ? oldest._share_numeric_id : 0,
+          };
+        }
+
         historyLoadedRef.current = true;
         setMyCharacters(charRes.data.characters || []);
-        setSharedHandouts(shares);
+        setSharedHandouts(sharedRes.data || []);
 
         // Check if character already registered
         const me = camp.members?.find(m => m.id === user?.id);
@@ -181,7 +199,7 @@ export default function CampaignRoomPage() {
       if (withMeme) forceMemeNextRollRef.current = false;
 
       setMessages(prev => {
-        if (prev.some(m => m.id === msg.id)) return prev;
+        if (prev.some(m => keyOf(m) === keyOf(msg))) return prev;
         return [...prev, withMeme ? { ...msg, _forceMeme: true } : msg];
       });
 
@@ -303,17 +321,18 @@ export default function CampaignRoomPage() {
     };
 
     const onHandoutShared = (data) => {
+      const shareItem = {
+        id:         data.share_uuid,
+        type:       'handout_share',
+        handout:    data.handout,
+        user_id:    data.shared_by_id,
+        username:   data.shared_by,
+        avatar_url: data.avatar_url,
+        created_at: data.shared_at,
+      };
       setMessages(prev => {
-        if (prev.some(m => m.id === data.share_uuid)) return prev;
-        return [...prev, {
-          id:         data.share_uuid,
-          type:       'handout_share',
-          handout:    data.handout,
-          user_id:    data.shared_by_id,
-          username:   data.shared_by,
-          avatar_url: data.avatar_url,
-          created_at: data.shared_at,
-        }];
+        if (prev.some(m => keyOf(m) === keyOf(shareItem))) return prev;
+        return [...prev, shareItem];
       });
       setSharedHandouts(prev => {
         if (prev.some(s => s.share_uuid === data.share_uuid)) return prev;
@@ -367,6 +386,52 @@ export default function CampaignRoomPage() {
       enterRoom(campaign?.id, campaign.name, campaign?.uuid);
     }
   }, [campaign, inRoom]);
+
+  // ── Load older history (scroll-to-top pagination) ─────────────
+  const loadOlderMessages = async () => {
+    if (loadingOlderRef.current || !hasMoreHistory || !feedCursorRef.current) return;
+    loadingOlderRef.current = true;
+    setLoadingOlder(true);
+    try {
+      const cursor = feedCursorRef.current;
+      const params = new URLSearchParams({
+        limit:           '50',
+        before_ts:       cursor.before_ts,
+        before_msg_id:   String(cursor.before_msg_id   || 0),
+        before_share_id: String(cursor.before_share_id || 0),
+      });
+      const res     = await apiClient.get('/campaigns/' + uuid + '/feed?' + params.toString());
+      const older   = res.data.items    || [];
+      const hasMore = res.data.has_more || false;
+
+      if (older.length > 0) {
+        // Capture scrollHeight BEFORE the prepend so RollFeed can restore scroll position.
+        scrollCaptureFnRef.current?.();
+        prependingRef.current = true; // signal RollFeed BEFORE the state update
+        setMessages(prev => {
+          // Dedup against current feed using keyOf (type:id) — robust for both
+          // numeric message ids and UUID share ids.
+          const seen = new Set(prev.map(keyOf));
+          const fresh = older.filter(item => !seen.has(keyOf(item)));
+          return [...fresh, ...prev];
+        });
+        setHasMoreHistory(hasMore);
+        const oldest = older[0];
+        feedCursorRef.current = {
+          before_ts:       oldest.created_at,
+          before_msg_id:   oldest.type !== 'handout_share' ? oldest.id : 0,
+          before_share_id: oldest.type === 'handout_share' ? oldest._share_numeric_id : 0,
+        };
+      } else {
+        setHasMoreHistory(false);
+      }
+    } catch (err) {
+      console.error('loadOlderMessages failed', err);
+    } finally {
+      loadingOlderRef.current = false;
+      setLoadingOlder(false);
+    }
+  };
 
   const handleDeleteMessage = async (msg) => {
     try {
@@ -1236,6 +1301,11 @@ export default function CampaignRoomPage() {
             currentUserId={user?.id}
             myRole={myRole}
             onDeleteMessage={handleDeleteMessage}
+            hasMore={hasMoreHistory}
+            loadingOlder={loadingOlder}
+            onLoadOlder={loadOlderMessages}
+            prependingRef={prependingRef}
+            scrollCaptureFnRef={scrollCaptureFnRef}
           />
 
           {/* Typing indicator */}

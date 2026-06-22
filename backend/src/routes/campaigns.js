@@ -3,6 +3,7 @@ const router  = express.Router();
 const pool    = require('../config/db');
 const auth    = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
+const { buildHandout } = require('./handouts');
 
 // All campaign routes require authentication
 router.use(auth);
@@ -375,6 +376,162 @@ router.get('/:uuid/messages', async (req, res) => {
   } catch (err) {
     console.error('Get messages error:', err);
     res.status(500).json({ error: 'Failed to load messages.' });
+  }
+});
+
+// ── GET /api/campaigns/:uuid/feed ────────────────────────────
+// Unified paginated feed: messages + handout shares, sorted by created_at DESC.
+// Composite cursor: before_ts + before_msg_id + before_share_id (strict < semantics,
+// so boundary items are never re-fetched). Returns { items, has_more } with items in
+// oldest-first display order.
+//
+// Item shapes (matching the synthetic objects CampaignRoomPage already renders):
+//   - message:        { id: <numeric>, type, content, created_at, avatar_url, portrait,
+//                       character_name, user_id, username, _source: 'message' }
+//   - handout_share:  { id: <share_uuid string>, type: 'handout_share', handout, user_id,
+//                       username, avatar_url, created_at, _share_numeric_id, _source: 'handout' }
+router.get('/:uuid/feed', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+
+    const campaign = await getCampaignByUuid(req.params.uuid);
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found.' });
+    }
+    const campaignId = campaign.id;
+
+    if (!(await isMember(campaignId, req.user.id))) {
+      return res.status(403).json({ error: 'You are not a member of this campaign.' });
+    }
+
+    const beforeTs      = req.query.before_ts || null;
+    // Sentinel 0: any real id is > 0, so "id < 0" excludes nothing from that table at the
+    // boundary timestamp — safe when only one table has rows at the cursor timestamp.
+    const beforeMsgId   = parseInt(req.query.before_msg_id)   || 0;
+    const beforeShareId = parseInt(req.query.before_share_id) || 0;
+
+    // The cursor predicate is applied per sub-table BEFORE the UNION so each branch can
+    // use its own index. Strict < is used throughout to avoid re-fetching boundary items.
+    const cursorClause = beforeTs ? `
+      AND (
+        %TS% < $3::TIMESTAMPTZ
+        OR (%TS% = $3::TIMESTAMPTZ AND %ID% < %SID%)
+      )` : '';
+
+    const msgCursor   = cursorClause.replace(/%TS%/g, 'm.created_at').replace('%ID%', 'm.id').replace('%SID%', '$4');
+    const shareCursor = cursorClause.replace(/%TS%/g, 'hs.shared_at').replace('%ID%', 'hs.id').replace('%SID%', '$5');
+
+    const query = `
+      SELECT
+        m.id             AS source_id,
+        m.id::TEXT       AS id,
+        m.type           AS type,
+        m.content        AS content,
+        m.created_at     AS created_at,
+        m.avatar_url     AS avatar_url,
+        m.portrait       AS portrait,
+        m.character_name AS character_name,
+        m.user_id        AS user_id,
+        u.username       AS username,
+        NULL::TEXT       AS share_uuid,
+        NULL::INTEGER    AS share_numeric_id,
+        NULL::INTEGER    AS handout_numeric_id,
+        NULL::TEXT       AS h_uuid,
+        NULL::TEXT       AS h_title,
+        NULL::TEXT       AS h_type,
+        NULL::TEXT       AS h_content,
+        NULL::TIMESTAMPTZ AS h_created_at,
+        'message'        AS _source
+      FROM messages m
+      LEFT JOIN users u ON m.user_id = u.id
+      WHERE m.campaign_id = $1${msgCursor}
+
+      UNION ALL
+
+      SELECT
+        hs.id            AS source_id,
+        hs.uuid::TEXT    AS id,
+        'handout_share'  AS type,
+        NULL             AS content,
+        hs.shared_at     AS created_at,
+        u.avatar_url     AS avatar_url,
+        NULL             AS portrait,
+        NULL             AS character_name,
+        hs.shared_by     AS user_id,
+        u.username       AS username,
+        hs.uuid::TEXT    AS share_uuid,
+        hs.id            AS share_numeric_id,
+        h.id             AS handout_numeric_id,
+        h.uuid           AS h_uuid,
+        h.title          AS h_title,
+        h.type           AS h_type,
+        h.content        AS h_content,
+        h.created_at     AS h_created_at,
+        'handout'        AS _source
+      FROM handout_shares hs
+      JOIN users u    ON u.id = hs.shared_by
+      JOIN handouts h ON h.id = hs.handout_id
+      WHERE hs.campaign_id = $1${shareCursor}
+
+      ORDER BY created_at DESC, source_id DESC
+      LIMIT $2
+    `;
+
+    const params = beforeTs
+      ? [campaignId, limit, beforeTs, beforeMsgId, beforeShareId]
+      : [campaignId, limit];
+
+    const result = await pool.query(query, params);
+
+    // Map each raw row to its client-facing item shape. Handout-share rows need
+    // buildHandout (which loads bundle sub-items) — buildHandout expects a row whose
+    // `id` is the handout's numeric id, so we pass handout_numeric_id as `id`.
+    const items = await Promise.all(result.rows.map(async (row) => {
+      if (row._source === 'message') {
+        return {
+          id:             parseInt(row.id, 10), // numeric message id (cast back from TEXT)
+          type:           row.type,
+          content:        row.content,
+          created_at:     row.created_at,
+          avatar_url:     row.avatar_url,
+          portrait:       row.portrait,
+          character_name: row.character_name,
+          user_id:        row.user_id,
+          username:       row.username,
+          _source:        'message',
+        };
+      }
+      const handout = await buildHandout({
+        id:         row.handout_numeric_id,
+        uuid:       row.h_uuid,
+        title:      row.h_title,
+        type:       row.h_type,
+        content:    row.h_content,
+        created_at: row.h_created_at,
+      });
+      return {
+        id:               row.share_uuid, // UUID string — matches synthetic share shape
+        type:             'handout_share',
+        handout,
+        user_id:          row.user_id,
+        username:         row.username,
+        avatar_url:       row.avatar_url,
+        created_at:       row.created_at,
+        _share_numeric_id: row.share_numeric_id,
+        _source:          'handout',
+      };
+    }));
+
+    // DB returns newest-first; reverse to oldest-first for the feed display.
+    items.reverse();
+
+    res.json({
+      items,
+      has_more: result.rows.length === limit,
+    });
+  } catch (err) {
+    console.error('Get feed error:', err);
+    res.status(500).json({ error: 'Failed to load feed.' });
   }
 });
 

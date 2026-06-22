@@ -20,7 +20,10 @@ function SystemMessage({ msg }) {
   );
 }
 
-export default function RollFeed({ messages, currentUserId, myRole, onDeleteMessage }) {
+export default function RollFeed({
+  messages, currentUserId, myRole, onDeleteMessage,
+  hasMore, loadingOlder, onLoadOlder, prependingRef, scrollCaptureFnRef,
+}) {
   const { feedBackground } = useTheme();
   const containerRef   = useRef(null);
   const innerRef       = useRef(null);
@@ -28,6 +31,8 @@ export default function RollFeed({ messages, currentUserId, myRole, onDeleteMess
   const initialDoneRef = useRef(false);
   const prevLengthRef  = useRef(0);
   const pinUntilRef    = useRef(0);   // force-pin to bottom through card reveals / image loads
+  const sentinelRef    = useRef(null); // IntersectionObserver target for load-older
+  const prevScrollHeightRef = useRef(0); // scrollHeight snapshot taken before a prepend
   const [showJump, setShowJump] = useState(false);
 
   const scrollToBottom = () => {
@@ -67,6 +72,16 @@ export default function RollFeed({ messages, currentUserId, myRole, onDeleteMess
       return;
     }
 
+    // Prepend (load-older): preserve the visual scroll position by adding the height
+    // gained at the top to scrollTop, so the same item stays under the viewport.
+    if (prependingRef?.current) {
+      prependingRef.current = false;
+      const heightDiff = el.scrollHeight - prevScrollHeightRef.current;
+      el.scrollTop = el.scrollTop + heightDiff;
+      prevLengthRef.current = messages.length;
+      return;
+    }
+
     if (messages.length > prevLengthRef.current) {
       prevLengthRef.current = messages.length;
       if (atBottomRef.current) {
@@ -74,7 +89,34 @@ export default function RollFeed({ messages, currentUserId, myRole, onDeleteMess
         scrollToBottom();
       }
     }
-  }, [messages.length]);
+  }, [messages.length, prependingRef]);
+
+  // Register a scrollHeight-capture fn for CampaignRoomPage to call right before a
+  // prepend state update (it owns setMessages but not containerRef).
+  useEffect(() => {
+    if (!scrollCaptureFnRef) return;
+    scrollCaptureFnRef.current = () => {
+      if (containerRef.current) {
+        prevScrollHeightRef.current = containerRef.current.scrollHeight;
+      }
+    };
+    return () => { scrollCaptureFnRef.current = null; };
+  }, [scrollCaptureFnRef]);
+
+  // Load-older trigger: fire onLoadOlder when the top sentinel scrolls into view.
+  // The concurrency guard lives in onLoadOlder (loadingOlderRef), so repeated
+  // intersections while a fetch is in flight are no-ops.
+  useEffect(() => {
+    if (!sentinelRef.current || !onLoadOlder) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) onLoadOlder();
+      },
+      { root: containerRef.current, rootMargin: '0px', threshold: 0.1 }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [onLoadOlder]);
 
   // Re-scroll when content height grows (skeleton→reveal, images loading).
   // The pin window keeps us glued to the bottom even if a stray scroll event
@@ -101,6 +143,35 @@ export default function RollFeed({ messages, currentUserId, myRole, onDeleteMess
         style={{ flex: 1, overflowY: 'auto', overflowAnchor: 'none', padding: '16px' }}
       >
         <div ref={innerRef}>
+        {/* Sentinel — IntersectionObserver target that triggers load-older */}
+        <div ref={sentinelRef} style={{ height: 1 }} />
+
+        {loadingOlder && (
+          <div style={{
+            textAlign:  'center',
+            padding:    '8px 0',
+            fontSize:   '12px',
+            color:      'var(--text-muted)',
+            fontStyle:  'italic',
+            fontFamily: 'var(--font-sans)',
+          }}>
+            Loading older messages...
+          </div>
+        )}
+
+        {!hasMore && messages.length > 0 && (
+          <div style={{
+            textAlign:  'center',
+            padding:    '6px 0',
+            fontSize:   '12px',
+            color:      'var(--text-muted)',
+            fontStyle:  'italic',
+            fontFamily: 'var(--font-sans)',
+          }}>
+            — Beginning of conversation —
+          </div>
+        )}
+
         {messages.map((msg, i) => {
           const isOwn     = msg.user_id === currentUserId;
           const canDelete = isOwn || isKeeper;
