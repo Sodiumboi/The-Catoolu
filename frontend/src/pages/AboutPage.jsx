@@ -3,8 +3,9 @@ import logo from '../assets/vault-logo.png';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { TEAM_MEMBERS } from '../utils/aboutTeam';
+import { APP_VERSION, APP_CODENAME } from '../config/version';
 
-const VERSION    = 'V1.6a · Atlach-Nacha - Jade Palace';
+const VERSION    = `V${APP_VERSION} · ${APP_CODENAME}`;
 const GITHUB_URL = 'https://github.com/Sodiumboi/Catoolu-coc-sheet-manager';
 
 // ── Localised content ────────────────────────────────────────────────

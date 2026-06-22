@@ -48,6 +48,9 @@ function CharacterEditorWithKey() {
 
 // ── Health polling — drives maintenance / server-down gates ─
 const POLL_INTERVAL = 60_000;
+// While the server is down, poll much faster so we detect recovery within ~5s
+// instead of waiting up to a full minute for the next normal-cadence check.
+const DOWN_POLL_INTERVAL = 5_000;
 // Require this many CONSECUTIVE failed health checks before declaring the
 // server down. Background-tab timer throttling and transient timeouts can fire
 // a single stale/late check on tab restore; one failure must never trip the
@@ -77,6 +80,12 @@ export default function App() {
   // re-creating the interval or risking a stale closure.
   const consecutiveFailures   = useRef(0);
   const intervalRef           = useRef(null);
+  // Tracks whether we have surfaced the ServerDownPage, so the recovery path can
+  // hard-reload the page (clean slate) the moment the server answers again.
+  const wasDownRef            = useRef(false);
+  // Holds the latest poll callback so we can (re)schedule it from inside poll
+  // itself without referencing the `poll` identifier before it is declared.
+  const pollRef               = useRef(null);
 
   const poll = useCallback(async () => {
     const wasFirstCheck = !firstCheckDone.current;
@@ -88,7 +97,13 @@ export default function App() {
       consecutiveFailures.current += 1;
       firstCheckDone.current = true;
       if (consecutiveFailures.current >= FAILURE_THRESHOLD) {
+        wasDownRef.current = true;
         setHealth({ status: 'down' });
+        // Switch to the fast cadence so we catch recovery within ~5s. Scheduled
+        // via pollRef (rather than the `poll` identifier or startInterval, both
+        // declared below) to avoid a use-before-declaration reference here.
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        intervalRef.current = setInterval(() => pollRef.current?.(), DOWN_POLL_INTERVAL);
       } else if (wasFirstCheck) {
         // First load and not yet over threshold: don't gate on a single miss.
         // Treat as 'ok' so the app renders; subsequent polls confirm or recover.
@@ -110,14 +125,27 @@ export default function App() {
     // Subsequent polls: 'ok' recovery flips us back out of the down state.
     // 'maintenance' is handled by the NavBar socket pill for users already in the app.
     if (result.status === 'ok') {
+      // If we had previously surfaced ServerDownPage, hard-reload to come back
+      // cleanly (fresh sockets/state) rather than just flipping React state.
+      // The fresh page boots its own normal-cadence interval, so no cleanup needed.
+      if (wasDownRef.current) {
+        window.location.reload();
+        return;
+      }
       setHealth(result);
     }
   }, []);
 
-  // Single source of truth for (re)starting the poll interval.
-  const startInterval = useCallback(() => {
+  // Keep the ref pointed at the latest poll so the fast-cadence interval (above)
+  // always invokes the current callback. (poll is stable, but syncing in an
+  // effect avoids writing a ref during render.)
+  useEffect(() => { pollRef.current = poll; }, [poll]);
+
+  // Single source of truth for (re)starting the poll interval. Defaults to the
+  // normal cadence; callers may pass DOWN_POLL_INTERVAL for the fast recovery loop.
+  const startInterval = useCallback((ms = POLL_INTERVAL) => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(poll, POLL_INTERVAL);
+    intervalRef.current = setInterval(poll, ms);
   }, [poll]);
 
   const stopInterval = useCallback(() => {

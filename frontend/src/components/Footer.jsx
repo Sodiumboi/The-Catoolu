@@ -3,11 +3,15 @@
 // Version number and build credit.
 
 import { Link } from 'react-router-dom';
+import { APP_VERSION, APP_CODENAME } from '../config/version';
+import useVersionCheck from '../hooks/useVersionCheck';
 
-const VERSION = 'V1.6a · Atlach-Nacha - Jade Palace';
+const VERSION = `V${APP_VERSION} · ${APP_CODENAME}`;
 const CREDIT  = 'Built by Someone at Saltlakes with an unreasonable amount of help from Claude';
 
 export default function Footer() {
+  const { updateAvailable, latestVersion, releaseUrl } = useVersionCheck();
+
   return (
     <footer style={{
       borderTop: '1px solid var(--border-main)',
@@ -31,7 +35,25 @@ export default function Footer() {
           fontSize:      '12px',
           color:         'var(--text-faint)',
         }}>
-          <span>{VERSION}</span>
+          <span>
+            {VERSION}
+            {updateAvailable && releaseUrl && (
+              <a
+                href={releaseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={latestVersion ? `Update available — v${latestVersion}` : 'Update available'}
+                style={{
+                  color:          'var(--accent)',
+                  fontSize:       '11px',
+                  textDecoration: 'none',
+                  marginLeft:     '8px',
+                }}
+              >
+                · update available{latestVersion ? ` (v${latestVersion})` : ''}
+              </a>
+            )}
+          </span>
           <span>{CREDIT}</span>
         </div>
 
