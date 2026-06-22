@@ -30,8 +30,25 @@ export default function ServerDownPage() {
         The Catoolu server isn't responding. Check your connection or try again in a moment.
       </p>
       <p style={{ margin: '20px 0 0', fontSize: '12px', color: '#3A3A37', fontFamily: 'var(--font-sans)' }}>
-        Checking again automatically…
+        Reconnecting automatically…
       </p>
+      <button
+        type="button"
+        onClick={() => window.location.reload()}
+        style={{
+          margin:       '20px 0 0',
+          padding:      '8px 18px',
+          fontFamily:   'var(--font-sans)',
+          fontSize:     '13px',
+          color:        '#EAF3DE',
+          background:   'transparent',
+          border:       '1px solid #4A4A45',
+          borderRadius: '8px',
+          cursor:       'pointer',
+        }}
+      >
+        Try again
+      </button>
     </div>
   );
 }

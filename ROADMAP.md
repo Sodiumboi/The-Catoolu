@@ -143,7 +143,7 @@ The social layer. The Catoolu becomes a shared space with real-time campaigns, d
 
 ---
 
-## ✅ v1.6 — Atlach-Nacha
+## ✅ v1.6 — Atlach-Nacha (base release)
 
 **Status: Released — June 2026**
 _"The Spider God weaves the web. The threads connect. The investigators can now take notes, log in with Discord, and file bug reports while their characters descend into madness."_
@@ -183,6 +183,48 @@ The feature release. A unified sheet engine, a full notes system, OAuth login, c
 - [x] Cthulhu Mythos always visible regardless of value
 - [x] Campaign UUID URLs (`/campaign/uuid` replacing `/campaign/4`)
 - [x] Username change now updates auth context immediately
+
+---
+
+## ✅ v1.6a — Jade Palace
+
+**Status: Released — June 2026**
+_"The palace stands. The investigators find more than they bargained for."_
+
+First patch on Atlach-Nacha. Seven feature areas shipped.
+
+- [x] Keeper roll request system — searchable picker, server-side roll, player pill with breathing border
+- [x] Keeper can request from one player or all players simultaneously
+- [x] Handouts feature — library on manage page, Keeper room panel, player Handouts tab
+- [x] Handout bundles — stacked card visual, nested bundles, share whole bundle into chat
+- [x] Chat image attachments — attach button, paste-to-attach, preview chip
+- [x] Message deletion — own messages for players, any message for Keeper
+- [x] Roll feed overhaul — reliable auto-scroll, floating "Jump to present" button
+- [x] Roll cards redesigned — portrait beside content, opaque base layer
+- [x] Room settings — crit memes toggle, feed background toggle (per-device)
+- [x] Upload quota overhaul — 200MB total / 50MB per 5 min, replaces avatar-count limiter
+- [x] File Manager at `/files` — storage bar, preview, per-file R2 delete
+- [x] About page image preloading — team avatars warm on idle
+- [x] Specialty skill picker multi-select hotfix (Lawyer "Pick 2" fixed)
+- [x] Doctor of Medicine compound skill fix (Science Biology + Pharmacy split correctly)
+- [x] Character creation engine disabled (hotfix) — fatal occupation logic errors
+
+---
+
+## 🔄 v1.6b — In Progress
+
+**Status: In Progress — June 2026**
+_"The fixes accumulate. The session stabilises."_
+
+- [x] Chat history pagination — Discord-style batch loading on scroll-to-top
+- [x] Unified `/feed` endpoint — UNION ALL of messages + handout shares, composite cursor
+- [x] False "Server Unreachable" fix — 3 consecutive failures required, visibilitychange handler
+- [x] Server-down auto-recovery — polls every 5s while down, auto-reloads on return
+- [x] Version checker — GitHub Releases API, update pill in Footer
+- [x] `APP_VERSION` + `APP_CODENAME` centralised in `version.js`
+- [x] Scroll chaining fix — `overscroll-behavior: contain` on 19 containers + root safety net
+- [ ] Free specialty picks — "any two other skills" two independent dropdowns (creation engine)
+- [ ] Re-enable character creation engine (blocked on specialty picks fix)
 
 ---
 
@@ -227,19 +269,19 @@ _"A thousand young. The platform branches and multiplies."_
 - [ ] Live push of HP/Sanity changes from Keeper to players
 - [ ] NPC stat blocks — create and track enemies
 - [ ] Initiative tracker — drag-to-reorder, visible to all
-- [x] Handouts system — share images and text with players
-- [x] Session notes
+- [ ] Session notes (Keeper-only)
 
 **Character Sheet**
 
 - [ ] Portrait upload directly on the sheet
-- [x] Backstory section visible during session
+- [ ] Backstory section visible during session
 - [ ] Contacts and allies
 
 **Campaign**
 
 - [ ] Session log — automatic record of all rolls and events
 - [ ] Campaign history timeline
+- [ ] Public sheet sharing at `/share/:uuid` — no auth required, read-only
 
 ---
 
@@ -293,14 +335,16 @@ _"Ph'nglui mglw'nafh. The Great Dreamer wakes. The platform is complete."_
  May  ████████████████  v1.1 Dagon          ✅ Released
  May  ████████████████  v1.2 Hypnos         ✅ Released
  May  ████████████████  v1.5 Nyarlathotep   ✅ Released
- Jun  ████████████████  v1.6 Atlach-Nacha   ✅ Released
- Q3   ░░░░░░░░░░░░░░░░  v1.7 Eihort         🔮 Planned
- Q4   ░░░░░░░░░░░░░░░░  v1.8 Glaaki         🔮 Planned
+ Jun  ████████████████  v1.6  Atlach-Nacha   ✅ Released
+ Jun  ████████████████  v1.6a Jade Palace    ✅ Released
+ Jun  ░░░░░░░░░░░░░░░░  v1.6b TBD            🔄 In Progress
+ Q3   ░░░░░░░░░░░░░░░░  v1.7  Eihort         🔮 Planned
+ Q4   ░░░░░░░░░░░░░░░░  v1.8  Glaaki         🔮 Planned
 
 2027
- Q1   ░░░░░░░░░░░░░░░░  v2.0 Shub-Niggurath 🔮 Planned
- Q2   ░░░░░░░░░░░░░░░░  v2.5 Yog-Sothoth    🔮 Planned
- Q3   ░░░░░░░░░░░░░░░░  v3.0 Cthulhu        🔮 Planned
+ Q1   ░░░░░░░░░░░░░░░░  v2.0  Shub-Niggurath 🔮 Planned
+ Q2   ░░░░░░░░░░░░░░░░  v2.5  Yog-Sothoth    🔮 Planned
+ Q3   ░░░░░░░░░░░░░░░░  v3.0  Cthulhu        🔮 Planned
 ```
 
 ---
@@ -313,4 +357,4 @@ Feature requests from the Ancient Ones are not.
 
 ---
 
-_Ph'nglui mglw'nafh Nat-One d20 wgah'nagl Advantage._ 🐙
+_Ia! Ia! The Catoolu fhtagn!_ 🐙
