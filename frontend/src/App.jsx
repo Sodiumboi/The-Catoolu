@@ -48,6 +48,11 @@ function CharacterEditorWithKey() {
 
 // ── Health polling — drives maintenance / server-down gates ─
 const POLL_INTERVAL = 60_000;
+// Require this many CONSECUTIVE failed health checks before declaring the
+// server down. Background-tab timer throttling and transient timeouts can fire
+// a single stale/late check on tab restore; one failure must never trip the
+// ServerDownPage. Most visible in Edge.
+const FAILURE_THRESHOLD = 3;
 
 async function checkHealth() {
   const controller = new AbortController();
@@ -67,29 +72,85 @@ export default function App() {
   // null = first check not yet done; prevents any route from flashing before we know state.
   const [health, setHealth]   = useState(null);
   const firstCheckDone        = useRef(false);
+  // Consecutive-failure counter. Kept in a ref (not state) so the interval and
+  // the visibilitychange listener always read/write the current value without
+  // re-creating the interval or risking a stale closure.
+  const consecutiveFailures   = useRef(0);
+  const intervalRef           = useRef(null);
 
   const poll = useCallback(async () => {
+    const wasFirstCheck = !firstCheckDone.current;
     const result = await checkHealth();
 
-    if (!firstCheckDone.current) {
-      // On initial page load: apply the full gate (maintenance OR down)
+    // A genuine 'down' result is a single failed/timed-out check. Count it, and
+    // only surface ServerDownPage once we've hit FAILURE_THRESHOLD in a row.
+    if (result.status === 'down') {
+      consecutiveFailures.current += 1;
+      firstCheckDone.current = true;
+      if (consecutiveFailures.current >= FAILURE_THRESHOLD) {
+        setHealth({ status: 'down' });
+      } else if (wasFirstCheck) {
+        // First load and not yet over threshold: don't gate on a single miss.
+        // Treat as 'ok' so the app renders; subsequent polls confirm or recover.
+        setHealth({ status: 'ok' });
+      }
+      return;
+    }
+
+    // Any non-down result clears the failure streak.
+    consecutiveFailures.current = 0;
+
+    if (wasFirstCheck) {
+      // On initial page load: apply the full gate (maintenance OR ok).
       firstCheckDone.current = true;
       setHealth(result);
       return;
     }
 
-    // Subsequent polls: only switch state for 'ok' recovery or genuine server-down.
+    // Subsequent polls: 'ok' recovery flips us back out of the down state.
     // 'maintenance' is handled by the NavBar socket pill for users already in the app.
-    if (result.status === 'ok' || result.status === 'down') {
+    if (result.status === 'ok') {
       setHealth(result);
     }
   }, []);
 
-  useEffect(() => {
-    poll();
-    const id = setInterval(poll, POLL_INTERVAL);
-    return () => clearInterval(id);
+  // Single source of truth for (re)starting the poll interval.
+  const startInterval = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(poll, POLL_INTERVAL);
   }, [poll]);
+
+  const stopInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    // Initial check + start polling on mount.
+    poll();
+    startInterval();
+
+    // ONE visibilitychange handler covering both throttle layers:
+    //  - hidden:  stop checks entirely (no throttled/stale fires while backgrounded)
+    //  - visible: reset the failure streak, fire one fresh check, restart interval
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        consecutiveFailures.current = 0;
+        poll();
+        startInterval();
+      } else {
+        stopInterval();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      stopInterval();
+    };
+  }, [poll, startInterval, stopInterval]);
 
   // Warm the cache for the About page's remote team avatars during idle time,
   // so they render instantly whenever the user navigates there.
