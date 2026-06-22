@@ -98,6 +98,7 @@ export default function RoomSidebar({
           width:     '236px',
           flexShrink:0,
           overflowY: 'auto',
+          overscrollBehavior: 'contain',
           padding:   '12px',
           borderLeft:'1px solid var(--border-main)',
           background:'var(--bg-card)',

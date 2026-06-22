@@ -58,7 +58,7 @@ function PreviewPortal({ item }) {
           {item.content && (
             <div style={{
               fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--text-secondary)',
-              lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: '60vh', overflowY: 'auto',
+              lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: '60vh', overflowY: 'auto', overscrollBehavior: 'contain',
             }}>
               {item.content}
             </div>

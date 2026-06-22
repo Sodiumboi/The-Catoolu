@@ -1135,6 +1135,7 @@ export default function CampaignRoomPage() {
               <div key={subTab} className="animate-fade" style={{
                 flex:          1,
                 overflowY:     subTab === 'notes' ? 'hidden' : 'auto',
+                overscrollBehavior: 'contain',
                 padding:       subTab === 'main' && myRole === 'keeper' && keeperSheetModal ? 0 : subTab === 'main' ? '12px' : 0,
                 display:       subTab === 'notes' ? 'flex' : undefined,
                 flexDirection: subTab === 'notes' ? 'column' : undefined,

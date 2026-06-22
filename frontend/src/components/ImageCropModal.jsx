@@ -121,6 +121,7 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
           padding:         '12px',
           maxHeight:       '360px',
           overflowY:       'auto',
+          overscrollBehavior: 'contain',
         }}>
           <ReactCrop
             crop={crop}

@@ -337,7 +337,7 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))',
-          gap: 7, maxHeight: 220, overflowY: 'auto',
+          gap: 7, maxHeight: 220, overflowY: 'auto', overscrollBehavior: 'contain',
           padding: 2,
         }}>
           {available.map(h => {
@@ -507,7 +507,7 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
               {preview.content && (
                 <div style={{
                   fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--text-secondary)',
-                  lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: '60vh', overflowY: 'auto',
+                  lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: '60vh', overflowY: 'auto', overscrollBehavior: 'contain',
                 }}>
                   {preview.content}
                 </div>

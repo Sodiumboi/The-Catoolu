@@ -305,7 +305,7 @@ export default function InvestigatorNotes({ characterId, initialNotes, onSave })
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        className="flex-1 rounded p-3 outline-none overflow-y-auto"
+        className="flex-1 rounded p-3 outline-none overflow-y-auto overscroll-contain"
         style={{
           background: 'var(--bg-input)',
           border:     '1px solid var(--border-input)',

@@ -10,6 +10,7 @@ export default function OnlineSidebar({ members, onlineUsers, myRole, inviteCode
       flexDirection:'column',
       background:   'var(--bg-card)',
       overflowY:    'auto',
+      overscrollBehavior: 'contain',
     }}>
 
       {/* Online members */}

@@ -108,6 +108,7 @@ export default function NoteCollection({ notes, loading, contextTagType, context
       <div style={{
         flex:       1,
         overflowY:  'auto',
+        overscrollBehavior: 'contain',
         padding:    '10px',
         display:    viewMode === 'grid' ? 'grid' : 'flex',
         gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(180px, 1fr))' : undefined,

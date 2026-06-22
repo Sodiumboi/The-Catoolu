@@ -37,6 +37,7 @@ function PreviewPanel({ occ, stats, gameEra }) {
       background: 'var(--bg-card)',
       padding: '1.5rem',
       overflowY: 'auto',
+      overscrollBehavior: 'contain',
       maxHeight: '560px',
     }}>
       <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: 'var(--color-primary-dark)', marginBottom: '0.25rem' }}>
@@ -209,6 +210,7 @@ export default function StepOccupationPicker({ state, setOccupation }) {
               overflow: 'hidden',
               maxHeight: '480px',
               overflowY: 'auto',
+              overscrollBehavior: 'contain',
             }}
             onMouseLeave={() => setHovered(null)}
           >

@@ -140,7 +140,7 @@ export default function RollFeed({
         ref={containerRef}
         onScroll={onScroll}
         className={feedBackground ? 'roll-feed-bg' : undefined}
-        style={{ flex: 1, overflowY: 'auto', overflowAnchor: 'none', padding: '16px' }}
+        style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', overflowAnchor: 'none', padding: '16px' }}
       >
         <div ref={innerRef}>
         {/* Sentinel — IntersectionObserver target that triggers load-older */}

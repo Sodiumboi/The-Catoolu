@@ -190,6 +190,13 @@ html {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Stop the page itself from rubber-banding when scroll hits its limit —
+   prevents trackpad overscroll from visually shifting the fixed NavBar/Footer.
+   Safe here: the app does not use pull-to-refresh anywhere. */
+html, body {
+  overscroll-behavior-y: none;
+}
+
 body {
   background-color: var(--bg-page);
   color:            var(--text-primary);

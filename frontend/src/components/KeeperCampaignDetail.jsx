@@ -130,7 +130,7 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
 
       {/* Right content */}
       <div style={{
-        flex:1, overflowY:'auto',
+        flex:1, overflowY:'auto', overscrollBehavior:'contain',
         padding:'28px 32px',
         background:'var(--bg-page)',
       }}>
@@ -629,7 +629,7 @@ function InfoTab({
 
             {/* Sheet or error */}
             {selectedSheet.charData ? (
-              <div style={{ flex:1, overflowY:'auto', background:'var(--bg-page)' }}>
+              <div style={{ flex:1, overflowY:'auto', overscrollBehavior:'contain', background:'var(--bg-page)' }}>
                 <ReadOnlySheet charData={selectedSheet.charData} />
               </div>
             ) : (

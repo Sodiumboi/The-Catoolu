@@ -263,7 +263,7 @@ export default function HandoutViewer({ handout, onClose }) {
         </div>
 
         {/* Body */}
-        <div style={{ overflowY: 'auto', flex: 1 }}>
+        <div style={{ overflowY: 'auto', overscrollBehavior: 'contain', flex: 1 }}>
           {current.type === 'text' && (
             <div style={{
               margin: 16, padding: '16px 20px',

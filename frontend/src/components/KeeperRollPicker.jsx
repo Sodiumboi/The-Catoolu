@@ -122,7 +122,7 @@ export default function KeeperRollPicker({ charData, anchorRect, onPick, onClose
           />
         </div>
 
-        <div style={{ overflowY: 'auto', flex: 1, paddingBottom: '4px' }}>
+        <div style={{ overflowY: 'auto', overscrollBehavior: 'contain', flex: 1, paddingBottom: '4px' }}>
           {/* Characteristics */}
           {filteredStats.length > 0 && (
             <>

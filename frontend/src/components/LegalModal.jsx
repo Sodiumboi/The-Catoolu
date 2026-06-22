@@ -244,7 +244,7 @@ export default function LegalModal({ initialDoc = 'tos', onClose }) {
         </div>
 
         {/* ── Scrollable content ── */}
-        <div style={{ overflowY: 'auto', padding: '20px 22px 28px', flex: 1 }}>
+        <div style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '20px 22px 28px', flex: 1 }}>
           <h2 style={{
             fontFamily: 'var(--font-serif)',
             fontSize:   '1.4rem',

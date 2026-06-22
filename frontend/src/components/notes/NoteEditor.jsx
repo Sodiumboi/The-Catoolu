@@ -283,7 +283,7 @@ export default function NoteEditor({ noteUuid, onBack, onNoteUpdated, onNoteDele
 
       {/* Body */}
       <div
-        style={{ flex: 1, overflowY: 'auto', padding: '0 12px 12px' }}
+        style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 12px 12px' }}
         onClick={() => editor?.commands.focus()}
       >
         <EditorContent

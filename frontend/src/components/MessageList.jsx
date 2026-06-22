@@ -12,6 +12,7 @@ export default function MessageList({ messages, currentUserId }) {
     <div style={{
       flex:      1,
       overflowY: 'auto',
+      overscrollBehavior: 'contain',
       padding:   '16px 20px',
       display:   'flex',
       flexDirection: 'column',

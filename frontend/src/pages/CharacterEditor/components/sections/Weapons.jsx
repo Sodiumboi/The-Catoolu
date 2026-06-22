@@ -61,7 +61,7 @@ export default function Weapons({
             </select>
           </div>
 
-          <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+          <div style={{ maxHeight: '280px', overflowY: 'auto', overscrollBehavior: 'contain' }}>
             <table className="w-full text-xs">
               <thead className="sticky top-0"
                      style={{ background: 'var(--bg-nav)', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>
