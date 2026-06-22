@@ -119,6 +119,23 @@ export default function CampaignRoomPage() {
   // Keep meme-toggle ref current for use inside socket-handler closures
   useEffect(() => { memeEnabledRef.current = memeEnabled; }, [memeEnabled]);
 
+  // ── Reconnect socket on tab restore ───────────────────────────
+  // Background tabs throttle timers; on restore the socket may still be
+  // mid-reconnect or have been dropped. socket.io reconnection stays enabled
+  // (see SocketContext), so we only nudge it: when the tab becomes visible and
+  // the socket exists but isn't connected, kick off a connect attempt.
+  // This adds NO roll/message/broadcast logic — purely a connection nudge.
+  useEffect(() => {
+    if (!socket) return;
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !socket.connected) {
+        socket.connect();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [socket]);
+
   // ── Load campaign + messages ──────────────────────────────────
   useEffect(() => {
     const load = async () => {
