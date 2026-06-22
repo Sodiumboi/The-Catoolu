@@ -26,7 +26,7 @@ export default function CreationUnavailablePage() {
         fontFamily: 'var(--font-serif)',
         fontSize:   '28px',
         color:      'var(--text-primary)',
-      }}>Creation Temporarily Unavailable</h1>
+      }}>Character Creation</h1>
       <p style={{
         margin:     '0 0 8px',
         fontFamily: 'var(--font-sans)',
@@ -35,9 +35,8 @@ export default function CreationUnavailablePage() {
         maxWidth:   '400px',
         lineHeight: 1.6,
       }}>
-        We've found a bug in the character creation engine and have taken it
-        offline while we fix it. In the meantime, you can still import a
-        character from Dhole's House.
+        We're rebuilding the character creation engine from the ground up. In
+        the meantime, you can import a character from Dhole's House.
       </p>
       <Link
         to="/dashboard"

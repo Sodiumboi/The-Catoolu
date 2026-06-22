@@ -10,28 +10,30 @@ import { useState, useEffect } from 'react';
 const SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 const EXIT_MS = 200;
 
-function Option({ icon, title, subtitle, onClick }) {
+function Option({ icon, title, subtitle, onClick, disabled = false }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       style={{
         display: 'flex', alignItems: 'flex-start', gap: '14px',
         width: '100%', textAlign: 'left',
         padding: '16px 18px', borderRadius: '12px',
         border: '1px solid var(--border-main)',
         background: 'var(--bg-card)',
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.45 : 1,
         fontFamily: 'var(--font-sans)',
         transition: 'border-color 0.12s ease, background 0.12s ease, transform 0.12s ease',
       }}
-      onMouseEnter={e => {
+      onMouseEnter={disabled ? undefined : (e => {
         e.currentTarget.style.borderColor = 'var(--accent)';
         e.currentTarget.style.background = 'var(--accent-bg)';
-      }}
-      onMouseLeave={e => {
+      })}
+      onMouseLeave={disabled ? undefined : (e => {
         e.currentTarget.style.borderColor = 'var(--border-main)';
         e.currentTarget.style.background = 'var(--bg-card)';
-      }}
+      })}
     >
       <span className="icon" style={{ fontSize: '28px', color: 'var(--accent)', lineHeight: 1, flexShrink: 0 }}>{icon}</span>
       <span>
@@ -114,14 +116,23 @@ export default function CreateOrImportModal({ open, onClose, onCreate, onImport,
 
         {/* Options */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {creationEnabled && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <Option
               icon="person_add"
               title="Create New Investigator"
               subtitle="Start from scratch with the character creation wizard"
-              onClick={onCreate}
+              onClick={creationEnabled ? onCreate : undefined}
+              disabled={!creationEnabled}
             />
-          )}
+            {!creationEnabled && (
+              <span style={{
+                fontSize: '11px', color: 'var(--text-muted)',
+                fontStyle: 'italic', paddingLeft: '4px',
+              }}>
+                Character creation coming soon
+              </span>
+            )}
+          </div>
           <Option
             icon="upload_file"
             title="Import from Dhole's House"
