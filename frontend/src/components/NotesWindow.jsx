@@ -1,48 +1,27 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { loadWindowState, saveWindowState } from './notes/notesWindowState';
 import NotesPane from './notes/NotesPane';
-
-// Attaches mousemove/mouseup on document so drag follows the cursor
-// even when pointer leaves the element (Safari-safe).
-function attachDrag(e, onMove, onUp) {
-  if (e.button !== 0) return;
-  e.preventDefault();
-  const sx = e.clientX, sy = e.clientY;
-  const move = ev => onMove(ev.clientX - sx, ev.clientY - sy);
-  const up   = ()  => {
-    document.removeEventListener('mousemove', move);
-    document.removeEventListener('mouseup',   up);
-    onUp?.();
-  };
-  document.addEventListener('mousemove', move);
-  document.addEventListener('mouseup',   up);
-}
 
 // ─────────────────────────────────────────────────────────────
 export default function NotesWindow({ windowState, onWindowStateChange, contextTagType, contextTag }) {
   const saved = loadWindowState();
 
-  // Full-window position + size (state drives render, ref drives closures)
+  // Full-window position + size (native drag/resize, see handlers below)
   const [pos,  setPos]  = useState({ x: saved.x,     y: saved.y      });
   const [size, setSize] = useState({ w: saved.width,  h: saved.height });
-  const posRef  = useRef({ x: saved.x,    y: saved.y     });
-  const sizeRef = useRef({ w: saved.width, h: saved.height });
 
-  // Bubble position
-  const defaultBX = Math.max(20, window.innerWidth  - 150);
+  // Bubble position (native drag). Falls back to bottom-right
+  // when no bubbleX/bubbleY has ever been persisted.
+  const defaultBX = Math.max(20, window.innerWidth  - 152);
   const defaultBY = Math.max(20, window.innerHeight - 60);
   const [bpos, setBpos] = useState({
     x: saved.bubbleX ?? defaultBX,
     y: saved.bubbleY ?? defaultBY,
   });
-  const bposRef = useRef(bpos);
-
   // Animate only during state transitions (not during drag)
-  const [animating,    setAnimating]    = useState(false);
-  const [openingDir,   setOpeningDir]   = useState(null);  // 'opening' | null
-  const [dragRotate,   setDragRotate]   = useState(0);
-  const [snapping,     setSnapping]     = useState(false);
+  const [animating,  setAnimating]  = useState(false);
+  const [openingDir, setOpeningDir] = useState(null);  // 'opening' | 'closing' | null
 
   // First-time guide
   const [showGuide, setShowGuide] = useState(() => !localStorage.getItem('notes-guide-seen'));
@@ -78,326 +57,323 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
     onWindowStateChange(next);
   };
 
-  // Minimise: place bubble at the window's current top-left so it
-  // shrinks in place rather than jumping across the screen.
+  // Minimise: collapse to the draggable bubble pill at its last position.
   const handleMinimise = () => {
-    // Place bubble at the window's title-bar position (same top, centred horizontally).
-    // This pins the top edge so expand grows downward and minimise collapses upward.
-    const nb = {
-      x: posRef.current.x + Math.round(sizeRef.current.w / 2) - 64,
-      y: posRef.current.y,
-    };
-    setBpos(nb);
-    bposRef.current = nb;
-    saveWindowState({ bubbleX: nb.x, bubbleY: nb.y });
     changeState('bubble');
   };
 
-  // ── Drag handlers ─────────────────────────────────────────
-  const handleBubbleDown = (e) => {
-    const ix = bposRef.current.x, iy = bposRef.current.y;
+  // ── Bubble drag + click-to-open (simple custom handler) ───
+  // Lightweight document-level pointer drag: move past a small threshold =
+  // drag (persist position); release without movement = click (expand to the
+  // full window). Both the pill and the window use native handlers because
+  // react-rnd/react-draggable is incompatible with React 19 (findDOMNode).
+  const DRAG_THRESHOLD = 3;
+  const handleBubbleMouseDown = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const originX = bpos.x;
+    const originY = bpos.y;
     let moved = false;
-    attachDrag(
-      e,
-      (dx, dy) => {
-        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-        if (moved) {
-          const np = { x: ix + dx, y: iy + dy };
-          bposRef.current = np;
-          setBpos(np);
-        }
-      },
-      () => {
-        if (moved) saveWindowState({ bubbleX: bposRef.current.x, bubbleY: bposRef.current.y });
-        else changeState('full');   // click (no drag) → expand
+
+    const clamp = (dx, dy) => ({
+      x: Math.max(0, Math.min(window.innerWidth  - 128, originX + dx)),
+      y: Math.max(0, Math.min(window.innerHeight -  36, originY + dy)),
+    });
+
+    const onMove = (ev) => {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (!moved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) moved = true;
+      if (moved) setBpos(clamp(dx, dy));
+    };
+    const onUp = (ev) => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      if (moved) {
+        const next = clamp(ev.clientX - startX, ev.clientY - startY);
+        setBpos(next);
+        saveWindowState({ bubbleX: next.x, bubbleY: next.y });
+      } else {
+        changeState('full');   // click (no real movement) → expand
       }
-    );
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
   };
 
-  const handleTitleDown = (e) => {
-    if (e.target.closest('[data-nodrag]') || animating) return;
-    const ix = posRef.current.x, iy = posRef.current.y;
-    let lastDx = 0;
-    setSnapping(false);
-    attachDrag(
-      e,
-      (dx, dy) => {
-        const velX  = dx - lastDx;
-        lastDx = dx;
-        posRef.current = { x: ix + dx, y: iy + dy };
-        setPos({ ...posRef.current });
-        setDragRotate(Math.max(-6, Math.min(6, velX * 0.65)));
-      },
-      () => {
-        setSnapping(true);
-        setDragRotate(0);
-        saveWindowState({ x: posRef.current.x, y: posRef.current.y });
-        setTimeout(() => setSnapping(false), 550);
-      }
-    );
-  };
-
-  const handleResizeDown = (e) => {
-    e.stopPropagation();
-    if (animating) return;
-    const iw = sizeRef.current.w, ih = sizeRef.current.h;
-    attachDrag(
-      e,
-      (dx, dy) => {
-        const ns = {
-          w: Math.min(800, Math.max(360, iw + dx)),
-          h: Math.min(900, Math.max(300, ih + dy)),
-        };
-        sizeRef.current = ns;
-        setSize(ns);
-      },
-      () => saveWindowState({ width: sizeRef.current.w, height: sizeRef.current.h })
-    );
-  };
-
-  // ── Derived display values ─────────────────────────────────
-  const dispLeft   = isBubble ? bpos.x : pos.x;
-  const dispTop    = isBubble ? bpos.y : pos.y;
-  const dispW      = isBubble ? 128    : size.w;
-  const dispH      = isBubble ? 36     : size.h;
-  const dispRadius = isBubble ? '18px' : '10px';
-  const dispBg     = isBubble ? 'var(--accent)' : 'var(--bg-card)';
-  const dispShadow = isBubble
-    ? '0 4px 16px rgba(0,0,0,0.28)'
-    : '0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12)';
-
-  const springEase  = openingDir === 'opening'
-    ? 'cubic-bezier(0.34,1.3,0.64,1)'
-    : 'cubic-bezier(0.4,0,0.2,1)';
-  const snapTx      = snapping ? 'transform 500ms cubic-bezier(0.34,1.56,0.64,1)' : null;
-
-  const morphTransition = animating
-    ? [
-        `left 320ms ${springEase}`,
-        `top 320ms ${springEase}`,
-        `width 340ms ${springEase}`,
-        `height 340ms ${springEase}`,
-        'border-radius 300ms ease',
-        'background-color 220ms ease',
-        'box-shadow 220ms ease',
-        snapTx,
-      ].filter(Boolean).join(', ')
-    : snapTx || 'none';
-
+  // Opacity-only fade during morph (never animate left/top/width/height —
+  // that would make the native drag/resize below lag).
   const contentFade = animating ? 'opacity 180ms ease' : 'none';
 
+  // ── Full-window drag (native) ────────────────────────────
+  // react-rnd's drag engine (react-draggable) relies on ReactDOM.findDOMNode,
+  // which React 19 removed — so react-rnd drag/resize silently fails here.
+  // We drive position/size natively with document-level pointer handlers,
+  // clamped to the viewport. Buttons opt out via [data-nodrag].
+  const handleWindowMouseDown = (e) => {
+    if (e.target.closest('[data-nodrag]')) return;   // don't drag from buttons
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const originX = pos.x, originY = pos.y;
+    const maxX = Math.max(0, window.innerWidth  - size.w);
+    const maxY = Math.max(0, window.innerHeight - size.h);
+    const at = (ev) => ({
+      x: Math.max(0, Math.min(maxX, originX + ev.clientX - startX)),
+      y: Math.max(0, Math.min(maxY, originY + ev.clientY - startY)),
+    });
+    const onMove = (ev) => setPos(at(ev));
+    const onUp = (ev) => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      const next = at(ev);
+      setPos(next);
+      saveWindowState({ x: next.x, y: next.y });
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  // ── Full-window resize from the bottom-right grip (native) ─
+  const handleResizeMouseDown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX, startY = e.clientY;
+    const originW = size.w, originH = size.h;
+    const at = (ev) => ({
+      w: Math.max(360, Math.min(800, originW + ev.clientX - startX)),
+      h: Math.max(300, Math.min(900, originH + ev.clientY - startY)),
+    });
+    const onMove = (ev) => setSize(at(ev));
+    const onUp = (ev) => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      const next = at(ev);
+      setSize(next);
+      saveWindowState({ width: next.w, height: next.h });
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
   return createPortal(
-    <div
-      style={{
-        position:     'fixed',
-        left:         dispLeft,
-        top:          dispTop,
-        width:        dispW,
-        height:       dispH,
-        borderRadius: dispRadius,
-        background:   dispBg,
-        boxShadow:    dispShadow,
-        border:       isBubble ? 'none' : '1px solid var(--border-main)',
-        overflow:     'hidden',
-        zIndex:       9999,
-        transition:   morphTransition,
-        transform:    `rotate(${dragRotate}deg)`,
-        userSelect:   'none',
-      }}
-    >
-      {/* ── Bubble layer (visible when minimised) ────────── */}
-      <div
-        onMouseDown={isBubble ? handleBubbleDown : undefined}
-        style={{
-          position:      'absolute',
-          inset:         0,
-          display:       'flex',
-          alignItems:    'center',
-          gap:           '6px',
-          padding:       '0 14px',
-          color:         '#fff',
-          fontFamily:    'var(--font-sans)',
-          fontSize:      '13px',
-          fontWeight:    600,
-          cursor:        'grab',
-          opacity:       isBubble ? 1 : 0,
-          transition:    contentFade,
-          animation:     openingDir === 'closing' ? 'notes-bounce-pill 320ms ease 240ms' : 'none',
-          pointerEvents: isBubble ? 'auto' : 'none',
-          boxSizing:     'border-box',
-        }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 15, flexShrink: 0 }}>description</span>
-        Notes
-
-        {/* Shimmer sweep */}
+    <>
+      {/* ── Bubble pill (visible when minimised) — fixed div, custom drag ── */}
+      {isBubble && (
         <div
-          key={shimmerKey}
+          onMouseDown={handleBubbleMouseDown}
           style={{
-            position:   'absolute',
-            top: 0, bottom: 0, left: 0,
-            width:      '55%',
-            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.30) 50%, transparent 100%)',
-            transform:  'translateX(-100%)',
-            animation:  shimmerKey > 0 ? 'note-shimmer 0.65s ease forwards' : 'none',
-            pointerEvents: 'none',
-          }}
-        />
-      </div>
-
-      {/* ── Window layer (visible when full) ─────────────── */}
-      <div
-        className="notes-window"
-        style={{
-          position:        'absolute',
-          inset:           0,
-          display:         'flex',
-          flexDirection:   'column',
-          background:      'var(--bg-card)',
-          opacity:         isBubble ? 0 : 1,
-          transition:      openingDir === 'opening' ? 'none' : contentFade,
-          animation:       openingDir === 'opening'
-            ? 'notes-bounce-open 400ms cubic-bezier(0.22,1,0.36,1) both'
-            : 'none',
-          transformOrigin: '50% 0',
-          pointerEvents:   isBubble ? 'none' : 'auto',
-        }}
-      >
-        {/* Title bar — drag handle */}
-        <div
-          onMouseDown={handleTitleDown}
-          style={{
-            display:        'flex',
-            alignItems:     'center',
-            justifyContent: 'space-between',
-            padding:        '7px 8px 7px 12px',
-            background:     'var(--bg-input)',
-            borderBottom:   '1px solid var(--border-main)',
-            cursor:         'move',
-            flexShrink:     0,
+            position:      'fixed',
+            left:          bpos.x,
+            top:           bpos.y,
+            width:         128,
+            height:        36,
+            zIndex:        9999,
+            display:       'flex',
+            alignItems:    'center',
+            gap:           '6px',
+            padding:       '0 14px',
+            color:         '#fff',
+            background:    'var(--accent)',
+            borderRadius:  '18px',
+            boxShadow:     '0 4px 16px rgba(0,0,0,0.28)',
+            fontFamily:    'var(--font-sans)',
+            fontSize:      '13px',
+            fontWeight:    600,
+            cursor:        'grab',
+            overflow:      'hidden',
+            animation:     openingDir === 'closing' ? 'notes-bounce-pill 360ms cubic-bezier(0.34,1.3,0.64,1)' : 'none',
+            boxSizing:     'border-box',
+            userSelect:    'none',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', pointerEvents: 'none' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '15px', color: 'var(--text-muted)' }}>description</span>
-            <span style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: 'var(--text-primary)' }}>Notes</span>
-          </div>
+          <span className="material-symbols-outlined" style={{ fontSize: 15, flexShrink: 0 }}>description</span>
+          Notes
 
-          <div style={{ display: 'flex', gap: '2px' }} data-nodrag>
-            <button
-              onClick={handleMinimise}
-              title="Minimise"
-              style={{
-                background: 'transparent', border: 'none',
-                color:      'var(--text-faint)', cursor: 'pointer',
-                padding:    '1px 8px', borderRadius: '4px',
-                fontFamily: 'var(--font-sans)', fontSize: '16px', fontWeight: 700, lineHeight: 1.2,
-              }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
-            >
-              &#8212;
-            </button>
-            <button
-              onClick={() => changeState('closed')}
-              title="Close"
-              style={{
-                background: 'transparent', border: 'none',
-                color:      'var(--text-faint)', cursor: 'pointer',
-                padding:    '2px 5px', borderRadius: '4px', lineHeight: 1,
-              }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px', display: 'block' }}>close</span>
-            </button>
-          </div>
+          {/* Shimmer sweep */}
+          <div
+            key={shimmerKey}
+            style={{
+              position:   'absolute',
+              top: 0, bottom: 0, left: 0,
+              width:      '55%',
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.30) 50%, transparent 100%)',
+              transform:  'translateX(-100%)',
+              animation:  shimmerKey > 0 ? 'note-shimmer 0.65s ease forwards' : 'none',
+              pointerEvents: 'none',
+            }}
+          />
         </div>
+      )}
 
-        {/* Content */}
-        <div style={{ flex: 1, overflow: 'hidden' }}>
-          <NotesPane contextTagType={contextTagType} contextTag={contextTag} />
-        </div>
-
-        {/* Resize handle — bottom-right */}
+      {/* ── Full window (visible when full) — native fixed div ─────── */}
+      {!isBubble && (
         <div
-          onMouseDown={handleResizeDown}
+          className="notes-window"
           style={{
-            position: 'absolute',
-            bottom: 0, right: 0,
-            width: 18, height: 18,
-            cursor: 'se-resize',
+            position:        'fixed',
+            left:            pos.x,
+            top:             pos.y,
+            width:           size.w,
+            height:          size.h,
+            zIndex:          9999,
+            display:         'flex',
+            flexDirection:   'column',
+            background:      'var(--bg-card)',
+            borderRadius:    '10px',
+            border:          '1px solid var(--border-main)',
+            boxShadow:       '0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12)',
+            overflow:        'hidden',
+            transition:      openingDir === 'opening' ? 'none' : contentFade,
+            animation:       openingDir === 'opening'
+              ? 'notes-bounce-open 400ms cubic-bezier(0.22,1,0.36,1) both'
+              : 'none',
+            transformOrigin: '50% 0',
           }}
-        />
-
-        {/* First-time guide overlay */}
-        {showGuide && (
-          <div style={{
-            position:      'absolute', inset: 0,
-            background:    'rgba(0,0,0,0.45)',
-            zIndex:        20,
-            display:       'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius:  '10px',
-          }}>
-            <div style={{
-              background:   'var(--bg-popup)',
-              border:       '1px solid var(--border-main)',
-              borderRadius: '12px',
-              padding:      '20px 22px',
-              maxWidth:     '260px',
-              boxShadow:    'var(--shadow-dropdown)',
-            }}>
-              <div style={{
-                fontFamily: 'var(--font-serif)', fontSize: '16px',
-                color: 'var(--text-primary)', marginBottom: '12px',
-              }}>
-                Notes
+        >
+            {/* Title bar — drag handle */}
+            <div
+              className="notes-drag-handle"
+              onMouseDown={handleWindowMouseDown}
+              style={{
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'space-between',
+                padding:        '7px 8px 7px 12px',
+                background:     'var(--bg-input)',
+                borderBottom:   '1px solid var(--border-main)',
+                cursor:         'move',
+                flexShrink:     0,
+                userSelect:     'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', pointerEvents: 'none' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '15px', color: 'var(--text-muted)' }}>description</span>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: 'var(--text-primary)' }}>Notes</span>
               </div>
 
-              <ul style={{
-                margin: '0 0 16px', padding: '0 0 0 16px',
-                fontFamily: 'var(--font-sans)', fontSize: '12px',
-                color: 'var(--text-secondary)', lineHeight: 1.8,
-              }}>
-                <li>Notes are <strong>private</strong> — only you can see them</li>
-                <li>Drag the title bar to reposition</li>
-                <li>Click <strong>—</strong> to collapse to a floating pill</li>
-                <li>Tag notes to a character or session</li>
-              </ul>
-
-              <label style={{
-                display: 'flex', alignItems: 'center', gap: '7px',
-                marginBottom: '14px', cursor: 'pointer',
-              }}>
-                <input
-                  type="checkbox"
-                  checked={dontShow}
-                  onChange={e => setDontShow(e.target.checked)}
-                  style={{ cursor: 'pointer', accentColor: 'var(--accent)' }}
-                />
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--text-muted)' }}>
-                  Don't show again
-                </span>
-              </label>
-
-              <button
-                onClick={dismissGuide}
-                style={{
-                  width: '100%', padding: '8px',
-                  borderRadius: '8px', border: 'none',
-                  background: 'var(--accent)', color: '#fff',
-                  fontFamily: 'var(--font-sans)', fontSize: '13px',
-                  fontWeight: '600', cursor: 'pointer',
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              >
-                Got it!
-              </button>
+              <div style={{ display: 'flex', gap: '2px' }} data-nodrag>
+                <button
+                  onClick={handleMinimise}
+                  title="Minimise"
+                  style={{
+                    background: 'transparent', border: 'none',
+                    color:      'var(--text-faint)', cursor: 'pointer',
+                    padding:    '1px 8px', borderRadius: '4px',
+                    fontFamily: 'var(--font-sans)', fontSize: '16px', fontWeight: 700, lineHeight: 1.2,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+                >
+                  &#8212;
+                </button>
+                <button
+                  onClick={() => changeState('closed')}
+                  title="Close"
+                  style={{
+                    background: 'transparent', border: 'none',
+                    color:      'var(--text-faint)', cursor: 'pointer',
+                    padding:    '2px 5px', borderRadius: '4px', lineHeight: 1,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', display: 'block' }}>close</span>
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>,
+
+            {/* Content */}
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <NotesPane contextTagType={contextTagType} contextTag={contextTag} />
+            </div>
+
+            {/* First-time guide overlay */}
+            {showGuide && (
+              <div style={{
+                position:      'absolute', inset: 0,
+                background:    'rgba(0,0,0,0.45)',
+                zIndex:        20,
+                display:       'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius:  '10px',
+              }}>
+                <div style={{
+                  background:   'var(--bg-popup)',
+                  border:       '1px solid var(--border-main)',
+                  borderRadius: '12px',
+                  padding:      '20px 22px',
+                  maxWidth:     '260px',
+                  boxShadow:    'var(--shadow-dropdown)',
+                }}>
+                  <div style={{
+                    fontFamily: 'var(--font-serif)', fontSize: '16px',
+                    color: 'var(--text-primary)', marginBottom: '12px',
+                  }}>
+                    Notes
+                  </div>
+
+                  <ul style={{
+                    margin: '0 0 16px', padding: '0 0 0 16px',
+                    fontFamily: 'var(--font-sans)', fontSize: '12px',
+                    color: 'var(--text-secondary)', lineHeight: 1.8,
+                  }}>
+                    <li>Notes are <strong>private</strong> — only you can see them</li>
+                    <li>Drag the title bar to reposition</li>
+                    <li>Click <strong>—</strong> to collapse to a floating pill</li>
+                    <li>Tag notes to a character or session</li>
+                  </ul>
+
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '7px',
+                    marginBottom: '14px', cursor: 'pointer',
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={dontShow}
+                      onChange={e => setDontShow(e.target.checked)}
+                      style={{ cursor: 'pointer', accentColor: 'var(--accent)' }}
+                    />
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                      Don't show again
+                    </span>
+                  </label>
+
+                  <button
+                    onClick={dismissGuide}
+                    style={{
+                      width: '100%', padding: '8px',
+                      borderRadius: '8px', border: 'none',
+                      background: 'var(--accent)', color: '#fff',
+                      fontFamily: 'var(--font-sans)', fontSize: '13px',
+                      fontWeight: '600', cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    Got it!
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Resize grip — bottom-right, with visible diagonal marks */}
+            <div
+              onMouseDown={handleResizeMouseDown}
+              title="Resize"
+              style={{
+                position:        'absolute',
+                right:           0,
+                bottom:          0,
+                width:           18,
+                height:          18,
+                cursor:          'nwse-resize',
+                zIndex:          10,
+                backgroundImage: 'linear-gradient(135deg, transparent 0 46%, var(--text-faint) 46% 54%, transparent 54% 70%, var(--text-faint) 70% 80%, transparent 80%)',
+              }}
+            />
+        </div>
+      )}
+    </>,
     document.body
   );
 }
