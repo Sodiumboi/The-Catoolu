@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import apiClient from '../api/client';
+import UploadProgressBar from './UploadProgressBar';
 
 export default function BugReportModal({ onClose }) {
   const [title,       setTitle]       = useState('');
@@ -7,6 +8,7 @@ export default function BugReportModal({ onClose }) {
   const [image,       setImage]       = useState(null);
   const [preview,     setPreview]     = useState(null);
   const [submitting,  setSubmitting]  = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [error,       setError]       = useState('');
   const [done,        setDone]        = useState(false);
   const fileRef = useRef(null);
@@ -46,12 +48,16 @@ export default function BugReportModal({ onClose }) {
 
       await apiClient.post('/bugs', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => {
+          if (image && e.total) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        },
       });
       setDone(true);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit. Please try again.');
     } finally {
       setSubmitting(false);
+      setUploadProgress(null);
     }
   }
 
@@ -235,6 +241,13 @@ export default function BugReportModal({ onClose }) {
                 color:      'var(--danger)',
                 fontFamily: 'var(--font-sans)',
               }}>{error}</p>
+            )}
+
+            {/* Upload progress */}
+            {uploadProgress !== null && (
+              <div style={{ marginTop: 12 }}>
+                <UploadProgressBar progress={uploadProgress} />
+              </div>
             )}
 
             {/* Actions */}

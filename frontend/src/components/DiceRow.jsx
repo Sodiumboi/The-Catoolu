@@ -3,11 +3,14 @@ const DICE = [4, 6, 8, 10, 12, 20, 100];
 export default function DiceRow({
   advMode, disMode,
   rollVisibility,
+  isRolling = false,
+  rollingDie = null,
   onToggleAdv, onToggleDis,
   onToggleVisibility,
   onRoll,
 }) {
   const handleDie = (sides, shiftKey = false) => {
+    if (isRolling) return;
     const suffix = advMode ? 'adv' : disMode ? 'dis' : '';
     const notation = '1d' + sides + suffix;
     onRoll(notation, shiftKey);
@@ -26,30 +29,37 @@ export default function DiceRow({
       scrollbarWidth: 'none',
     }}>
       {DICE.map(sides => {
+        const notation  = '1d' + sides + (advMode ? 'adv' : disMode ? 'dis' : '');
+        const isThisDie = rollingDie === notation;
         return (
           <button
             key={sides}
             onClick={e => handleDie(sides, e.shiftKey)}
+            disabled={isRolling}
             title={'Roll 1d' + sides + (advMode ? ' Adv' : disMode ? ' Dis' : '')
               + '\nShift+click for a surprise 🎉'}
             style={{
               padding:      '4px 9px',
               borderRadius: '6px',
-              border:       '1px solid var(--border-main)',
-              background:   'var(--bg-card)',
-              color:        'var(--text-secondary)',
+              border:       '1px solid ' + (isThisDie ? 'var(--accent)' : 'var(--border-main)'),
+              background:   isThisDie ? 'var(--accent-bg)' : 'var(--bg-card)',
+              color:        isThisDie ? 'var(--accent)'    : 'var(--text-secondary)',
               fontFamily:   'var(--font-sans)',
               fontSize:     '12px',
               fontWeight:   '400',
-              cursor:       'pointer',
+              cursor:       isRolling ? 'not-allowed' : 'pointer',
+              opacity:      isRolling && !isThisDie ? 0.5 : 1,
+              animation:    isThisDie ? 'pulse-accent 2s ease-in-out infinite' : 'none',
               transition:   'all 0.1s ease',
             }}
             onMouseEnter={e => {
+              if (isRolling) return;
               e.currentTarget.style.background   = 'var(--accent-bg)';
               e.currentTarget.style.borderColor  = 'var(--accent)';
               e.currentTarget.style.color        = 'var(--accent)';
             }}
             onMouseLeave={e => {
+              if (isRolling) return;
               e.currentTarget.style.background  = 'var(--bg-card)';
               e.currentTarget.style.borderColor = 'var(--border-main)';
               e.currentTarget.style.color       = 'var(--text-secondary)';

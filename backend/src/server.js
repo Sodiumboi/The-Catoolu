@@ -21,6 +21,7 @@ const addAdminColumn     = require('./migrations/add_admin_column');
 const createAppSettings  = require('./migrations/create_app_settings');
 const createNotes        = require('./migrations/create_notes');
 const createHandouts     = require('./migrations/create_handouts');
+const addImageUrlsToMessages = require('./migrations/add_image_urls_to_messages');
 const createUserUploads  = require('./migrations/create_user_uploads');
 
 // Auth
@@ -133,6 +134,7 @@ async function startServer() {
   await createAppSettings();
   await createNotes();
   await createHandouts();
+  await addImageUrlsToMessages();
   await createUserUploads();
 
   httpServer.listen(PORT, () => {

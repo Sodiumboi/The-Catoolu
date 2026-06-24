@@ -92,7 +92,13 @@ export default function CampaignRoomPage() {
   const [rollRequests,      setRollRequests]      = useState([]);
   const [pendingRollReqs,   setPendingRollReqs]   = useState({});
   const [memberSheetCache,  setMemberSheetCache]  = useState({});
-  const [attachedFile,      setAttachedFile]      = useState(null);
+  const [attachedFiles,     setAttachedFiles]     = useState([]);
+  const [isSending,         setIsSending]         = useState(false);
+  const [uploadError,       setUploadError]       = useState(null);
+  const [uploadProgress,    setUploadProgress]    = useState(null);
+  const [popupSubmitting,   setPopupSubmitting]   = useState(false);
+  const [rolling,           setRolling]           = useState(false);
+  const [rollingDie,        setRollingDie]        = useState(null);
   const [sharedHandouts,    setSharedHandouts]    = useState([]);
   const [newHandoutCount,   setNewHandoutCount]   = useState(0);
   const [viewingHandout,    setViewingHandout]    = useState(null);
@@ -107,6 +113,10 @@ export default function CampaignRoomPage() {
   const forceMemeNextRollRef  = useRef(false);
   const memeEnabledRef        = useRef(memeEnabled);
   const historyLoadedRef      = useRef(false);
+  const rollingTimeoutRef     = useRef(null);  // 8s fallback to re-enable dice if echo never arrives
+  const popupTimeoutRef       = useRef(null);  // 8s fallback to clear skill-popup pending state
+  const optimisticIdRef       = useRef(null);  // temp id of the in-flight optimistic chat-image card
+  const uploadProgressMapRef  = useRef(new Map()); // per-file upload pct for aggregate progress
   const isDraggingRef         = useRef(false);
   const dragStartXRef         = useRef(0);
   const dragStartWidthRef     = useRef(400);
@@ -216,10 +226,29 @@ export default function CampaignRoomPage() {
       );
       if (withMeme) forceMemeNextRollRef.current = false;
 
+      const isOwnEcho = msg.user_id === user?.id;
+
       setMessages(prev => {
-        if (prev.some(m => keyOf(m) === keyOf(msg))) return prev;
-        return [...prev, withMeme ? { ...msg, _forceMeme: true } : msg];
+        // On our own echo, strip any pending optimistic cards BEFORE appending the
+        // real message — keeps the feed free of duplicate optimistic/real pairs.
+        const base = isOwnEcho ? prev.filter(m => !m._optimistic) : prev;
+        if (base.some(m => keyOf(m) === keyOf(msg))) return base;
+        return [...base, withMeme ? { ...msg, _forceMeme: true } : msg];
       });
+
+      // Clear pending/anti-double-click guards once our own echo arrives.
+      if (isOwnEcho) {
+        optimisticIdRef.current = null;
+        setIsSending(false);
+        setUploadProgress(null);
+        if (msg.type === 'roll') {
+          setRolling(false);
+          setRollingDie(null);
+          setPopupSubmitting(false);
+          clearTimeout(rollingTimeoutRef.current);
+          clearTimeout(popupTimeoutRef.current);
+        }
+      }
 
       if (!historyLoadedRef.current) return;
 
@@ -508,38 +537,99 @@ export default function CampaignRoomPage() {
   const handleFileSelect = (file) => {
     if (!file.type.startsWith('image/')) { alert('Only image files can be attached.'); return; }
     if (file.size > 5 * 1024 * 1024)    { alert('Image must be under 5MB.');           return; }
-    setAttachedFile(file);
+    // Cap at 5 attachments per message — silently ignore extras.
+    setAttachedFiles(prev => prev.length >= 5 ? prev : [...prev, file]);
+  };
+
+  const handleClearAttachment = (index) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Remove an optimistic chat-image card after its upload failed (error state dismiss).
+  const handleDismissOptimistic = (tempId) => {
+    if (optimisticIdRef.current === tempId) optimisticIdRef.current = null;
+    setMessages(prev => prev.filter(m => m.id !== tempId));
   };
 
   // ── Send handler ──────────────────────────────────────────────
   const handleSend = async (inputText, shiftKey = false) => {
     if (!socket || !inRoom) return;
+    if (isSending) return;          // anti-double-click guard
+
+    setIsSending(true);
+    setUploadError(null);
 
     if (afk) handleToggleAfk();
 
-    // Upload + share attachment if present
-    if (attachedFile) {
-      const file = attachedFile;
-      setAttachedFile(null);
+    const trimmed = inputText.trim();
+
+    // Upload attachments if present — both roles route through /chat-image.
+    // Multiple files upload in parallel, then ONE send_message carries the gallery.
+    if (attachedFiles.length > 0) {
+      const files = attachedFiles;
+      setAttachedFiles([]);
+
+      // Insert an optimistic, message-shaped placeholder that shows aggregate progress.
+      const tempId = 'optimistic-' + Date.now();
+      optimisticIdRef.current     = tempId;
+      uploadProgressMapRef.current = new Map(files.map((_, i) => [i, 0]));
+      setMessages(prev => [...prev, {
+        id:         tempId,
+        type:       'chat',
+        _optimistic: true,
+        _progress:  0,
+        content:    '',
+        created_at: new Date().toISOString(),
+        user_id:    user?.id,
+        username:   user?.username,
+        image_urls: [],
+      }]);
+
       try {
-        const fd = new FormData();
-        fd.append('type', 'image');
-        fd.append('title', file.name.replace(/\.[^/.]+$/, ''));
-        fd.append('file', file);
-        const uploadRes = await apiClient.post(
-          '/campaigns/' + uuid + '/handouts',
-          fd,
-          { headers: { 'Content-Type': 'multipart/form-data' } }
-        );
-        await apiClient.post(
-          '/campaigns/' + uuid + '/handouts/' + uploadRes.data.uuid + '/share'
-        );
+        const urls = await Promise.all(files.map((file, i) => {
+          const fd = new FormData();
+          fd.append('file', file);
+          return apiClient.post(
+            '/campaigns/' + uuid + '/chat-image',
+            fd,
+            {
+              headers: { 'Content-Type': 'multipart/form-data' },
+              onUploadProgress: (e) => {
+                if (!e.total) return;
+                uploadProgressMapRef.current.set(i, Math.round((e.loaded / e.total) * 100));
+                const agg = [...uploadProgressMapRef.current.values()]
+                  .reduce((a, b) => a + b, 0) / files.length;
+                setMessages(prev => prev.map(m =>
+                  m.id === tempId ? { ...m, _progress: Math.round(agg) } : m
+                ));
+              },
+            }
+          ).then(r => r.data.url);
+        }));
+
+        socket.emit('send_message', {
+          campaignId:    campaign?.id,
+          content:       trimmed,
+          characterName: myCharacter?.name || null,
+          image_urls:    urls,
+        });
+        // receive_message echo will remove the optimistic card, append the real
+        // message, and clear isSending.
+        return;
       } catch (err) {
-        console.error('[attach send] failed:', err?.response?.data || err?.message);
+        const human = err?.response?.data?.error
+          || 'Failed to send image. Please try again.';
+        // Flip the optimistic card into an error state; keep it in the feed so the
+        // user can read the error and dismiss it.
+        setMessages(prev => prev.map(m =>
+          m.id === tempId ? { ...m, _error: human, _progress: null } : m
+        ));
+        setUploadError(human);
+        setIsSending(false);
+        return;
       }
     }
 
-    const trimmed = inputText.trim();
     const isRoll  = trimmed.startsWith('/roll') || trimmed.startsWith('/r ') || trimmed === '/r';
 
     if (isRoll) {
@@ -576,6 +666,8 @@ export default function CampaignRoomPage() {
           }
           setMessages(prev => [...prev, msg]);
         } catch { /* silent */ }
+        // Hidden rolls produce no receive_message echo — clear the lock here.
+        setIsSending(false);
       } else {
         socket.emit('roll_dice', {
           campaignId:    campaign?.id,
@@ -584,13 +676,18 @@ export default function CampaignRoomPage() {
           skillValue:    null,
           characterName: myCharacter?.name || null,
         });
+        // receive_message echo (type roll) will clear isSending.
       }
-    } else {
+    } else if (trimmed) {
       socket.emit('send_message', {
         campaignId:    campaign?.id,
         content:       trimmed,
         characterName: myCharacter?.name || null,
       });
+      // receive_message echo will clear isSending.
+    } else {
+      // Nothing left to send (e.g. keeper image-only already handled above).
+      setIsSending(false);
     }
   };
 
@@ -607,8 +704,13 @@ export default function CampaignRoomPage() {
 
   const handlePopupRoll = (mode, label, value) => {
     if (!socket || !inRoom) return;
+    if (popupSubmitting) return;          // anti-double-click guard
     const suffix   = mode === 'adv' ? 'adv' : mode === 'dis' ? 'dis' : '';
     const notation = '1d100' + suffix;
+
+    setPopupSubmitting(true);
+    clearTimeout(popupTimeoutRef.current);
+    popupTimeoutRef.current = setTimeout(() => setPopupSubmitting(false), 8000);
 
     if (rollVisibility === 'only_me') {
       apiClient.post('/campaigns/' + uuid + '/roll/hidden', {
@@ -620,7 +722,11 @@ export default function CampaignRoomPage() {
           username: user?.username,
           _hidden:  true,
         }]);
-      }).catch(() => {});
+      }).catch(() => {}).finally(() => {
+        // Hidden rolls produce no receive_message echo — clear here.
+        setPopupSubmitting(false);
+        clearTimeout(popupTimeoutRef.current);
+      });
     } else {
       socket.emit('roll_dice', {
         campaignId:    campaign?.id,
@@ -629,6 +735,7 @@ export default function CampaignRoomPage() {
         skillValue:    value,
         characterName: myCharacter?.name || null,
       });
+      // receive_message echo (type roll) will clear popupSubmitting.
     }
     setRollPopup(null);
   };
@@ -1335,6 +1442,7 @@ export default function CampaignRoomPage() {
             currentUserId={user?.id}
             myRole={myRole}
             onDeleteMessage={handleDeleteMessage}
+            onDismissOptimistic={handleDismissOptimistic}
             hasMore={hasMoreHistory}
             loadingOlder={loadingOlder}
             onLoadOlder={loadOlderMessages}
@@ -1358,10 +1466,13 @@ export default function CampaignRoomPage() {
           <DiceRow
             advMode={advMode} disMode={disMode}
             rollVisibility={rollVisibility}
+            isRolling={rolling}
+            rollingDie={rollingDie}
             onToggleAdv={handleToggleAdv}
             onToggleDis={handleToggleDis}
             onToggleVisibility={() => setRollVisibility(p => p === 'everyone' ? 'only_me' : 'everyone')}
             onRoll={(notation, shiftKey) => {
+              if (rolling) return;          // anti-double-click guard
               const isD100 = notation.toLowerCase().includes('d100');
               if (shiftKey && isD100 && memeEnabledRef.current) {
                 [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(origin =>
@@ -1371,6 +1482,13 @@ export default function CampaignRoomPage() {
                 forceMemeNextRollRef.current = true;
               }
               if (!socket || !inRoom) return;
+              setRolling(true);
+              setRollingDie(notation);      // ring spins on the clicked die
+              clearTimeout(rollingTimeoutRef.current);
+              rollingTimeoutRef.current = setTimeout(() => {
+                setRolling(false);
+                setRollingDie(null);
+              }, 8000);
               if (rollVisibility === 'only_me') {
                 apiClient.post('/campaigns/' + uuid + '/roll/hidden', { notation })
                   .then(res => {
@@ -1386,13 +1504,20 @@ export default function CampaignRoomPage() {
                     }
                     setMessages(prev => [...prev, msg]);
                   })
-                  .catch(() => {});
+                  .catch(() => {})
+                  .finally(() => {
+                    // Hidden rolls produce no receive_message echo — clear here.
+                    setRolling(false);
+                    setRollingDie(null);
+                    clearTimeout(rollingTimeoutRef.current);
+                  });
               } else {
                 socket.emit('roll_dice', {
                   campaignId:    campaign?.id,
                   notation,
                   characterName: myCharacter?.name || null,
                 });
+                // receive_message echo (type roll) will clear rolling.
               }
             }}
           />
@@ -1410,9 +1535,12 @@ export default function CampaignRoomPage() {
             onStopTyping={handleStopTyping}
             onResize={() => requestAnimationFrame(() => pinFeedToBottomRef.current?.())}
             disabled={!connected || !inRoom}
-            attachedFile={attachedFile}
+            attachedFiles={attachedFiles}
             onFileSelect={handleFileSelect}
-            onClearAttachment={() => setAttachedFile(null)}
+            onClearAttachment={handleClearAttachment}
+            isSending={isSending}
+            uploadError={uploadError}
+            onClearUploadError={() => setUploadError(null)}
           />
         </div>
 

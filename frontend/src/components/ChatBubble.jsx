@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import HandoutViewer from './handouts/HandoutViewer';
 
 export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
   const [hovered,  setHovered]  = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [viewingImage, setViewingImage] = useState(null);
 
   const time = new Date(msg.created_at).toLocaleTimeString([], {
     hour: '2-digit', minute: '2-digit',
@@ -82,6 +84,37 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
           whiteSpace:   'pre-wrap',
           fontFamily:   'var(--font-sans)',
         }}>
+          {msg.image_urls?.length > 0 && (
+            <div style={{
+              display:             'grid',
+              gridTemplateColumns: msg.image_urls.length === 1 ? '1fr' : 'repeat(2, 1fr)',
+              gap:                 4,
+              maxWidth:            260,
+              marginBottom:        msg.content ? 6 : 0,
+            }}>
+              {msg.image_urls.map((url, i) => {
+                const single = msg.image_urls.length === 1;
+                return (
+                  <img
+                    key={i}
+                    src={url}
+                    alt={'Shared image ' + (i + 1)}
+                    loading="lazy"
+                    onClick={() => setViewingImage(url)}
+                    style={{
+                      width:        '100%',
+                      ...(single
+                        ? { maxHeight: 280, objectFit: 'contain' }
+                        : { aspectRatio: '1 / 1', objectFit: 'cover' }),
+                      borderRadius: 6,
+                      cursor:       'pointer',
+                      display:      'block',
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
           {msg.content}
           <div style={{
             display:        'flex',
@@ -177,6 +210,14 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Image lightbox — reuses the handout viewer engine for zoom/pan/download */}
+      {viewingImage && (
+        <HandoutViewer
+          handout={{ type: 'image', content: viewingImage, title: 'Shared image' }}
+          onClose={() => setViewingImage(null)}
+        />
       )}
     </div>
   );

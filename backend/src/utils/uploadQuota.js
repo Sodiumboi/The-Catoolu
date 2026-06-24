@@ -101,8 +101,14 @@ async function reconcile(userId, { prune = false } = {}) {
   }));
 
   if (prune) {
+    // Exclude kind='chat' rows: collectSources() does not scan the messages
+    // table, so chat images would otherwise be pruned as orphans. They are
+    // tracked solely via messages.image_url and managed through the File Manager.
     await pool.query(
-      'DELETE FROM user_uploads WHERE user_id = $1 AND NOT (url = ANY($2::text[]))',
+      `DELETE FROM user_uploads
+       WHERE user_id = $1
+         AND kind != 'chat'
+         AND NOT (url = ANY($2::text[]))`,
       [userId, sources.map(s => s.url)]
     );
   }

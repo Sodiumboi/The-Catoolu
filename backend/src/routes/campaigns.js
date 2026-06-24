@@ -340,7 +340,7 @@ router.get('/:uuid/messages', async (req, res) => {
     if (before) {
       query = `
         SELECT m.id, m.type, m.content, m.created_at,
-               m.avatar_url, m.portrait, m.character_name,
+               m.avatar_url, m.portrait, m.character_name, m.image_urls,
                u.id AS user_id, u.username
         FROM messages m
         LEFT JOIN users u ON m.user_id = u.id
@@ -352,7 +352,7 @@ router.get('/:uuid/messages', async (req, res) => {
     } else {
       query = `
         SELECT m.id, m.type, m.content, m.created_at,
-               m.avatar_url, m.portrait, m.character_name,
+               m.avatar_url, m.portrait, m.character_name, m.image_urls,
                u.id AS user_id, u.username
         FROM messages m
         LEFT JOIN users u ON m.user_id = u.id
@@ -431,6 +431,7 @@ router.get('/:uuid/feed', async (req, res) => {
         m.avatar_url     AS avatar_url,
         m.portrait       AS portrait,
         m.character_name AS character_name,
+        m.image_urls     AS image_urls,
         m.user_id        AS user_id,
         u.username       AS username,
         NULL::TEXT       AS share_uuid,
@@ -457,6 +458,7 @@ router.get('/:uuid/feed', async (req, res) => {
         u.avatar_url     AS avatar_url,
         NULL             AS portrait,
         NULL             AS character_name,
+        NULL::JSONB      AS image_urls,
         hs.shared_by     AS user_id,
         u.username       AS username,
         hs.uuid::TEXT    AS share_uuid,
@@ -496,6 +498,7 @@ router.get('/:uuid/feed', async (req, res) => {
           avatar_url:     row.avatar_url,
           portrait:       row.portrait,
           character_name: row.character_name,
+          image_urls:     row.image_urls || [],
           user_id:        row.user_id,
           username:       row.username,
           _source:        'message',

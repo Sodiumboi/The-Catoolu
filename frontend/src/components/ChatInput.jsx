@@ -4,8 +4,10 @@ export default function ChatInput({
   text, setText,
   onSend, onTyping, onStopTyping, onResize,
   disabled, skillContext,
-  // attachment props (optional)
-  attachedFile, onFileSelect, onClearAttachment,
+  // attachment props (optional) — attachedFiles is an array (0-5 files)
+  attachedFiles = [], onFileSelect, onClearAttachment,
+  // pending / upload feedback props (optional)
+  isSending = false, uploadError = null, onClearUploadError,
 }) {
   const typingRef    = useRef(null);
   const isTypingRef  = useRef(false);
@@ -32,6 +34,7 @@ export default function ChatInput({
 
   const handleChange = (e) => {
     setText(e.target.value);
+    if (uploadError) onClearUploadError?.();
 
     if (!isTypingRef.current) {
       isTypingRef.current = true;
@@ -48,8 +51,8 @@ export default function ChatInput({
 
   const handleSend = (shiftKey = false) => {
     const trimmed    = text.trim();
-    const hasContent = trimmed || attachedFile;
-    if (!hasContent || disabled) return;
+    const hasContent = trimmed || attachedFiles.length > 0;
+    if (!hasContent || disabled || isSending) return;
     onSend(trimmed, shiftKey);
     setText('');
     if (inputRef.current) {
@@ -85,14 +88,13 @@ export default function ChatInput({
   };
 
   const handleFilePick = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    files.forEach(f => onFileSelect?.(f));
     e.target.value = '';
-    onFileSelect?.(file);
   };
 
   const isRoll = text.trim().startsWith('/roll') || text.trim().startsWith('/r ') || text.trim() === '/r';
-  const canSend = !disabled && (!!text.trim() || !!attachedFile);
+  const canSend = !disabled && !isSending && (!!text.trim() || attachedFiles.length > 0);
 
   return (
     <div style={{
@@ -106,6 +108,7 @@ export default function ChatInput({
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           style={{ display: 'none' }}
           onChange={handleFilePick}
         />
@@ -129,43 +132,84 @@ export default function ChatInput({
         </div>
       )}
 
-      {/* Attachment preview */}
-      {attachedFile && (
+      {/* Attachment preview — horizontal row of per-file chips */}
+      {attachedFiles.length > 0 && (
         <div style={{
           display: 'flex', gap: 8, alignItems: 'center',
-          marginBottom: 6,
+          marginBottom: 6, overflowX: 'auto', paddingBottom: 2,
+          scrollbarWidth: 'none',
         }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: 6,
-            background: 'var(--accent-bg)',
-            border: '0.5px solid var(--color-primary-mid)',
-            display: 'flex', alignItems: 'center',
-            justifyContent: 'center', position: 'relative', flexShrink: 0,
-          }}>
-            <span className="material-symbols-outlined" style={{ color: 'var(--accent)', fontSize: 20 }}>
-              image
-            </span>
-            <button
-              onClick={onClearAttachment}
+          {attachedFiles.map((file, index) => (
+            <div
+              key={index}
+              title={file.name}
               style={{
-                position: 'absolute', top: -5, right: -5,
-                width: 15, height: 15,
-                background: 'var(--danger)', border: 'none', borderRadius: '50%',
-                color: '#fff', fontSize: 9, display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', padding: 0,
+                display: 'flex', gap: 6, alignItems: 'center',
+                padding: '4px 8px 4px 4px', borderRadius: 8,
+                background: 'var(--accent-bg)',
+                border: '0.5px solid var(--color-primary-mid)',
+                position: 'relative', flexShrink: 0, maxWidth: 180,
               }}
             >
-              ×
-            </button>
-          </div>
-          <span style={{
-            fontSize: 11, color: 'var(--text-faint)',
-            fontFamily: 'var(--font-sans)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {attachedFile.name} · will send with message
-          </span>
+              <div style={{
+                width: 28, height: 28, borderRadius: 5,
+                background: 'var(--bg-card)',
+                display: 'flex', alignItems: 'center',
+                justifyContent: 'center', flexShrink: 0,
+              }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--accent)', fontSize: 16 }}>
+                  image
+                </span>
+              </div>
+              <span style={{
+                fontSize: 11, color: 'var(--text-faint)',
+                fontFamily: 'var(--font-sans)',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {file.name}
+              </span>
+              <button
+                onClick={() => onClearAttachment?.(index)}
+                title="Remove"
+                style={{
+                  width: 16, height: 16,
+                  background: 'var(--danger)', border: 'none', borderRadius: '50%',
+                  color: '#fff', fontSize: 10, display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', padding: 0, flexShrink: 0,
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upload error banner */}
+      {uploadError && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          marginBottom: 6, padding: '6px 10px',
+          borderRadius: 8,
+          background: 'var(--danger-bg)',
+          border: '1px solid var(--danger)',
+          fontFamily: 'var(--font-sans)', fontSize: 12,
+          color: 'var(--danger)',
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16, flexShrink: 0 }}>error</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{uploadError}</span>
+          <button
+            onClick={() => onClearUploadError?.()}
+            title="Dismiss"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--danger)', padding: 0, display: 'flex',
+              alignItems: 'center', flexShrink: 0,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+          </button>
         </div>
       )}
 
@@ -218,12 +262,14 @@ export default function ChatInput({
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            disabled={disabled}
+            disabled={disabled || isSending}
             placeholder={disabled
               ? 'Connecting...'
-              : attachedFile
-                ? 'Add a caption (optional)…'
-                : 'Message or /roll 1d100adv... (or /r)'}
+              : isSending
+                ? 'Sending…'
+                : attachedFiles.length > 0
+                  ? 'Add a caption (optional)…'
+                  : 'Message or /roll 1d100adv... (or /r)'}
             style={{
               width:         '100%',
               padding:       '10px 14px',
@@ -281,7 +327,7 @@ export default function ChatInput({
             if (canSend) e.currentTarget.style.background = 'var(--color-primary)';
           }}
         >
-          {isRoll ? <><span className="icon icon-sm">casino</span>{' '}Roll</> : 'Send'}
+          {isSending ? 'Sending…' : isRoll ? <><span className="icon icon-sm">casino</span>{' '}Roll</> : 'Send'}
         </button>
       </div>
     </div>

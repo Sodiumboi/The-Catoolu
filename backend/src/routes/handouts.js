@@ -2,6 +2,7 @@ const express  = require('express');
 const multer   = require('multer');
 const pool     = require('../config/db');
 const auth     = require('../middleware/auth');
+const { uploadRateLimit } = require('../middleware/uploadRateLimit');
 const { uploadToR2, deleteFromR2 } = require('../utils/uploadToR2');
 const quota = require('../utils/uploadQuota');
 
@@ -402,6 +403,40 @@ router.get('/:uuid/handouts/shared', auth, async (req, res) => {
   } catch (err) {
     console.error('handouts shared history error:', err);
     res.status(500).json({ error: 'Failed to fetch shared handouts.' });
+  }
+});
+
+// ── POST /api/campaigns/:uuid/chat-image ──────────────────────
+// Player (or keeper) uploads an image straight into the chat feed.
+// Member-scoped — does NOT create a handout library row. Returns { url }.
+router.post('/:uuid/chat-image', auth, uploadRateLimit, upload.single('file'), async (req, res) => {
+  try {
+    const campaign = await getCampaignByUuid(req.params.uuid);
+    if (!campaign) return res.status(404).json({ error: 'Campaign not found.' });
+    if (!await isMember(campaign.id, req.user.id)) {
+      return res.status(403).json({ error: 'Not a campaign member.' });
+    }
+
+    if (!req.file) return res.status(400).json({ error: 'Image file required.' });
+
+    const check = await quota.canUpload(req.user.id, req.file.size);
+    if (!check.ok) {
+      const msg = check.reason === 'total'
+        ? `Storage full — used ${mb(check.quota.totalUsed)}MB of ${mb(check.quota.totalLimit)}MB. Delete files to free space.`
+        : `Upload rate limit reached (${mb(check.quota.windowLimit)}MB per 5 min). Try again shortly.`;
+      return res.status(429).json({ error: msg });
+    }
+
+    const url = await uploadToR2(req.file.buffer, 'chat-images', req.file.originalname);
+
+    await quota.recordUpload(req.user.id, {
+      url, size: req.file.size, kind: 'chat', campaignId: campaign.id,
+    });
+
+    res.status(201).json({ url });
+  } catch (err) {
+    console.error('chat-image upload error:', err);
+    res.status(500).json({ error: 'Failed to upload image.' });
   }
 });
 

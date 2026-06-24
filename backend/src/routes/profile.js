@@ -278,6 +278,23 @@ router.delete('/uploads/:id', async (req, res) => {
         await pool.query('DELETE FROM handout_shares WHERE handout_id = $1', [hid]);
         await pool.query('DELETE FROM handouts WHERE id = $1', [hid]);
       }
+    } else if (kind === 'chat') {
+      // Chat images are referenced via the image_urls JSONB array on the messages row.
+      // Remove just this URL from the array (other images in the same message stay intact).
+      // jsonb_array_elements + jsonb_agg rebuilds the array without the deleted element;
+      // COALESCE keeps the column a valid empty array when the last element is removed.
+      // @> containment scopes the UPDATE to only rows that actually hold this URL.
+      await pool.query(
+        `UPDATE messages
+         SET image_urls = COALESCE(
+           (SELECT jsonb_agg(elem)
+            FROM jsonb_array_elements(COALESCE(image_urls, '[]'::jsonb)) AS elem
+            WHERE elem <> to_jsonb($1::text)),
+           '[]'::jsonb
+         )
+         WHERE image_urls @> to_jsonb($1::text)`,
+        [url]
+      );
     }
 
     await pool.query('DELETE FROM user_uploads WHERE id = $1', [row.rows[0].id]);

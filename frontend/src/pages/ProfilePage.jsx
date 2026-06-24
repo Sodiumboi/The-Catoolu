@@ -5,6 +5,7 @@ import apiClient from '../api/client';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import ImageCropModal from '../components/ImageCropModal';
+import UploadProgressBar from '../components/UploadProgressBar';
 
 // ── Reusable field components ──────────────────────────────
 function FormField({ label, children }) {
@@ -139,6 +140,7 @@ export default function ProfilePage() {
   const [avatarError,  setAvatarError]  = useState(false);
   const [cropSrc,      setCropSrc]      = useState(null);
   const [savingAvatar, setSavingAvatar] = useState(false);
+  const [avatarProgress, setAvatarProgress] = useState(null);
 
   // Password fields
   const [currentPw,  setCurrentPw]  = useState('');
@@ -200,6 +202,9 @@ export default function ProfilePage() {
 
       const res = await apiClient.post('/profile/avatar', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => {
+          if (e.total) setAvatarProgress(Math.round((e.loaded / e.total) * 100));
+        },
       });
 
       setAvatarUrl(res.data.avatar_url);
@@ -210,6 +215,7 @@ export default function ProfilePage() {
       setProfileMsg({ text: err.response?.data?.error || 'Upload failed.', type: 'error' });
     } finally {
       setSavingAvatar(false);
+      setAvatarProgress(null);
     }
   };
 
@@ -413,6 +419,11 @@ export default function ProfilePage() {
                 <p style={{ fontSize: '11px', color: 'var(--text-faint)', margin: 0 }}>
                   Click to change · JPG PNG WebP · Max 2MB
                 </p>
+                {avatarProgress !== null && (
+                  <div style={{ width: 120, marginTop: 8 }}>
+                    <UploadProgressBar progress={avatarProgress} />
+                  </div>
+                )}
               </div>
 
               {/* Crop modal */}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import apiClient from '../../api/client';
+import UploadProgressBar from '../UploadProgressBar';
 
 // Inject keyframe animations once at module load
 if (typeof document !== 'undefined' && !document.getElementById('hl-anim-styles')) {
@@ -731,6 +732,7 @@ export default function HandoutLibrary({ campaignUuid }) {
   const [deleting,       setDeleting]      = useState(null); // handout object | null
   const [saving,         setSaving]        = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const [handoutProgress, setHandoutProgress] = useState(null);
   const [stats,          setStats]         = useState({ imageCount: 0 });
   const [sortBy,         setSortBy]        = useState(
     () => localStorage.getItem('handout-library-sort') || 'date-desc'
@@ -797,14 +799,23 @@ export default function HandoutLibrary({ campaignUuid }) {
       const res = await apiClient.post(
         `/campaigns/${campaignUuid}/handouts`,
         fd,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (e) => {
+            if (e.total) setHandoutProgress(Math.round((e.loaded / e.total) * 100));
+          },
+        }
       );
       setHandouts(prev => [...prev, res.data]);
       setStats(s => ({ ...s, imageCount: s.imageCount + 1 }));
     } catch {
       alert(`Failed to upload ${file.name}.`);
     } finally {
-      setUploadingCount(n => n - 1);
+      setUploadingCount(n => {
+        const next = n - 1;
+        if (next <= 0) setHandoutProgress(null);  // clear bar when no uploads remain
+        return next;
+      });
     }
   };
 
@@ -1014,6 +1025,13 @@ export default function HandoutLibrary({ campaignUuid }) {
           </button>
         </div>
       </div>
+
+      {/* Upload progress */}
+      {handoutProgress !== null && (
+        <div style={{ marginBottom: 8 }}>
+          <UploadProgressBar progress={handoutProgress} />
+        </div>
+      )}
 
       {/* Inline create forms */}
       {creating === 'text' && !editing && (

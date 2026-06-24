@@ -4,6 +4,7 @@ import RollCard          from './RollCard';
 import ChatBubble        from './ChatBubble';
 import StatValueCard     from './StatValueCard';
 import HandoutShareCard  from './handouts/HandoutShareCard';
+import OptimisticChatCard from './OptimisticChatCard';
 
 function SystemMessage({ msg }) {
   return (
@@ -21,7 +22,7 @@ function SystemMessage({ msg }) {
 }
 
 export default function RollFeed({
-  messages, currentUserId, myRole, onDeleteMessage,
+  messages, currentUserId, myRole, onDeleteMessage, onDismissOptimistic,
   hasMore, loadingOlder, onLoadOlder, prependingRef, scrollCaptureFnRef,
   pinToBottomRef,
 }) {
@@ -187,6 +188,14 @@ export default function RollFeed({
         {messages.map((msg, i) => {
           const isOwn     = msg.user_id === currentUserId;
           const canDelete = isOwn || isKeeper;
+          if (msg._optimistic) return (
+            <OptimisticChatCard
+              key={msg.id || i}
+              progress={msg._progress ?? null}
+              error={msg._error ?? null}
+              onDismiss={() => onDismissOptimistic?.(msg.id)}
+            />
+          );
           if (msg.type === 'system')        return <SystemMessage key={msg.id || i} msg={msg} />;
           if (msg.type === 'roll')          return <RollCard      key={msg.id || i} msg={msg} isOwn={isOwn} canDelete={canDelete} onDelete={onDeleteMessage} />;
           if (msg.type === 'stat_change')   return <StatValueCard key={msg.id || i} msg={msg} isOwn={isOwn} />;

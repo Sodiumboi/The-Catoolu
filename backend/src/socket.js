@@ -143,10 +143,24 @@ function setupSocket(httpServer) {
 
     // ── SEND_MESSAGE ───────────────────────────────────────────
     // Client emits this to send a chat message.
-    socket.on(EVENTS.SEND_MESSAGE, async ({ campaignId, content }) => {
+    socket.on(EVENTS.SEND_MESSAGE, async ({ campaignId, content, image_urls = [] }) => {
       try {
-        if (!content || content.trim().length === 0) return;
-        if (content.trim().length > 2000) {
+        // Only trust image URLs that point at our own R2 CDN — prevents clients
+        // from injecting arbitrary external URLs into the feed. Cap the array length
+        // to avoid oversized JSONB blobs from malicious clients (truncate silently).
+        const safeImageUrls = Array.isArray(image_urls)
+          ? image_urls
+              .filter(u =>
+                typeof u === 'string' &&
+                process.env.R2_PUBLIC_URL &&
+                u.startsWith(process.env.R2_PUBLIC_URL))
+              .slice(0, 10)
+          : [];
+
+        const text = (content ?? '').trim();
+        // A message must carry either text or at least one image.
+        if (text.length === 0 && safeImageUrls.length === 0) return;
+        if (text.length > 2000) {
           return socket.emit(EVENTS.ERROR, {
             message: 'Message too long (max 2000 characters).'
           });
@@ -179,20 +193,23 @@ function setupSocket(httpServer) {
         const portrait      = charRes.rows[0]?.portrait       || null;
         const characterName = charRes.rows[0]?.character_name || null;
 
-        // Save to database — avatar/portrait stored so history is self-contained
+        // Save to database — avatar/portrait stored so history is self-contained.
+        // image_urls stored as JSONB (parameter is a JSON string cast to ::jsonb).
         const result = await pool.query(
           `INSERT INTO messages
              (campaign_id, user_id, type, content,
-              avatar_url, portrait, character_name)
-           VALUES ($1, $2, 'chat', $3, $4, $5, $6)
+              avatar_url, portrait, character_name, image_urls)
+           VALUES ($1, $2, 'chat', $3, $4, $5, $6, $7::jsonb)
            RETURNING id, type, content, created_at,
-                     avatar_url, portrait, character_name`,
-          [campaignId, socket.user.id, content.trim(),
-           avatarUrl, portrait, characterName]
+                     avatar_url, portrait, character_name, image_urls`,
+          [campaignId, socket.user.id, text,
+           avatarUrl, portrait, characterName, JSON.stringify(safeImageUrls)]
         );
 
         const message = {
           ...result.rows[0],
+          // pg returns JSONB as a parsed JS value — coerce null to [] defensively
+          image_urls:    result.rows[0].image_urls || [],
           campaign_id:   campaignId,
           campaign_name: socket.currentCampaignName,
           user_id:       socket.user.id,

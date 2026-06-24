@@ -5,9 +5,10 @@ import Footer from '../components/Footer';
 import HandoutViewer from '../components/handouts/HandoutViewer';
 
 const KIND = {
-  avatar:  { label: 'Avatar',         icon: 'person',     color: 'var(--accent)' },
-  handout: { label: 'Handout image',  icon: 'image',      color: '#2563eb' },
-  bug:     { label: 'Bug screenshot', icon: 'bug_report', color: '#d97706' },
+  avatar:  { label: 'Avatar',         icon: 'person',       color: 'var(--accent)' },
+  handout: { label: 'Handout image',  icon: 'image',        color: '#2563eb' },
+  bug:     { label: 'Bug screenshot', icon: 'bug_report',   color: '#d97706' },
+  chat:    { label: 'Chat image',     icon: 'chat_bubble',  color: '#059669' },
 };
 
 const fmtSize = (b) => {
