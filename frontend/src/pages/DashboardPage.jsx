@@ -8,6 +8,8 @@ import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/vault-logo.png';
 import { CREATION_ENGINE_ENABLED } from '../config/features';
+import ConfirmDialog from '../components/ConfirmDialog';
+import useConfirm from '../hooks/useConfirm';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -18,7 +20,7 @@ export default function DashboardPage() {
   const [loading, setLoading]         = useState(true); // true = load on mount
   const [error, setError]             = useState(location.state?.error || '');
   const [importing, setImporting]     = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, name }
+  const { confirm, dialogProps } = useConfirm();
   const [showCreateImport, setShowCreateImport] = useState(false);
   const [createdBanner, setCreatedBanner] = useState(!!location.state?.created);
   const fileInputRef = useRef(null);
@@ -90,15 +92,19 @@ export default function DashboardPage() {
   };
 
   // ── Delete character ───────────────────────────────────
-  const handleDelete = async () => {
-    if (!deleteConfirm) return;
+  const handleDelete = async (character) => {
+    const ok = await confirm({
+      title: 'Delete Investigator?',
+      message: `${character.name} will be permanently deleted. This cannot be undone.`,
+      variant: 'danger',
+      confirmLabel: 'Delete Forever',
+    });
+    if (!ok) return;
     try {
-      await apiClient.delete(`/characters/${deleteConfirm.uuid}`);
-      setCharacters(prev => prev.filter(c => c.uuid !== deleteConfirm.uuid));
-      setDeleteConfirm(null);
+      await apiClient.delete(`/characters/${character.uuid}`);
+      setCharacters(prev => prev.filter(c => c.uuid !== character.uuid));
     } catch (err) {
       setError('Failed to delete character.');
-      setDeleteConfirm(null);
     }
   };
 
@@ -328,7 +334,7 @@ export default function DashboardPage() {
                 key={character.uuid}
                 character={character}
                 onOpen={(uuid) => navigate(`/character/${uuid}`)}
-                onDelete={(uuid, name) => setDeleteConfirm({ uuid, name })}
+                onDelete={(uuid, name) => handleDelete({ uuid, name })}
               />
             ))}
 
@@ -353,50 +359,7 @@ export default function DashboardPage() {
         )}
       </main>
 
-      {/* ── Delete Confirmation Modal ── */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 px-4"
-             style={{ background: 'rgba(0,0,0,0.8)' }}>
-          <div className="w-full max-w-sm rounded-lg p-6 border"
-               style={{
-                 background:  'var(--bg-card)',
-                 borderColor: 'var(--danger)',
-                 boxShadow:   '0 0 40px rgba(139,26,26,0.3)',
-               }}>
-            <h3 className="font-bold text-lg mb-2"
-                style={{ color: 'var(--text-primary)', fontFamily: 'Georgia, serif' }}>
-              Delete Investigator?
-            </h3>
-            <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-              Are you sure you want to delete{' '}
-              <strong style={{ color: 'var(--text-primary)' }}>
-                {deleteConfirm.name}
-              </strong>? This cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="flex-1 py-2 rounded text-sm font-medium transition-all"
-                style={{
-                  background:  'var(--bg-input)',
-                  color:       'var(--text-muted)',
-                  border:      '1px solid var(--border-main)',
-                }}>
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="flex-1 py-2 rounded text-sm font-medium transition-all"
-                style={{
-                  background: 'var(--danger)',
-                  color:      'var(--text-primary)',
-                }}>
-                Delete Forever
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog {...dialogProps} />
 
       {/* ── Create / Import chooser ── */}
       <CreateOrImportModal

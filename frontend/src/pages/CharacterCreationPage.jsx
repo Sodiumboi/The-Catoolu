@@ -12,6 +12,8 @@ import StepOccupationPicker from '../components/creation/StepOccupationPicker';
 import StepOccupationSkills from '../components/creation/StepOccupationSkills';
 import StepPersonalInterestSkills from '../components/creation/StepPersonalInterestSkills';
 import StepReview from '../components/creation/StepReview';
+import ConfirmDialog from '../components/ConfirmDialog';
+import useConfirm from '../hooks/useConfirm';
 
 const STEP_LABELS = {
   1: 'Personal Details',
@@ -28,6 +30,7 @@ export default function CharacterCreationPage() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const { confirm, dialogProps } = useConfirm();
 
   const {
     state,
@@ -53,14 +56,17 @@ export default function CharacterCreationPage() {
 
   const { currentStep } = state;
 
-  function handleNext() {
+  async function handleNext() {
     if (currentStep === 3) {
       const used    = Object.values(state.stats).reduce((s, v) => s + v, 0);
       const balance = 460 - used;
       if (balance > 0) {
-        const ok = window.confirm(
-          `You have ${balance} unspent points.\n\nUnused points will be lost. Continue anyway?`
-        );
+        const ok = await confirm({
+          title: 'Continue?',
+          message: `You have ${balance} unspent points. Unused points will be lost.`,
+          variant: 'warning',
+          confirmLabel: 'Continue anyway',
+        });
         if (!ok) return;
       }
     }
@@ -247,6 +253,8 @@ export default function CharacterCreationPage() {
           )}
         </div>
       </main>
+
+      <ConfirmDialog {...dialogProps} />
 
       <Footer />
     </div>

@@ -3,6 +3,8 @@ import apiClient from '../api/client';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import HandoutViewer from '../components/handouts/HandoutViewer';
+import ConfirmDialog from '../components/ConfirmDialog';
+import useConfirm from '../hooks/useConfirm';
 
 const KIND = {
   avatar:  { label: 'Avatar',         icon: 'person',       color: 'var(--accent)' },
@@ -37,7 +39,7 @@ export default function FileManagerPage() {
   const [files,     setFiles]     = useState([]);
   const [quota,     setQuota]     = useState(null);
   const [loading,   setLoading]   = useState(true);
-  const [confirmId, setConfirmId] = useState(null);
+  const { confirm, dialogProps }  = useConfirm();
   const [busyId,    setBusyId]    = useState(null);
   const [viewing,   setViewing]   = useState(null);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -59,7 +61,21 @@ export default function FileManagerPage() {
       setFiles(prev => prev.filter(f => f.id !== id));
       if (r.data?.quota) setQuota(r.data.quota);
     } catch { /* leave the row; user can retry */ }
-    finally { setBusyId(null); setConfirmId(null); }
+    finally { setBusyId(null); }
+  };
+
+  const requestDelete = async (f) => {
+    const message = f.kind === 'handout'
+      ? 'This file is used as a handout. Deleting it will remove it from the campaign.'
+      : `"${f.name}" will be permanently deleted.`;
+    const ok = await confirm({
+      title: 'Delete file?',
+      message,
+      variant: 'danger',
+      confirmLabel: 'Delete',
+    });
+    if (!ok) return;
+    handleDelete(f.id);
   };
 
   const toggleSelection = (id) => {
@@ -86,7 +102,13 @@ export default function FileManagerPage() {
 
   const handleBulkDelete = async () => {
     if (bulkBusy || selected.size === 0) return;
-    if (!window.confirm(`Delete ${selected.size} file(s)? This cannot be undone.`)) return;
+    const ok = await confirm({
+      title: `Delete ${selected.size} files?`,
+      message: `${selected.size} files will be permanently deleted. This cannot be undone.`,
+      variant: 'danger',
+      confirmLabel: `Delete ${selected.size} files`,
+    });
+    if (!ok) return;
     setBulkBusy(true);
     const ids = [...selected];
     const results = await Promise.allSettled(
@@ -254,7 +276,6 @@ export default function FileManagerPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {files.map(f => {
               const k          = KIND[f.kind] || { label: f.kind, icon: 'draft', color: 'var(--text-muted)' };
-              const confirming = confirmId === f.id;
               const busy       = busyId === f.id;
               const isSel      = selected.has(f.id);
               return (
@@ -310,27 +331,11 @@ export default function FileManagerPage() {
                   <a href={f.url} target="_blank" rel="noreferrer" style={{ ...iconBtn, color: 'var(--text-muted)' }} title="Open raw file">
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>open_in_new</span>
                   </a>
-                  {!selectionMode && (confirming ? (
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      {f.kind === 'handout' && (
-                        <span style={{ fontSize: 10, color: 'var(--danger)', maxWidth: 110, lineHeight: 1.3 }}>
-                          Removes it from the campaign
-                        </span>
-                      )}
-                      <button onClick={() => handleDelete(f.id)} disabled={busy}
-                        style={{ ...btn, background: 'var(--danger)', color: '#fff', border: 'none' }}>
-                        {busy ? '…' : 'Delete'}
-                      </button>
-                      <button onClick={() => setConfirmId(null)} disabled={busy}
-                        style={{ ...btn, background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-main)' }}>
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <button onClick={() => setConfirmId(f.id)} title="Delete" style={{ ...iconBtn, color: 'var(--danger)' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+                  {!selectionMode && (
+                    <button onClick={() => requestDelete(f)} disabled={busy} title="Delete" style={{ ...iconBtn, color: 'var(--danger)' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{busy ? 'hourglass_empty' : 'delete'}</span>
                     </button>
-                  ))}
+                  )}
                 </div>
               );
             })}
@@ -347,6 +352,8 @@ export default function FileManagerPage() {
           onClose={() => setViewing(null)}
         />
       )}
+
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

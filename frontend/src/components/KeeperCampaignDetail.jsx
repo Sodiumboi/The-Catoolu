@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import ReadOnlySheet from './ReadOnlySheet';
 import HandoutLibrary from './handouts/HandoutLibrary';
+import ConfirmDialog from './ConfirmDialog';
+import useConfirm from '../hooks/useConfirm';
 
 const TABS = [
   { id: 'info',        label: 'Info'        },
@@ -17,6 +19,7 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
   const [loading,      setLoading]      = useState(true);
   const [showInvite,   setShowInvite]   = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
+  const { confirm, dialogProps } = useConfirm();
 
   const load = async () => {
     try {
@@ -29,7 +32,15 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
   useEffect(() => { load(); }, [campaign.uuid]);
 
   const handleRemoveMember = async (userId) => {
-    if (!window.confirm('Remove this player from the campaign?')) return;
+    const member = members.find(m => m.id === userId);
+    const username = member?.username || 'This player';
+    const ok = await confirm({
+      title: 'Remove player?',
+      message: `${username} will be removed from this campaign.`,
+      variant: 'warning',
+      confirmLabel: 'Remove',
+    });
+    if (!ok) return;
     try {
       await apiClient.delete('/campaigns/' + campaign.uuid + '/members/' + userId);
       setMembers(prev => prev.filter(m => m.id !== userId));
@@ -159,6 +170,8 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
           <DangerZoneTab campaign={campaign} onDeleted={onBack} />
         )}
       </div>
+
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

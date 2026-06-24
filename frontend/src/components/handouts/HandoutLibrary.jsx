@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import apiClient from '../../api/client';
 import UploadProgressBar from '../UploadProgressBar';
+import ConfirmDialog from '../ConfirmDialog';
+import useConfirm from '../../hooks/useConfirm';
 
 // Inject keyframe animations once at module load
 if (typeof document !== 'undefined' && !document.getElementById('hl-anim-styles')) {
@@ -78,52 +80,6 @@ function HandoutEditModal({ children, onClose }) {
         }}
       >
         {children}
-      </div>
-    </div>
-  );
-}
-
-// ─── DeleteConfirm ─────────────────────────────────────────────
-function DeleteConfirm({ handout, onConfirm, onCancel }) {
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 200, animation: 'hl-overlay-in 0.15s ease',
-    }}>
-      <div style={{
-        background: 'var(--bg-card)', borderRadius: 12,
-        border: '1px solid var(--border-main)', padding: '24px',
-        maxWidth: 360, width: '90%',
-        boxShadow: 'var(--shadow-dropdown)',
-        animation: 'hl-modal-in 0.2s cubic-bezier(0.34, 1.4, 0.64, 1)',
-      }}>
-        <p style={{
-          fontFamily: 'var(--font-sans)', fontSize: 14,
-          color: 'var(--text-primary)', margin: '0 0 8px',
-        }}>
-          Delete <strong>{handout.title}</strong>? This cannot be undone.
-        </p>
-        {handout.type === 'bundle' && (
-          <p style={{
-            fontFamily: 'var(--font-sans)', fontSize: 12,
-            color: 'var(--text-muted)', margin: '0 0 16px',
-          }}>
-            This will delete the bundle but not its contents.
-          </p>
-        )}
-        <div style={{ display: 'flex', gap: 8, marginTop: handout.type === 'bundle' ? 0 : 16 }}>
-          <button
-            onClick={onConfirm}
-            style={{
-              ...primaryBtn,
-              background: 'var(--danger)',
-            }}
-          >
-            Delete
-          </button>
-          <button onClick={onCancel} style={cancelBtn}>Cancel</button>
-        </div>
       </div>
     </div>
   );
@@ -729,7 +685,7 @@ export default function HandoutLibrary({ campaignUuid }) {
   const [loading,        setLoading]       = useState(true);
   const [creating,       setCreating]      = useState(null); // 'text' | 'bundle' | null
   const [editing,        setEditing]       = useState(null); // handout object | null
-  const [deleting,       setDeleting]      = useState(null); // handout object | null
+  const { confirm, dialogProps } = useConfirm();
   const [saving,         setSaving]        = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [handoutProgress, setHandoutProgress] = useState(null);
@@ -889,15 +845,22 @@ export default function HandoutLibrary({ campaignUuid }) {
   };
 
   // ── Delete ─────────────────────────────────────────────────
-  const handleConfirmDelete = async () => {
-    if (!deleting) return;
+  const handleDelete = async (h) => {
+    const isBundle = h.type === 'bundle';
+    const ok = await confirm({
+      title: isBundle ? 'Delete bundle?' : 'Delete handout?',
+      message: isBundle
+        ? `Delete "${h.title}"? This will delete the bundle but not its contents.`
+        : `Delete "${h.title}"? This cannot be undone.`,
+      variant: 'danger',
+      confirmLabel: 'Delete',
+    });
+    if (!ok) return;
     try {
-      await apiClient.delete(`/campaigns/${campaignUuid}/handouts/${deleting.uuid}`);
-      setHandouts(prev => prev.filter(h => h.uuid !== deleting.uuid));
+      await apiClient.delete(`/campaigns/${campaignUuid}/handouts/${h.uuid}`);
+      setHandouts(prev => prev.filter(item => item.uuid !== h.uuid));
     } catch {
       alert('Failed to delete handout.');
-    } finally {
-      setDeleting(null);
     }
   };
 
@@ -1091,7 +1054,7 @@ export default function HandoutLibrary({ campaignUuid }) {
                 key={b.uuid}
                 bundle={b}
                 onEdit={handleEdit}
-                onDelete={setDeleting}
+                onDelete={handleDelete}
               />
             ))}
           </Grid>
@@ -1117,7 +1080,7 @@ export default function HandoutLibrary({ campaignUuid }) {
                 key={h.uuid}
                 handout={h}
                 onEdit={handleEdit}
-                onDelete={setDeleting}
+                onDelete={handleDelete}
               />
             ))}
             {Array.from({ length: uploadingCount }).map((_, i) => <LoadingCard key={`loading-${i}`} />)}
@@ -1125,14 +1088,8 @@ export default function HandoutLibrary({ campaignUuid }) {
         )}
       </div>
 
-      {/* Delete confirmation modal */}
-      {deleting && (
-        <DeleteConfirm
-          handout={deleting}
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setDeleting(null)}
-        />
-      )}
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }
