@@ -278,7 +278,8 @@ export default function HandoutShareCard({ msg, isOwn, canDelete, onDelete }) {
                   <div style={{
                     position:     'absolute',
                     top:          '100%',
-                    left:         0,
+                    right:        isOwn ? 0 : 'auto',
+                    left:         isOwn ? 'auto' : 0,
                     marginTop:    4,
                     background:   'var(--bg-card)',
                     border:       '1px solid var(--border-subtle)',

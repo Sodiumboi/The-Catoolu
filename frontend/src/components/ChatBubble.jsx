@@ -79,6 +79,7 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
           fontSize:     '14px',
           lineHeight:   '1.5',
           wordBreak:    'break-word',
+          whiteSpace:   'pre-wrap',
           fontFamily:   'var(--font-sans)',
         }}>
           {msg.content}
@@ -114,7 +115,7 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
       {/* Three-dot action button */}
       {canDelete && (hovered || menuOpen) && (
         <div style={{
-          alignSelf:   'center',
+          alignSelf:   'flex-end',
           flexShrink:  0,
           position:    'relative',
         }}>
@@ -138,11 +139,11 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
 
           {menuOpen && (
             <div style={{
-              position:   'absolute',
-              top:        '100%',
-              right:      isOwn ? 0 : 'auto',
-              left:       isOwn ? 'auto' : 0,
-              marginTop:  4,
+              position:     'absolute',
+              bottom:       '100%',
+              right:        isOwn ? 0 : 'auto',
+              left:         isOwn ? 'auto' : 0,
+              marginBottom: 4,
               background: 'var(--bg-card)',
               border:     '1px solid var(--border-subtle)',
               borderRadius: 8,

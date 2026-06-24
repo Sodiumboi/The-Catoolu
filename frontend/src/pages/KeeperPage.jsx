@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import NavBar    from '../components/NavBar';
 import Footer    from '../components/Footer';
 import apiClient from '../api/client';
@@ -8,6 +8,8 @@ import CreateCampaignModal   from '../components/CreateCampaignModal';
 
 export default function KeeperPage() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const returnToRef = useRef(null);
   const [campaigns,    setCampaigns]   = useState([]);
   const [loading,      setLoading]     = useState(true);
   const [selected,     setSelected]    = useState(null); // campaign object
@@ -28,12 +30,13 @@ export default function KeeperPage() {
 
   // Open campaign+tab from navigation state (e.g. from KeeperHandoutPanel)
   useEffect(() => {
-    const { openCampaignUuid, openTab } = location.state || {};
+    const { openCampaignUuid, openTab, returnTo: openReturnTo } = location.state || {};
     if (!openCampaignUuid || loading || campaigns.length === 0) return;
     const target = campaigns.find(c => c.uuid === openCampaignUuid);
     if (target) {
       setInitialTab(openTab ?? null);
       setSelected(target);
+      returnToRef.current = openReturnTo ?? null;
       // Clear state so back-navigation doesn't re-trigger
       window.history.replaceState({}, '');
     }
@@ -50,7 +53,17 @@ export default function KeeperPage() {
         <KeeperCampaignDetail
           campaign={selected}
           initialTab={initialTab}
-          onBack={() => { setSelected(null); setInitialTab(null); load(); }}
+          onBack={() => {
+            if (returnToRef.current) {
+              const dest = returnToRef.current;
+              returnToRef.current = null;
+              navigate(dest);
+            } else {
+              setSelected(null);
+              setInitialTab(null);
+              load();
+            }
+          }}
         />
         <Footer />
       </div>

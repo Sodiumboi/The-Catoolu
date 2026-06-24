@@ -23,6 +23,7 @@ function SystemMessage({ msg }) {
 export default function RollFeed({
   messages, currentUserId, myRole, onDeleteMessage,
   hasMore, loadingOlder, onLoadOlder, prependingRef, scrollCaptureFnRef,
+  pinToBottomRef,
 }) {
   const { feedBackground } = useTheme();
   const containerRef   = useRef(null);
@@ -103,6 +104,16 @@ export default function RollFeed({
     return () => { scrollCaptureFnRef.current = null; };
   }, [scrollCaptureFnRef]);
 
+  // Let the composer re-pin the feed to the bottom when it grows/shrinks.
+  // Only pins when the user is already at the bottom (so reading history is safe).
+  useEffect(() => {
+    if (!pinToBottomRef) return;
+    pinToBottomRef.current = () => {
+      if (atBottomRef.current || Date.now() < pinUntilRef.current) scrollToBottom();
+    };
+    return () => { pinToBottomRef.current = null; };
+  }, [pinToBottomRef]);
+
   // Load-older trigger: fire onLoadOlder when the top sentinel scrolls into view.
   // The concurrency guard lives in onLoadOlder (loadingOlderRef), so repeated
   // intersections while a fetch is in flight are no-ops.
@@ -129,6 +140,7 @@ export default function RollFeed({
       if (atBottomRef.current || Date.now() < pinUntilRef.current) scrollToBottom();
     });
     ro.observe(inner);
+    ro.observe(el);   // re-pin to bottom when the composer grows/shrinks and resizes the feed
     return () => ro.disconnect();
   }, []);
 
@@ -176,7 +188,7 @@ export default function RollFeed({
           const isOwn     = msg.user_id === currentUserId;
           const canDelete = isOwn || isKeeper;
           if (msg.type === 'system')        return <SystemMessage key={msg.id || i} msg={msg} />;
-          if (msg.type === 'roll')          return <RollCard      key={msg.id || i} msg={msg} isOwn={isOwn} />;
+          if (msg.type === 'roll')          return <RollCard      key={msg.id || i} msg={msg} isOwn={isOwn} canDelete={canDelete} onDelete={onDeleteMessage} />;
           if (msg.type === 'stat_change')   return <StatValueCard key={msg.id || i} msg={msg} isOwn={isOwn} />;
           if (msg.type === 'handout_share') return (
             <HandoutShareCard
@@ -213,8 +225,10 @@ export default function RollFeed({
           style={{
             position:     'absolute',
             bottom:       '14px',
-            left:         '50%',
-            transform:    'translateX(-50%)',
+            left:         0,
+            right:        0,
+            margin:       '0 auto',
+            width:        'fit-content',
             display:      'flex',
             alignItems:   'center',
             gap:          '5px',

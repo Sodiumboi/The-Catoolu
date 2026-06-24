@@ -115,6 +115,7 @@ export default function CampaignRoomPage() {
   const prependingRef         = useRef(false);  // signals RollFeed to preserve scroll on prepend
   const feedCursorRef         = useRef(null);   // { before_ts, before_msg_id, before_share_id }
   const scrollCaptureFnRef    = useRef(null);   // RollFeed registers a scrollHeight-capture fn here
+  const pinFeedToBottomRef    = useRef(null);   // RollFeed registers a "pin to bottom" fn here (composer growth)
 
   // Keep meme-toggle ref current for use inside socket-handler closures
   useEffect(() => { memeEnabledRef.current = memeEnabled; }, [memeEnabled]);
@@ -966,15 +967,13 @@ export default function CampaignRoomPage() {
         </div>
       )}
 
-      {/* Player / global floating notes window */}
-      {myRole !== 'keeper' && (
-        <NotesWindow
-          windowState={notesState}
-          onWindowStateChange={setNotesState}
-          contextTagType="session"
-          contextTag={campaign?.name}
-        />
-      )}
+      {/* Floating notes window — popped out from the sub-nav (both roles) */}
+      <NotesWindow
+        windowState={notesState}
+        onWindowStateChange={setNotesState}
+        contextTagType="session"
+        contextTag={campaign?.name}
+      />
 
       <NavBar activeTab="campaign" />
 
@@ -1014,29 +1013,6 @@ export default function CampaignRoomPage() {
         </div>
 
         <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
-          {/* Notes toggle (players only) */}
-          {myRole !== 'keeper' && (
-            <button
-              onClick={() => {
-                if (notesState === 'closed') setNotesState('bubble');
-                else if (notesState === 'bubble') setNotesState('full');
-                else setNotesState('bubble');
-              }}
-              style={{
-                display:     'flex', alignItems: 'center', gap: '4px',
-                padding:     '6px 12px', borderRadius: '8px', fontSize: '13px',
-                border:      notesState !== 'closed' ? '1px solid var(--accent)' : '1px solid var(--border-main)',
-                background:  notesState !== 'closed' ? 'var(--accent-bg)' : 'transparent',
-                color:       notesState !== 'closed' ? 'var(--accent)' : 'var(--text-muted)',
-                fontFamily:  'var(--font-sans)',
-                cursor:      'pointer', transition: 'all 0.15s',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>description</span>
-              Notes
-            </button>
-          )}
-
           {/* I'm Not Here toggle */}
           <button
             onClick={handleToggleAfk}
@@ -1089,7 +1065,6 @@ export default function CampaignRoomPage() {
           const keeperTabs = [
             { id: 'main',     label: 'Players' },
             { id: 'handouts', label: 'Handouts' },
-            { id: 'notes',    label: 'Notes' },
           ];
           const tabs = myRole === 'keeper' ? keeperTabs : playerTabs;
 
@@ -1130,6 +1105,47 @@ export default function CampaignRoomPage() {
                   setSubTab(tab);
                   if (tab === 'handouts') setNewHandoutCount(0);
                 }}
+                rightSlot={
+                  <button
+                    onClick={() => {
+                      if (notesState === 'closed') setNotesState('bubble');
+                      else if (notesState === 'bubble') setNotesState('full');
+                      else setNotesState('bubble');
+                    }}
+                    title="Pop out notes"
+                    style={{
+                      display:      'flex',
+                      alignItems:   'center',
+                      gap:          '5px',
+                      padding:      '4px 12px',
+                      borderRadius: '999px',
+                      border:       notesState !== 'closed' ? '1px solid var(--accent)' : '1px solid var(--border-main)',
+                      background:   notesState !== 'closed' ? 'var(--accent-bg)' : 'transparent',
+                      color:        notesState !== 'closed' ? 'var(--accent)' : 'var(--text-muted)',
+                      fontFamily:   'var(--font-sans)',
+                      fontSize:     '12px',
+                      fontWeight:   500,
+                      cursor:       'pointer',
+                      transition:   'all 0.15s ease',
+                      whiteSpace:   'nowrap',
+                    }}
+                    onMouseEnter={e => {
+                      if (notesState === 'closed') {
+                        e.currentTarget.style.borderColor = 'var(--accent)';
+                        e.currentTarget.style.color = 'var(--accent)';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (notesState === 'closed') {
+                        e.currentTarget.style.borderColor = 'var(--border-main)';
+                        e.currentTarget.style.color = 'var(--text-muted)';
+                      }
+                    }}
+                  >
+                    Notes
+                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>open_in_new</span>
+                  </button>
+                }
               />
 
               <div key={subTab} className="animate-fade" style={{
@@ -1324,6 +1340,7 @@ export default function CampaignRoomPage() {
             onLoadOlder={loadOlderMessages}
             prependingRef={prependingRef}
             scrollCaptureFnRef={scrollCaptureFnRef}
+            pinToBottomRef={pinFeedToBottomRef}
           />
 
           {/* Typing indicator */}
@@ -1391,6 +1408,7 @@ export default function CampaignRoomPage() {
             onSend={handleSend}
             onTyping={handleTyping}
             onStopTyping={handleStopTyping}
+            onResize={() => requestAnimationFrame(() => pinFeedToBottomRef.current?.())}
             disabled={!connected || !inRoom}
             attachedFile={attachedFile}
             onFileSelect={handleFileSelect}

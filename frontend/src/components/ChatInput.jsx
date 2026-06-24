@@ -1,8 +1,8 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 export default function ChatInput({
   text, setText,
-  onSend, onTyping, onStopTyping,
+  onSend, onTyping, onStopTyping, onResize,
   disabled, skillContext,
   // attachment props (optional)
   attachedFile, onFileSelect, onClearAttachment,
@@ -11,8 +11,24 @@ export default function ChatInput({
   const isTypingRef  = useRef(false);
   const inputRef     = useRef(null);
   const fileInputRef = useRef(null);
+  const [focused, setFocused] = useState(false);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  const LINE_HEIGHT = 22;  // px — matches fontSize:14px + lineHeight:1.57 (~22px)
+  const MAX_ROWS    = 6;
+  const MAX_H       = MAX_ROWS * LINE_HEIGHT;
+
+  const autoGrow = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, MAX_H) + 'px';
+    onResize?.();
+  };
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    if (inputRef.current) inputRef.current.style.height = 'auto';
+  }, []);
 
   const handleChange = (e) => {
     setText(e.target.value);
@@ -26,6 +42,8 @@ export default function ChatInput({
       isTypingRef.current = false;
       onStopTyping?.();
     }, 1500);
+
+    autoGrow();
   };
 
   const handleSend = (shiftKey = false) => {
@@ -34,6 +52,10 @@ export default function ChatInput({
     if (!hasContent || disabled) return;
     onSend(trimmed, shiftKey);
     setText('');
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
+    onResize?.();
     clearTimeout(typingRef.current);
     isTypingRef.current = false;
     onStopTyping?.();
@@ -178,10 +200,20 @@ export default function ChatInput({
           </button>
         )}
 
-        <div style={{ flex: 1, position: 'relative' }}>
-          <input
+        <div style={{
+          flex:         1,
+          position:     'relative',
+          borderRadius: '10px',
+          border:       '1px solid ' + (isRoll
+            ? 'var(--accent)'
+            : focused ? 'var(--border-focus)' : 'var(--border-input)'),
+          background:   'var(--bg-input)',
+          overflow:     'hidden',
+          transition:   'border-color 0.15s ease',
+        }}>
+          <textarea
             ref={inputRef}
-            type="text"
+            rows={1}
             value={text}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
@@ -193,34 +225,30 @@ export default function ChatInput({
                 ? 'Add a caption (optional)…'
                 : 'Message or /roll 1d100adv... (or /r)'}
             style={{
-              width:        '100%',
-              padding:      '10px 14px',
-              paddingLeft:  isRoll ? '36px' : '14px',
-              borderRadius: '10px',
-              border:       '1px solid ' + (isRoll
-                ? 'var(--accent)'
-                : 'var(--border-input)'),
-              background:   'var(--bg-input)',
-              color:        'var(--text-primary)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '14px',
-              outline:      'none',
-              boxSizing:    'border-box',
-              transition:   'border-color 0.15s ease',
+              width:         '100%',
+              padding:       '10px 14px',
+              paddingLeft:   isRoll ? '36px' : '14px',
+              border:        'none',
+              background:    'transparent',
+              color:         'var(--text-primary)',
+              fontFamily:    'var(--font-sans)',
+              fontSize:      '14px',
+              lineHeight:    '1.57',
+              outline:       'none',
+              boxSizing:     'border-box',
+              resize:        'none',
+              overflow:      'auto',
+              height:        'auto',
+              display:       'block',
             }}
-            onFocus={e => {
-              if (!isRoll) e.target.style.borderColor = 'var(--border-focus)';
-            }}
-            onBlur={e => {
-              if (!isRoll) e.target.style.borderColor = 'var(--border-input)';
-            }}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
           />
           {isRoll && (
             <span style={{
               position:  'absolute',
               left:      '12px',
-              top:       '50%',
-              transform: 'translateY(-50%)',
+              top:       '14px',
               pointerEvents: 'none',
             }}>
               <span className="icon" style={{ fontSize: '18px' }}>casino</span>

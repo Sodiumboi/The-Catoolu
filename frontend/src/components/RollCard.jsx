@@ -117,10 +117,17 @@ function MultiDieDisplay({ rolls, sides, severity = 'none' }) {
 }
 
 // ── Main RollCard component ────────────────────────────────────
-export default function RollCard({ msg, isOwn }) {
+export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
   const { memeEnabled } = useTheme();
   const [revealed, setRevealed] = useState(false);
+  const [hovered,  setHovered]  = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const delay = useRef(Math.floor(Math.random() * 400) + 300);
+
+  const handleDelete = () => {
+    setMenuOpen(false);
+    onDelete?.(msg);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setRevealed(true), delay.current);
@@ -179,20 +186,27 @@ export default function RollCard({ msg, isOwn }) {
   const borderRadius = isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px';
 
   return (
-    <div style={{
-      display:        'flex',
-      justifyContent: isOwn ? 'flex-end' : 'flex-start',
-      marginBottom:   '10px',
-      paddingLeft:    isOwn ? '80px' : '0',
-      paddingRight:   isOwn ? '0' : '80px',
-      minWidth:       0,
-    }}>
+    <div
+      style={{
+        display:        'flex',
+        flexDirection:  isOwn ? 'row-reverse' : 'row',
+        marginBottom:   '10px',
+        paddingLeft:    isOwn ? '80px' : '0',
+        paddingRight:   isOwn ? '0' : '80px',
+        minWidth:       0,
+        position:       'relative',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); setMenuOpen(false); }}
+    >
+      {/* Card + hover-actions wrapper (relative anchor; keeps the card width stable) */}
+      <div style={{ position: 'relative', minWidth: 0, maxWidth: 'min(440px, 100%)' }}>
       {/* Card */}
       <div style={{
         display:      'flex',
         borderRadius,
         minWidth:     0,
-        maxWidth:     'min(440px, 100%)',
+        maxWidth:     '100%',
         overflow:     'hidden',
         border:       msg._hidden
           ? `2px dashed var(--roll-${severity}-border)`
@@ -440,6 +454,76 @@ export default function RollCard({ msg, isOwn }) {
           )}
         </div>
       </div>
+
+      {/* Three-dot action button — absolutely placed so it never changes the card width */}
+      {canDelete && (hovered || menuOpen) && (
+        <div style={{
+          position: 'absolute',
+          bottom:   0,
+          ...(isOwn
+            ? { right: '100%', marginRight: 8 }
+            : { left:  '100%', marginLeft:  8 }),
+        }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
+            style={{
+              background:    'var(--bg-card)',
+              border:        '1px solid var(--border-subtle)',
+              borderRadius:  6,
+              cursor:        'pointer',
+              color:         'var(--text-muted)',
+              padding:       '2px 4px',
+              display:       'flex',
+              alignItems:    'center',
+              justifyContent:'center',
+            }}
+            title="Message actions"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>more_vert</span>
+          </button>
+
+          {menuOpen && (
+            <div style={{
+              position:     'absolute',
+              bottom:       '100%',
+              left:         isOwn ? 0 : 'auto',
+              right:        isOwn ? 'auto' : 0,
+              marginBottom: 4,
+              background: 'var(--bg-card)',
+              border:     '1px solid var(--border-subtle)',
+              borderRadius: 8,
+              boxShadow:  'var(--shadow-dropdown)',
+              zIndex:     200,
+              minWidth:   120,
+              overflow:   'hidden',
+            }}>
+              <button
+                onClick={handleDelete}
+                style={{
+                  display:     'flex',
+                  alignItems:  'center',
+                  gap:         6,
+                  width:       '100%',
+                  padding:     '8px 12px',
+                  background:  'none',
+                  border:      'none',
+                  cursor:      'pointer',
+                  color:       '#dc2626',
+                  fontSize:    13,
+                  fontFamily:  'var(--font-sans)',
+                  textAlign:   'left',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      </div>{/* /card + hover-actions wrapper */}
     </div>
   );
 }

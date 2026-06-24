@@ -15,9 +15,16 @@ export default function SkillRollPopup({
     ? Math.max(POPUP_W / 2 + 8, Math.min(window.innerWidth - POPUP_W / 2 - 8, rawCenter))
     : 0;
 
+  const POPUP_ESTIMATED_H = 100; // approx rendered height (label + buttons + padding)
+  const spaceBelow = buttonRect ? window.innerHeight - buttonRect.bottom - 8 : 0;
+  const spaceAbove = buttonRect ? buttonRect.top - 8 : 0;
+  const openAbove  = buttonRect && spaceBelow < POPUP_ESTIMATED_H && spaceAbove > spaceBelow;
+
   const fixedStyle = buttonRect ? {
     position:  'fixed',
-    top:       buttonRect.bottom + 8,
+    top:        openAbove
+      ? Math.max(8, buttonRect.top - 8 - POPUP_ESTIMATED_H)
+      : Math.min(buttonRect.bottom + 8, window.innerHeight - POPUP_ESTIMATED_H - 8),
     left:      clampedLeft,
     transform: 'translateX(-50%)',
   } : {

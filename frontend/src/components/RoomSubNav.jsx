@@ -1,7 +1,8 @@
-export default function RoomSubNav({ tabs, activeTab, onTabChange }) {
+export default function RoomSubNav({ tabs, activeTab, onTabChange, rightSlot }) {
   return (
     <div style={{
       display:       'flex',
+      alignItems:    'center',
       flexShrink:    0,
       background:    'var(--bg-card)',
       borderBottom:  '1px solid var(--border-main)',
@@ -64,6 +65,17 @@ export default function RoomSubNav({ tabs, activeTab, onTabChange }) {
           </button>
         );
       })}
+
+      {rightSlot && (
+        <div style={{
+          marginLeft:  'auto',
+          display:     'flex',
+          alignItems:  'center',
+          paddingRight:'10px',
+        }}>
+          {rightSlot}
+        </div>
+      )}
     </div>
   );
 }

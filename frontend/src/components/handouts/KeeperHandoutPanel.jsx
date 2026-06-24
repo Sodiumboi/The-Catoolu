@@ -641,7 +641,7 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
 
       {/* Manage link */}
       <button
-        onClick={() => navigate('/keeper', { state: { openCampaignUuid: campaignUuid, openTab: 'handouts' } })}
+        onClick={() => navigate('/keeper', { state: { openCampaignUuid: campaignUuid, openTab: 'handouts', returnTo: `/campaign/${campaignUuid}` } })}
         style={{
           width: '100%', padding: '8px 12px',
           border: '1px dashed var(--border-main)', borderRadius: 8,
