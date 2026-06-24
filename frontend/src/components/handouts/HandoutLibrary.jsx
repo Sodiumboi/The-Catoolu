@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import apiClient from '../../api/client';
 
@@ -732,7 +732,26 @@ export default function HandoutLibrary({ campaignUuid }) {
   const [saving,         setSaving]        = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [stats,          setStats]         = useState({ imageCount: 0 });
+  const [sortBy,         setSortBy]        = useState(
+    () => localStorage.getItem('handout-library-sort') || 'date-desc'
+  );
   const fileInputRef = useRef(null);
+
+  const applySortFn = (a, b) => {
+    switch (sortBy) {
+      case 'date-asc':    return a.created_at > b.created_at ? 1 : -1;
+      case 'name-asc':    return a.title.localeCompare(b.title);
+      case 'name-desc':   return b.title.localeCompare(a.title);
+      case 'type-images': return (a.type === 'image' ? -1 : 1) - (b.type === 'image' ? -1 : 1);
+      case 'type-text':   return (a.type === 'text' ? -1 : 1) - (b.type === 'text' ? -1 : 1);
+      default:            return b.created_at > a.created_at ? 1 : -1; // date-desc
+    }
+  };
+
+  const handleSortChange = (val) => {
+    setSortBy(val);
+    localStorage.setItem('handout-library-sort', val);
+  };
 
   useEffect(() => { fetchHandouts(); fetchStats(); }, [campaignUuid]);
 
@@ -880,8 +899,13 @@ export default function HandoutLibrary({ campaignUuid }) {
   const handleCancelEdit = () => setEditing(null);
   const handleCancelCreate = () => setCreating(null);
 
-  const bundles    = handouts.filter(h => h.type === 'bundle');
-  const individual = handouts.filter(h => h.type !== 'bundle');
+  const { bundles, individual } = useMemo(() => {
+    const sorted = [...handouts].sort(applySortFn);
+    return {
+      bundles:    sorted.filter(h => h.type === 'bundle'),
+      individual: sorted.filter(h => h.type !== 'bundle'),
+    };
+  }, [handouts, sortBy]);
 
   // ── Toolbar pill button style ──────────────────────────────
   const pillBtn = (active) => ({
@@ -918,6 +942,7 @@ export default function HandoutLibrary({ campaignUuid }) {
       {/* Header + toolbar */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: 12,
         marginBottom: 20,
       }}>
         <div>
@@ -936,6 +961,23 @@ export default function HandoutLibrary({ campaignUuid }) {
             {stats.imageCount} image{stats.imageCount !== 1 ? 's' : ''} across all campaigns
           </div>
         </div>
+        <select
+          value={sortBy}
+          onChange={e => handleSortChange(e.target.value)}
+          style={{
+            padding: '4px 8px', borderRadius: 6, fontSize: 11,
+            border: '1px solid var(--border-main)',
+            background: 'var(--bg-input)', color: 'var(--text-secondary)',
+            fontFamily: 'var(--font-sans)', cursor: 'pointer',
+          }}
+        >
+          <option value="date-desc">Date added: newest</option>
+          <option value="date-asc">Date added: oldest</option>
+          <option value="name-asc">Name A–Z</option>
+          <option value="name-desc">Name Z–A</option>
+          <option value="type-images">Type: images first</option>
+          <option value="type-text">Type: text first</option>
+        </select>
         <div style={{
           display: 'inline-flex', alignItems: 'stretch',
           border: '1px solid var(--border-main)', borderRadius: 999,

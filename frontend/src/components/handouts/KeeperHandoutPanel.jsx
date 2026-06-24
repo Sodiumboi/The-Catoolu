@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import apiClient from '../../api/client';
@@ -433,7 +433,26 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
   ); // 'list' | 'grid'
   const [expanded,    setExpanded]    = useState(new Set());
   const [preview,     setPreview]     = useState(null);
+  const [sortBy,      setSortBy]      = useState(
+    () => localStorage.getItem('handout-panel-sort') || 'date-desc'
+  );
   const holdTimer = useRef(null);
+
+  const applySortFn = (a, b) => {
+    switch (sortBy) {
+      case 'date-asc':    return a.created_at > b.created_at ? 1 : -1;
+      case 'name-asc':    return a.title.localeCompare(b.title);
+      case 'name-desc':   return b.title.localeCompare(a.title);
+      case 'type-images': return (a.type === 'image' ? -1 : 1) - (b.type === 'image' ? -1 : 1);
+      case 'type-text':   return (a.type === 'text' ? -1 : 1) - (b.type === 'text' ? -1 : 1);
+      default:            return b.created_at > a.created_at ? 1 : -1; // date-desc
+    }
+  };
+
+  const handleSortChange = (val) => {
+    setSortBy(val);
+    localStorage.setItem('handout-panel-sort', val);
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -505,8 +524,13 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
   };
 
   const isShared = (uuid) => sharedUuids.includes(uuid);
-  const bundles    = handouts.filter(h => h.type === 'bundle');
-  const individual = handouts.filter(h => h.type !== 'bundle');
+  const { bundles, individual } = useMemo(() => {
+    const sorted = [...handouts].sort(applySortFn);
+    return {
+      bundles:    sorted.filter(h => h.type === 'bundle'),
+      individual: sorted.filter(h => h.type !== 'bundle'),
+    };
+  }, [handouts, sortBy]);
 
   const viewToggleBtn = (active) => ({
     padding: '3px 7px', border: 'none', borderRadius: 5,
@@ -531,8 +555,25 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
     <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
       {/* View toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
         <span style={{ ...labelStyle, marginBottom: 0 }}>Handouts</span>
+        <select
+          value={sortBy}
+          onChange={e => handleSortChange(e.target.value)}
+          style={{
+            padding: '4px 8px', borderRadius: 6, fontSize: 11,
+            border: '1px solid var(--border-main)',
+            background: 'var(--bg-input)', color: 'var(--text-secondary)',
+            fontFamily: 'var(--font-sans)', cursor: 'pointer',
+          }}
+        >
+          <option value="date-desc">Date added: newest</option>
+          <option value="date-asc">Date added: oldest</option>
+          <option value="name-asc">Name A–Z</option>
+          <option value="name-desc">Name Z–A</option>
+          <option value="type-images">Type: images first</option>
+          <option value="type-text">Type: text first</option>
+        </select>
         <div style={{
           display: 'inline-flex', gap: 2, padding: 2,
           border: '1px solid var(--border-main)', borderRadius: 7,

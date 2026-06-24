@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import apiClient from '../api/client';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
@@ -39,6 +39,10 @@ export default function FileManagerPage() {
   const [confirmId, setConfirmId] = useState(null);
   const [busyId,    setBusyId]    = useState(null);
   const [viewing,   setViewing]   = useState(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selected,      setSelected]      = useState(new Set());
+  const [bulkBusy,      setBulkBusy]      = useState(false);
+  const selectAllRef = useRef(null);
 
   useEffect(() => {
     apiClient.get('/profile/uploads')
@@ -57,6 +61,59 @@ export default function FileManagerPage() {
     finally { setBusyId(null); setConfirmId(null); }
   };
 
+  const toggleSelection = (id) => {
+    if (!selectionMode) return;
+    setSelected(prev => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === files.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(files.map(f => f.id)));
+    }
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelected(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (bulkBusy || selected.size === 0) return;
+    if (!window.confirm(`Delete ${selected.size} file(s)? This cannot be undone.`)) return;
+    setBulkBusy(true);
+    const ids = [...selected];
+    const results = await Promise.allSettled(
+      ids.map(id => apiClient.delete('/profile/uploads/' + id))
+    );
+    const successIds = [];
+    let latestQuota = null;
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled') {
+        successIds.push(ids[i]);
+        if (r.value?.data?.quota) latestQuota = r.value.data.quota;
+      }
+    });
+    setFiles(prev => prev.filter(f => !successIds.includes(f.id)));
+    if (latestQuota) setQuota(latestQuota);
+    setSelected(new Set());
+    setSelectionMode(false);
+    setBulkBusy(false);
+  };
+
+  // Set the select-all checkbox to indeterminate when a partial selection is active
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate =
+        selected.size > 0 && selected.size < files.length;
+    }
+  }, [selected, files]);
+
   const totalUsed  = quota?.totalUsed  ?? 0;
   const totalLimit = quota?.totalLimit ?? 200 * 1024 * 1024;
   const pct        = Math.min(100, Math.round((totalUsed / totalLimit) * 100));
@@ -72,15 +129,49 @@ export default function FileManagerPage() {
       <main className="animate-fade-rise" style={{
         maxWidth: '820px', margin: '0 auto', padding: '32px 24px', flex: 1, width: '100%',
       }}>
-        <h1 style={{
-          fontFamily: 'var(--font-serif)', fontSize: '28px',
-          color: 'var(--text-primary)', margin: '0 0 4px',
+        <div style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'flex-start', gap: 12, flexWrap: 'wrap',
         }}>
-          File Storage
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: '0 0 24px' }}>
-          Everything you've uploaded — avatars, handout images, and bug screenshots.
-        </p>
+          <div>
+            <h1 style={{
+              fontFamily: 'var(--font-serif)', fontSize: '28px',
+              color: 'var(--text-primary)', margin: '0 0 4px',
+            }}>
+              File Storage
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: '0 0 24px' }}>
+              Everything you've uploaded — avatars, handout images, and bug screenshots.
+            </p>
+          </div>
+          {!loading && files.length > 0 && (
+            selectionMode ? (
+              <button
+                onClick={exitSelectionMode}
+                style={{
+                  padding: '6px 14px', borderRadius: 8, fontSize: 13,
+                  fontWeight: 500, fontFamily: 'var(--font-sans)', cursor: 'pointer',
+                  background: 'transparent', color: 'var(--text-muted)',
+                  border: '1px solid var(--text-muted)',
+                }}
+              >
+                Cancel
+              </button>
+            ) : (
+              <button
+                onClick={() => setSelectionMode(true)}
+                style={{
+                  padding: '6px 14px', borderRadius: 8, fontSize: 13,
+                  fontWeight: 500, fontFamily: 'var(--font-sans)', cursor: 'pointer',
+                  background: 'transparent', color: 'var(--color-primary)',
+                  border: '1px solid var(--color-primary)',
+                }}
+              >
+                Select
+              </button>
+            )
+          )}
+        </div>
 
         {/* Quota summary */}
         <div style={{
@@ -100,6 +191,48 @@ export default function FileManagerPage() {
             {mb(Math.max(0, totalLimit - totalUsed))} MB free · {files.length} file{files.length !== 1 ? 's' : ''} · rate cap 50 MB / 5 min
           </div>
         </div>
+
+        {/* Bulk action toolbar */}
+        {selectionMode && (
+          <div style={{
+            background: 'var(--bg-card)', border: '1px solid var(--border-main)',
+            borderRadius: 10, padding: '10px 14px', marginBottom: 16,
+            display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+          }}>
+            <input
+              ref={selectAllRef}
+              type="checkbox"
+              checked={selected.size === files.length && files.length > 0}
+              onChange={toggleSelectAll}
+              style={{ cursor: 'pointer' }}
+            />
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              {selected.size} of {files.length} selected
+            </span>
+            <button
+              onClick={handleBulkDelete}
+              disabled={bulkBusy || selected.size === 0}
+              style={{
+                ...btn, background: 'var(--danger)', color: '#fff', border: 'none',
+                marginLeft: 'auto',
+                opacity: (bulkBusy || selected.size === 0) ? 0.6 : 1,
+                cursor: (bulkBusy || selected.size === 0) ? 'default' : 'pointer',
+              }}
+            >
+              {bulkBusy ? 'Deleting…' : `Delete ${selected.size} file${selected.size !== 1 ? 's' : ''}`}
+            </button>
+            <button
+              onClick={exitSelectionMode}
+              disabled={bulkBusy}
+              style={{
+                ...btn, background: 'transparent', color: 'var(--text-muted)',
+                border: '1px solid var(--border-main)',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
         {/* File list */}
         {loading ? (
@@ -122,16 +255,27 @@ export default function FileManagerPage() {
               const k          = KIND[f.kind] || { label: f.kind, icon: 'draft', color: 'var(--text-muted)' };
               const confirming = confirmId === f.id;
               const busy       = busyId === f.id;
+              const isSel      = selected.has(f.id);
               return (
                 <div key={f.id} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
-                  background: 'var(--bg-card)', border: '1px solid var(--border-main)',
+                  background: 'var(--bg-card)',
+                  border: isSel ? '2px solid var(--accent)' : '1px solid var(--border-main)',
                   borderRadius: 10, padding: '10px 12px',
                 }}>
-                  {/* Thumbnail (click to preview) */}
+                  {/* Selection checkbox */}
+                  {selectionMode && (
+                    <input
+                      type="checkbox"
+                      checked={isSel}
+                      onChange={() => toggleSelection(f.id)}
+                      style={{ cursor: 'pointer', flexShrink: 0 }}
+                    />
+                  )}
+                  {/* Thumbnail (click to preview, or toggle in selection mode) */}
                   <div
-                    onClick={() => setViewing(f)}
-                    title="Preview"
+                    onClick={() => selectionMode ? toggleSelection(f.id) : setViewing(f)}
+                    title={selectionMode ? 'Select' : 'Preview'}
                     style={{
                       width: 48, height: 48, borderRadius: 8, overflow: 'hidden', flexShrink: 0, cursor: 'pointer',
                       background: 'var(--bg-section-hd)', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -145,8 +289,8 @@ export default function FileManagerPage() {
                     />
                   </div>
 
-                  {/* Info (click to preview) — shows the real file name */}
-                  <div onClick={() => setViewing(f)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
+                  {/* Info (click to preview, or toggle in selection mode) — shows the real file name */}
+                  <div onClick={() => selectionMode ? toggleSelection(f.id) : setViewing(f)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span className="material-symbols-outlined" style={{ fontSize: 15, color: k.color, flexShrink: 0 }}>{k.icon}</span>
                       <span style={{
@@ -165,7 +309,7 @@ export default function FileManagerPage() {
                   <a href={f.url} target="_blank" rel="noreferrer" style={{ ...iconBtn, color: 'var(--text-muted)' }} title="Open raw file">
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>open_in_new</span>
                   </a>
-                  {confirming ? (
+                  {!selectionMode && (confirming ? (
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       {f.kind === 'handout' && (
                         <span style={{ fontSize: 10, color: 'var(--danger)', maxWidth: 110, lineHeight: 1.3 }}>
@@ -185,7 +329,7 @@ export default function FileManagerPage() {
                     <button onClick={() => setConfirmId(f.id)} title="Delete" style={{ ...iconBtn, color: 'var(--danger)' }}>
                       <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
                     </button>
-                  )}
+                  ))}
                 </div>
               );
             })}

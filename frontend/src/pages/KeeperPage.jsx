@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import NavBar    from '../components/NavBar';
 import Footer    from '../components/Footer';
@@ -15,6 +15,26 @@ export default function KeeperPage() {
   const [selected,     setSelected]    = useState(null); // campaign object
   const [initialTab,   setInitialTab]  = useState(null);
   const [showCreate,   setShowCreate]  = useState(false);
+  const [sortBy,       setSortBy]      = useState(
+    () => localStorage.getItem('campaign-list-sort') || 'updated-desc'
+  );
+
+  const sortedCampaigns = useMemo(() => {
+    const copy = [...campaigns];
+    switch (sortBy) {
+      case 'created-desc': copy.sort((a, b) => (b.created_at > a.created_at ? 1 : -1)); break;
+      case 'name-asc':     copy.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case 'name-desc':    copy.sort((a, b) => b.name.localeCompare(a.name)); break;
+      case 'members-desc': copy.sort((a, b) => parseInt(b.member_count) - parseInt(a.member_count)); break;
+      default:             copy.sort((a, b) => (b.updated_at > a.updated_at ? 1 : -1)); break;
+    }
+    return copy;
+  }, [campaigns, sortBy]);
+
+  const handleSortChange = (val) => {
+    setSortBy(val);
+    localStorage.setItem('campaign-list-sort', val);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -100,17 +120,37 @@ export default function KeeperPage() {
                  : campaigns.length + ' campaign' + (campaigns.length !== 1 ? 's' : '')}
             </p>
           </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            style={{
-              padding:'8px 18px', borderRadius:'8px',
-              border:'none', background:'var(--color-primary)',
-              color:'#ffffff', fontFamily:'var(--font-sans)',
-              fontSize:'13px', fontWeight:'500', cursor:'pointer',
-            }}
-          >
-            + Create Campaign
-          </button>
+          <div style={{ display:'flex', alignItems:'center', gap:'12px', flexWrap:'wrap' }}>
+            {!loading && campaigns.length > 0 && (
+              <select
+                value={sortBy}
+                onChange={e => handleSortChange(e.target.value)}
+                style={{
+                  padding: '4px 8px', borderRadius: 6, fontSize: 11,
+                  border: '1px solid var(--border-main)',
+                  background: 'var(--bg-input)', color: 'var(--text-secondary)',
+                  fontFamily: 'var(--font-sans)', cursor: 'pointer',
+                }}
+              >
+                <option value="updated-desc">Last updated: newest</option>
+                <option value="created-desc">Date created: newest</option>
+                <option value="name-asc">Name A–Z</option>
+                <option value="name-desc">Name Z–A</option>
+                <option value="members-desc">Most players</option>
+              </select>
+            )}
+            <button
+              onClick={() => setShowCreate(true)}
+              style={{
+                padding:'8px 18px', borderRadius:'8px',
+                border:'none', background:'var(--color-primary)',
+                color:'#ffffff', fontFamily:'var(--font-sans)',
+                fontSize:'13px', fontWeight:'500', cursor:'pointer',
+              }}
+            >
+              + Create Campaign
+            </button>
+          </div>
         </div>
 
         {/* Empty state */}
@@ -138,7 +178,7 @@ export default function KeeperPage() {
             gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))',
             gap:'16px',
           }}>
-            {campaigns.map(c => (
+            {sortedCampaigns.map(c => (
               <div
                 key={c.id}
                 onClick={() => setSelected(c)}
