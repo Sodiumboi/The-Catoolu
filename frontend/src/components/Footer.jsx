@@ -2,15 +2,18 @@
 // Appears at the bottom of every page.
 // Version number and build credit.
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { APP_VERSION, APP_CODENAME } from '../config/version';
 import useVersionCheck from '../hooks/useVersionCheck';
+import WhatsNewModal from './WhatsNewModal';
 
 const VERSION = `V${APP_VERSION} · ${APP_CODENAME}`;
 const CREDIT  = 'Built by Someone at Saltlakes with an unreasonable amount of help from Claude';
 
 export default function Footer() {
   const { updateAvailable, latestVersion, releaseUrl } = useVersionCheck();
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
 
   return (
     <footer style={{
@@ -36,7 +39,26 @@ export default function Footer() {
           color:         'var(--text-faint)',
         }}>
           <span>
-            {VERSION}
+            <button
+              type="button"
+              onClick={() => setShowWhatsNew(true)}
+              title="What's new in this version"
+              style={{
+                background:           'none',
+                border:               'none',
+                padding:              0,
+                margin:               0,
+                font:                 'inherit',
+                fontSize:             'inherit',
+                color:                'var(--text-muted)',
+                cursor:               'pointer',
+                textDecoration:       'underline',
+                textDecorationStyle:  'dotted',
+                textUnderlineOffset:  3,
+              }}
+            >
+              {VERSION}
+            </button>
             {updateAvailable && releaseUrl && (
               <a
                 href={releaseUrl}
@@ -98,6 +120,8 @@ export default function Footer() {
         </div>
 
       </div>
+
+      {showWhatsNew && <WhatsNewModal onClose={() => setShowWhatsNew(false)} />}
     </footer>
   );
 }

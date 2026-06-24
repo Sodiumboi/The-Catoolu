@@ -25,6 +25,8 @@ import ServerDownPage        from './pages/ServerDownPage';
 import { preloadWhenIdle }   from './utils/preloadImages';
 import { ABOUT_PRELOAD_IMAGES } from './utils/aboutTeam';
 import { CREATION_ENGINE_ENABLED } from './config/features';
+import { APP_VERSION }       from './config/version';
+import WhatsNewModal         from './components/WhatsNewModal';
 
 function RootRoute() {
   const { user, loading } = useAuth();
@@ -72,6 +74,9 @@ async function checkHealth() {
 
 // ── Main App ───────────────────────────────────────────────
 export default function App() {
+  const { user } = useAuth();
+  // What's New modal — auto-shown once per release to logged-in users.
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
   // null = first check not yet done; prevents any route from flashing before we know state.
   const [health, setHealth]   = useState(null);
   const firstCheckDone        = useRef(false);
@@ -184,6 +189,20 @@ export default function App() {
   // so they render instantly whenever the user navigates there.
   useEffect(() => preloadWhenIdle(ABOUT_PRELOAD_IMAGES), []);
 
+  // Auto-show the What's New modal once per release for logged-in users.
+  // The short delay lets the app settle before the modal pops in.
+  useEffect(() => {
+    if (!user) return;
+    if (localStorage.getItem('catoolu_seen_whats_new') === APP_VERSION) return;
+    const timer = setTimeout(() => setShowWhatsNew(true), 1500);
+    return () => clearTimeout(timer);
+  }, [user]);
+
+  const handleCloseWhatsNew = () => {
+    localStorage.setItem('catoolu_seen_whats_new', APP_VERSION);
+    setShowWhatsNew(false);
+  };
+
   // Only admins bypass the maintenance gate so they can still reach /admin to turn it off.
   // All other users (logged-in or not) see the static maintenance page on refresh.
   const storedUser = JSON.parse(localStorage.getItem('coc_user') || 'null');
@@ -195,6 +214,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      {showWhatsNew && <WhatsNewModal onClose={handleCloseWhatsNew} />}
       <Routes>
             {/* Public routes */}
             <Route path="/"                 element={<RootRoute />} />
