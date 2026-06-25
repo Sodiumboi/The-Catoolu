@@ -1,5 +1,6 @@
 import Section from '../../../../components/sheet/Section';
 import WeaponTable from '../../../../components/sheet/WeaponTable';
+import CustomDropdown from '../../../../components/ui/CustomDropdown';
 import { WEAPON_PRESETS, WEAPON_CATEGORIES } from '../../../../utils/weaponPresets';
 
 export default function Weapons({
@@ -54,11 +55,13 @@ export default function Weapons({
               style={{ background: 'var(--bg-input)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', width: '140px' }}
               onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
               onBlur={e  => e.target.style.borderColor = 'var(--border-input)'} />
-            <select value={presetCategory} onChange={e => onPresetCategory(e.target.value)}
-              className="px-2 py-1 rounded text-xs outline-none"
-              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-input)', color: 'var(--text-primary)' }}>
-              {WEAPON_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <div style={{ width: 150, flexShrink: 0 }}>
+              <CustomDropdown
+                value={presetCategory}
+                onChange={onPresetCategory}
+                options={WEAPON_CATEGORIES.map(c => ({ value: c, label: c }))}
+              />
+            </div>
           </div>
 
           <div style={{ maxHeight: '280px', overflowY: 'auto', overscrollBehavior: 'contain' }}>

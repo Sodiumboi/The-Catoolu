@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme, THEMES } from '../context/ThemeContext';
 import { useCampaign } from '../context/CampaignContext';
 import { useNavBarActions } from '../context/NavBarActionsContext';
+import CustomDropdown from './ui/CustomDropdown';
 import { useSocket } from '../context/SocketContext';
 import logo from '../assets/vault-logo.png';
 import BugReportModal from './BugReportModal';
@@ -25,7 +26,7 @@ let _maintState = { mounted: false, visible: false, message: '' };
 
 export default function NavBar({ activeTab = 'investigators' }) {
   const { user, logout }          = useAuth();
-  const { theme, toggleTheme }    = useTheme();
+  const { theme }                 = useTheme();
   const { activeRoom }            = useCampaign();
   const { onImport }              = useNavBarActions();
   const navigate                  = useNavigate();
@@ -485,7 +486,6 @@ export default function NavBar({ activeTab = 'investigators' }) {
                     {panel === 'preferences' && (
                       <PreferencesPanel
                         theme={theme}
-                        toggleTheme={toggleTheme}
                         setPanel={setPanel}
                       />
                     )}
@@ -698,8 +698,8 @@ const HOME_OPTIONS = [
   { value: '/campaign',  label: 'Campaigns'     },
 ];
 
-function PreferencesPanel({ theme, toggleTheme, setPanel }) {
-  const { sheetFontScale, setSheetFontScale, roomFontScale, setRoomFontScale } = useTheme();
+function PreferencesPanel({ theme, setPanel }) {
+  const { setTheme, sheetFontScale, setSheetFontScale, roomFontScale, setRoomFontScale } = useTheme();
   const [savedMsg, setSavedMsg]   = useState('');
   const [homePage, setHomePage]   = useState(() => localStorage.getItem('coc_home_page') || '/');
 
@@ -789,40 +789,54 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
           </div>
 
           <div style={{
-            display:       'flex',
-            gap:           '6px',
+            display:             'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap:                 '6px',
           }}>
-            {[
-              { value: 'light', label: '☀️ Light' },
-              { value: 'dark',  label: '🌑 Dark'  },
-            ].map(opt => {
-              const isActive = theme === opt.value;
+            {THEMES.map(opt => {
+              const isActive = theme === opt.id;
               return (
                 <button
-                  key={opt.value}
-                  onClick={() => applySetting(toggleTheme)}
+                  key={opt.id}
+                  onClick={() => applySetting(() => setTheme(opt.id))}
+                  title={opt.label}
                   style={{
-                    flex:         1,
-                    padding:      '6px 8px',
-                    borderRadius: '8px',
-                    border:       isActive
-                      ? '1.5px solid var(--color-primary)'
+                    display:        'flex',
+                    flexDirection:  'column',
+                    alignItems:     'center',
+                    gap:            '4px',
+                    padding:        '6px 4px',
+                    borderRadius:   '8px',
+                    border:         isActive
+                      ? '2px solid var(--accent)'
                       : '1.5px solid var(--border-main)',
-                    background:   isActive
+                    background:     isActive
                       ? 'var(--accent-bg)'
-                      : 'transparent',
-                    color:        isActive
-                      ? 'var(--color-primary)'
-                      : 'var(--text-secondary)',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '12px',
-                    fontWeight:   isActive ? '500' : '400',
-                    cursor:       isActive ? 'default' : 'pointer',
-                    transition:   'all 0.15s ease',
-                    whiteSpace:   'nowrap',
+                      : 'var(--bg-input)',
+                    cursor:         isActive ? 'default' : 'pointer',
+                    transition:     'border-color 0.15s ease, background 0.15s ease',
                   }}
                 >
-                  {opt.label}
+                  {/* Three-colour swatch: [background, accent, surface] */}
+                  <div style={{ display: 'flex', gap: '2px', borderRadius: '3px', overflow: 'hidden' }}>
+                    {opt.swatch.map((color, i) => (
+                      <div key={i} style={{ width: '14px', height: '14px', background: color }} />
+                    ))}
+                  </div>
+                  <span style={{
+                    fontFamily:   'var(--font-sans)',
+                    fontSize:     '10px',
+                    color:        isActive ? 'var(--accent)' : 'var(--text-muted)',
+                    fontWeight:   isActive ? '500' : '400',
+                    lineHeight:   1.2,
+                    textAlign:    'center',
+                    whiteSpace:   'nowrap',
+                    overflow:     'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth:     '100%',
+                  }}>
+                    {opt.label}
+                  </span>
                 </button>
               );
             })}
@@ -911,30 +925,15 @@ function PreferencesPanel({ theme, toggleTheme, setPanel }) {
           }}>
             Home Page
           </div>
-          <select
+          <CustomDropdown
             value={homePage}
-            onChange={e => {
-              setHomePage(e.target.value);
-              localStorage.setItem('coc_home_page', e.target.value);
+            onChange={v => {
+              setHomePage(v);
+              localStorage.setItem('coc_home_page', v);
               applySetting(() => {});
             }}
-            style={{
-              width:        '100%',
-              padding:      '6px 8px',
-              borderRadius: '7px',
-              border:       '1.5px solid var(--border-input)',
-              background:   'var(--bg-input)',
-              color:        'var(--text-primary)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '12px',
-              cursor:       'pointer',
-              outline:      'none',
-            }}
-          >
-            {HOME_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+            options={HOME_OPTIONS}
+          />
         </div>
       </div>
     </>

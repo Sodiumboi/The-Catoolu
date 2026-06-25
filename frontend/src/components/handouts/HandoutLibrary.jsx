@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import apiClient from '../../api/client';
 import UploadProgressBar from '../UploadProgressBar';
+import CustomDropdown from '../ui/CustomDropdown';
 import ConfirmDialog from '../ConfirmDialog';
 import useConfirm from '../../hooks/useConfirm';
 
@@ -935,23 +936,21 @@ export default function HandoutLibrary({ campaignUuid }) {
             {stats.imageCount} image{stats.imageCount !== 1 ? 's' : ''} across all campaigns
           </div>
         </div>
-        <select
-          value={sortBy}
-          onChange={e => handleSortChange(e.target.value)}
-          style={{
-            padding: '4px 8px', borderRadius: 6, fontSize: 11,
-            border: '1px solid var(--border-main)',
-            background: 'var(--bg-input)', color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-sans)', cursor: 'pointer',
-          }}
-        >
-          <option value="date-desc">Date added: newest</option>
-          <option value="date-asc">Date added: oldest</option>
-          <option value="name-asc">Name A–Z</option>
-          <option value="name-desc">Name Z–A</option>
-          <option value="type-images">Type: images first</option>
-          <option value="type-text">Type: text first</option>
-        </select>
+        <div style={{ width: 190, flexShrink: 0 }}>
+          <CustomDropdown
+            value={sortBy}
+            onChange={handleSortChange}
+            searchable={false}
+            options={[
+              { value: 'date-desc', label: 'Date added: newest' },
+              { value: 'date-asc', label: 'Date added: oldest' },
+              { value: 'name-asc', label: 'Name A–Z' },
+              { value: 'name-desc', label: 'Name Z–A' },
+              { value: 'type-images', label: 'Type: images first' },
+              { value: 'type-text', label: 'Type: text first' },
+            ]}
+          />
+        </div>
         <div style={{
           display: 'inline-flex', alignItems: 'stretch',
           border: '1px solid var(--border-main)', borderRadius: 999,

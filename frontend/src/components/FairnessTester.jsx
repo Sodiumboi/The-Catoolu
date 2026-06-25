@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import apiClient from '../api/client';
+import CustomDropdown from './ui/CustomDropdown';
 
 // ── Chi-squared critical values (95% confidence) ──────────────
 const CRITICAL_VALUES = {
@@ -175,30 +176,16 @@ export default function FairnessTester() {
         }}>
           Number of Rolls
         </div>
-        <select
+        <CustomDropdown
           value={rollCount}
-          onChange={e => { setRollCount(parseInt(e.target.value)); reset(); }}
+          onChange={v => { setRollCount(v); reset(); }}
           disabled={running}
-          style={{
-            width:        '100%',
-            padding:      '6px 8px',
-            borderRadius: '6px',
-            border:       '1px solid var(--border-input)',
-            background:   'var(--bg-input)',
-            color:        'var(--text-primary)',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '12px',
-            outline:      'none',
-            cursor:       running ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {COUNT_OPTIONS.map(n => (
-            <option key={n} value={n}>
-              {n} rolls
-              {n < 5 * selectedDie ? ' (low accuracy)' : ''}
-            </option>
-          ))}
-        </select>
+          searchable={false}
+          options={COUNT_OPTIONS.map(n => ({
+            value: n,
+            label: `${n} rolls${n < 5 * selectedDie ? ' (low accuracy)' : ''}`,
+          }))}
+        />
       </div>
 
       {/* Speed selector */}

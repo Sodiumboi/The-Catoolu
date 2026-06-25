@@ -3,6 +3,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyleKit } from '@tiptap/extension-text-style';
 import apiClient from '../../api/client';
+import CustomDropdown from '../ui/CustomDropdown';
 
 const FONT_OPTIONS = [
   { label: 'Default',          value: '' },
@@ -123,18 +124,10 @@ export default function NoteEditor({ noteUuid, onBack, onNoteUpdated, onNoteDele
     );
   }
 
-  const selectStyle = {
-    padding:     '2px 4px',
-    borderRadius:'4px',
-    border:      '1px solid var(--notes-border)',
-    background:  'var(--bg-input)',
-    color:       'var(--text-primary)',
-    fontFamily:  'var(--font-sans)',
-    fontSize:    '11px',
-    cursor:      'pointer',
-    outline:     'none',
-    flexShrink:  0,
-  };
+  // Keep the editor selection alive while the font/size pickers are used:
+  // preventDefault on mousedown stops the editor from blurring (same trick as
+  // ToolbarBtn), and the .focus() in each chain restores the ProseMirror range.
+  const keepSelection = e => { e.preventDefault(); e.stopPropagation(); };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -204,32 +197,31 @@ export default function NoteEditor({ noteUuid, onBack, onNoteUpdated, onNoteDele
         {editor && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px 5px', borderTop: '1px solid var(--notes-border)' }}>
             <span style={{ fontSize: '10px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', flexShrink: 0 }}>Font</span>
-            <select
-              value={editor.getAttributes('textStyle')?.fontFamily || ''}
-              onMouseDown={e => e.stopPropagation()}
-              onChange={e => {
-                const v = e.target.value;
-                if (!v) editor.chain().focus().unsetFontFamily().run();
-                else editor.chain().focus().setFontFamily(v).run();
-              }}
-              style={{ ...selectStyle, width: '110px' }}
-            >
-              {FONT_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-            </select>
+            <span onMouseDown={keepSelection} style={{ width: 140, flexShrink: 0 }}>
+              <CustomDropdown
+                value={editor.getAttributes('textStyle')?.fontFamily || ''}
+                onChange={v => {
+                  if (!v) editor.chain().focus().unsetFontFamily().run();
+                  else editor.chain().focus().setFontFamily(v).run();
+                }}
+                options={FONT_OPTIONS}
+                searchable={false}
+                placeholder="Font"
+              />
+            </span>
 
-            <select
-              value={(editor.getAttributes('textStyle')?.fontSize || '').replace('px', '')}
-              onMouseDown={e => e.stopPropagation()}
-              onChange={e => {
-                const v = e.target.value;
-                if (!v) editor.chain().focus().unsetFontSize().run();
-                else editor.chain().focus().setFontSize(`${v}px`).run();
-              }}
-              style={{ ...selectStyle, width: '64px' }}
-            >
-              <option value="">Size</option>
-              {SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <span onMouseDown={keepSelection} style={{ width: 84, flexShrink: 0 }}>
+              <CustomDropdown
+                value={(editor.getAttributes('textStyle')?.fontSize || '').replace('px', '')}
+                onChange={v => {
+                  if (!v) editor.chain().focus().unsetFontSize().run();
+                  else editor.chain().focus().setFontSize(`${v}px`).run();
+                }}
+                options={[{ value: '', label: 'Size' }, ...SIZE_OPTIONS.map(s => ({ value: s, label: s }))]}
+                searchable={false}
+                placeholder="Size"
+              />
+            </span>
           </div>
         )}
       </div>

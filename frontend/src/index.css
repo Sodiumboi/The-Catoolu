@@ -383,6 +383,271 @@ input[type='number'] {
   --roll-none-text:       var(--text-primary);
 }
 
+/* ══════════════════════════════════════════════════════════
+   Extra themes (v1.x) — each block is self-contained (main +
+   roll tokens). Placed AFTER the :root/light/dark roll blocks
+   above so their --roll-* values win the cascade (the :root
+   roll block matches <html> for every theme).
+   Parchment (light) and Shale (dark) above are untouched.
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Farmilia Dark (Mud) ──────────────────────────────── */
+[data-theme="mud"] {
+  --color-primary:       #C6A549;
+  --color-primary-dark:  #A8871A;
+  --color-primary-light: #2A2515;
+  --color-primary-mid:   #4B4530;
+
+  --bg-page:        #1B1814;
+  --bg-card:        #28241D;
+  --bg-nav:         #28241D;
+  --bg-popup:       #28241D;
+  --bg-input:       #1B1814;
+  --bg-section-hd:  #363228;
+
+  --border-main:    #4B4530;
+  --border-input:   #4B4530;
+  --border-focus:   #C6A549;
+
+  --text-primary:   #EBDCC6;
+  --text-secondary: #C4B69E;
+  --text-muted:     #9E9179;
+  --text-faint:     #6B6050;
+
+  --accent:         #C6A549;
+  --accent-bg:      #2A2515;
+  --accent-hover:   #4B4530;
+
+  --pulse-ring-rgb: 198, 165, 73;
+
+  --danger:         #8C2926;
+  --danger-bg:      #2A0E0D;
+  --success:        #4B6B4E;
+  --warning:        #C5A548;
+  --row-hover:      rgba(75, 69, 48, 0.3);
+
+  --shadow-card:    0 1px 3px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.25);
+  --shadow-nav:     0 1px 0 #4B4530;
+  --shadow-dropdown:0 8px 24px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
+
+  --sheet-bg-art: none;
+
+  /* Roll result colours */
+  --roll-critical-bg:     #2a2000;
+  --roll-critical-border: #C6A549;
+  --roll-critical-text:   #EBDCC6;
+  --roll-extreme-bg:      #1e0a2e;
+  --roll-extreme-border:  #9333EA;
+  --roll-extreme-text:    #C084FC;
+  --roll-hard-bg:         #0a1628;
+  --roll-hard-border:     #3B82F6;
+  --roll-hard-text:       #93C5FD;
+  --roll-regular-bg:      #2A2515;
+  --roll-regular-border:  #C6A549;
+  --roll-regular-text:    #EBDCC6;
+  --roll-failure-bg:      #2A0E0D;
+  --roll-failure-border:  #8C2926;
+  --roll-failure-text:    #F09595;
+  --roll-fumble-bg:       #1a0000;
+  --roll-fumble-border:   #7f0000;
+  --roll-fumble-text:     #ff6b6b;
+  --roll-none-bg:         #363228;
+  --roll-none-border:     #4B4530;
+  --roll-none-text:       #EBDCC6;
+}
+
+/* ── Marsh (Mr. Cho's Green) ─────────────────────────── */
+[data-theme="marsh"] {
+  --color-primary:       #75B875;
+  --color-primary-dark:  #5B8257;
+  --color-primary-light: #1E2E1C;
+  --color-primary-mid:   #3A4D37;
+
+  --bg-page:        #192017;
+  --bg-card:        #202A1F;
+  --bg-nav:         #202A1F;
+  --bg-popup:       #202A1F;
+  --bg-input:       #192017;
+  --bg-section-hd:  #2B3929;
+
+  --border-main:    #3A4D37;
+  --border-input:   #3A4D37;
+  --border-focus:   #75B875;
+
+  --text-primary:   #CBE0C4;
+  --text-secondary: #A8C4A0;
+  --text-muted:     #84A680;
+  --text-faint:     #5A7856;
+
+  --accent:         #75B875;
+  --accent-bg:      #1E2E1C;
+  --accent-hover:   #3A4D37;
+
+  --pulse-ring-rgb: 117, 184, 117;
+
+  --danger:         #8B2926;
+  --danger-bg:      #2A0E0D;
+  --success:        #5B8257;
+  --warning:        #C4A548;
+  --row-hover:      rgba(58, 77, 55, 0.3);
+
+  --shadow-card:    0 1px 3px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.25);
+  --shadow-nav:     0 1px 0 #3A4D37;
+  --shadow-dropdown:0 8px 24px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
+
+  --sheet-bg-art: none;
+
+  --roll-critical-bg:     #2a2000;
+  --roll-critical-border: #C4A548;
+  --roll-critical-text:   #CBE0C4;
+  --roll-extreme-bg:      #1e0a2e;
+  --roll-extreme-border:  #9333EA;
+  --roll-extreme-text:    #C084FC;
+  --roll-hard-bg:         #0a1628;
+  --roll-hard-border:     #3B82F6;
+  --roll-hard-text:       #93C5FD;
+  --roll-regular-bg:      #1E2E1C;
+  --roll-regular-border:  #75B875;
+  --roll-regular-text:    #CBE0C4;
+  --roll-failure-bg:      #2A0E0D;
+  --roll-failure-border:  #8B2926;
+  --roll-failure-text:    #F09595;
+  --roll-fumble-bg:       #1a0000;
+  --roll-fumble-border:   #7f0000;
+  --roll-fumble-text:     #ff6b6b;
+  --roll-none-bg:         #2B3929;
+  --roll-none-border:     #3A4D37;
+  --roll-none-text:       #CBE0C4;
+}
+
+/* ── Archive (Sienna) ────────────────────────────────── */
+[data-theme="sienna"] {
+  --color-primary:       #A84B1D;
+  --color-primary-dark:  #782117;
+  --color-primary-light: #EDE5CC;
+  --color-primary-mid:   #D1B88D;
+
+  --bg-page:        #F2ECD7;
+  --bg-card:        #f6f3e8;
+  --bg-nav:         #F2ECD7;
+  --bg-popup:       #f6f3e8;
+  --bg-input:       #f6f3e8;
+  --bg-section-hd:  #DED1AF;
+
+  --border-main:    rgba(51, 36, 21, 0.25);
+  --border-input:   rgba(51, 36, 21, 0.35);
+  --border-focus:   #A84B1D;
+
+  --text-primary:   #332415;
+  --text-secondary: #5C3D22;
+  --text-muted:     #7A5833;
+  --text-faint:     #A07850;
+
+  --accent:         #A84B1D;
+  --accent-bg:      #EDE5CC;
+  --accent-hover:   #D1B88D;
+
+  --pulse-ring-rgb: 168, 75, 29;
+
+  --danger:         #782117;
+  --danger-bg:      #F2DDD8;
+  --success:        #346B46;
+  --warning:        #BE8015;
+  --row-hover:      rgba(51, 36, 21, 0.06);
+
+  --shadow-card:    0 1px 3px rgba(51, 36, 21, 0.10), 0 4px 12px rgba(51, 36, 21, 0.07);
+  --shadow-nav:     0 1px 0 rgba(51, 36, 21, 0.15);
+  --shadow-dropdown:0 8px 24px rgba(51, 36, 21, 0.18), 0 2px 6px rgba(51, 36, 21, 0.10);
+
+  --sheet-bg-art: none;
+
+  --roll-critical-bg:     #FFF3E0;
+  --roll-critical-border: #BE8015;
+  --roll-critical-text:   #5C3800;
+  --roll-extreme-bg:      #F3E8FF;
+  --roll-extreme-border:  #9333EA;
+  --roll-extreme-text:    #6B21A8;
+  --roll-hard-bg:         #EFF6FF;
+  --roll-hard-border:     #3B82F6;
+  --roll-hard-text:       #1E40AF;
+  --roll-regular-bg:      #EDE5CC;
+  --roll-regular-border:  #A84B1D;
+  --roll-regular-text:    #332415;
+  --roll-failure-bg:      #F2DDD8;
+  --roll-failure-border:  #782117;
+  --roll-failure-text:    #782117;
+  --roll-fumble-bg:       #2a0000;
+  --roll-fumble-border:   #7f0000;
+  --roll-fumble-text:     #ff6b6b;
+  --roll-none-bg:         #DED1AF;
+  --roll-none-border:     rgba(51, 36, 21, 0.25);
+  --roll-none-text:       #332415;
+}
+
+/* ── Cosmic Void (Arcane) ────────────────────────────── */
+[data-theme="arcane"] {
+  --color-primary:       #7A58F3;
+  --color-primary-dark:  #5A38D3;
+  --color-primary-light: #1E1840;
+  --color-primary-mid:   #332C60;
+
+  --bg-page:        #141125;
+  --bg-card:        #1B1835;
+  --bg-nav:         #1B1835;
+  --bg-popup:       #1B1835;
+  --bg-input:       #141125;
+  --bg-section-hd:  #272146;
+
+  --border-main:    #332C60;
+  --border-input:   #332C60;
+  --border-focus:   #7A58F3;
+
+  --text-primary:   #D1CCED;
+  --text-secondary: #ACA6D0;
+  --text-muted:     #7C73AD;
+  --text-faint:     #524A80;
+
+  --accent:         #7A58F3;
+  --accent-bg:      #1E1840;
+  --accent-hover:   #332C60;
+
+  --pulse-ring-rgb: 122, 88, 243;
+
+  --danger:         #8B2826;
+  --danger-bg:      #2A0E0D;
+  --success:        #497251;
+  --warning:        #C5B855;
+  --row-hover:      rgba(51, 44, 96, 0.4);
+
+  --shadow-card:    0 1px 3px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.35);
+  --shadow-nav:     0 1px 0 #332C60;
+  --shadow-dropdown:0 8px 24px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.4);
+
+  --sheet-bg-art: none;
+
+  --roll-critical-bg:     #2A2500;
+  --roll-critical-border: #C5B855;
+  --roll-critical-text:   #D1CCED;
+  --roll-extreme-bg:      #1E1840;
+  --roll-extreme-border:  #7A58F3;
+  --roll-extreme-text:    #D1CCED;
+  --roll-hard-bg:         #0a1628;
+  --roll-hard-border:     #3B82F6;
+  --roll-hard-text:       #93C5FD;
+  --roll-regular-bg:      #1E1840;
+  --roll-regular-border:  #7A58F3;
+  --roll-regular-text:    #D1CCED;
+  --roll-failure-bg:      #2A0E0D;
+  --roll-failure-border:  #8B2826;
+  --roll-failure-text:    #F09595;
+  --roll-fumble-bg:       #1a0000;
+  --roll-fumble-border:   #7f0000;
+  --roll-fumble-text:     #ff6b6b;
+  --roll-none-bg:         #272146;
+  --roll-none-border:     #332C60;
+  --roll-none-text:       #D1CCED;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }

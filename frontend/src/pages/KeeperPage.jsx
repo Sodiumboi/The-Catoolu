@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import NavBar    from '../components/NavBar';
 import Footer    from '../components/Footer';
+import CustomDropdown from '../components/ui/CustomDropdown';
 import apiClient from '../api/client';
 import KeeperCampaignDetail  from '../components/KeeperCampaignDetail';
 import CreateCampaignModal   from '../components/CreateCampaignModal';
@@ -122,22 +123,20 @@ export default function KeeperPage() {
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'12px', flexWrap:'wrap' }}>
             {!loading && campaigns.length > 0 && (
-              <select
-                value={sortBy}
-                onChange={e => handleSortChange(e.target.value)}
-                style={{
-                  padding: '4px 8px', borderRadius: 6, fontSize: 11,
-                  border: '1px solid var(--border-main)',
-                  background: 'var(--bg-input)', color: 'var(--text-secondary)',
-                  fontFamily: 'var(--font-sans)', cursor: 'pointer',
-                }}
-              >
-                <option value="updated-desc">Last updated: newest</option>
-                <option value="created-desc">Date created: newest</option>
-                <option value="name-asc">Name A–Z</option>
-                <option value="name-desc">Name Z–A</option>
-                <option value="members-desc">Most players</option>
-              </select>
+              <div style={{ width: 190, flexShrink: 0 }}>
+                <CustomDropdown
+                  value={sortBy}
+                  onChange={handleSortChange}
+                  searchable={false}
+                  options={[
+                    { value: 'updated-desc', label: 'Last updated: newest' },
+                    { value: 'created-desc', label: 'Date created: newest' },
+                    { value: 'name-asc', label: 'Name A–Z' },
+                    { value: 'name-desc', label: 'Name Z–A' },
+                    { value: 'members-desc', label: 'Most players' },
+                  ]}
+                />
+              </div>
             )}
             <button
               onClick={() => setShowCreate(true)}

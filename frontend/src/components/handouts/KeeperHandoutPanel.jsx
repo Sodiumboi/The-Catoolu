@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import apiClient from '../../api/client';
+import CustomDropdown from '../ui/CustomDropdown';
 
 if (typeof document !== 'undefined' && !document.getElementById('khp-styles')) {
   const s = document.createElement('style');
@@ -557,23 +558,21 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
       {/* View toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
         <span style={{ ...labelStyle, marginBottom: 0 }}>Handouts</span>
-        <select
-          value={sortBy}
-          onChange={e => handleSortChange(e.target.value)}
-          style={{
-            padding: '4px 8px', borderRadius: 6, fontSize: 11,
-            border: '1px solid var(--border-main)',
-            background: 'var(--bg-input)', color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-sans)', cursor: 'pointer',
-          }}
-        >
-          <option value="date-desc">Date added: newest</option>
-          <option value="date-asc">Date added: oldest</option>
-          <option value="name-asc">Name A–Z</option>
-          <option value="name-desc">Name Z–A</option>
-          <option value="type-images">Type: images first</option>
-          <option value="type-text">Type: text first</option>
-        </select>
+        <div style={{ width: 180, flexShrink: 0 }}>
+          <CustomDropdown
+            value={sortBy}
+            onChange={handleSortChange}
+            searchable={false}
+            options={[
+              { value: 'date-desc', label: 'Date added: newest' },
+              { value: 'date-asc', label: 'Date added: oldest' },
+              { value: 'name-asc', label: 'Name A–Z' },
+              { value: 'name-desc', label: 'Name Z–A' },
+              { value: 'type-images', label: 'Type: images first' },
+              { value: 'type-text', label: 'Type: text first' },
+            ]}
+          />
+        </div>
         <div style={{
           display: 'inline-flex', gap: 2, padding: 2,
           border: '1px solid var(--border-main)', borderRadius: 7,

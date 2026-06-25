@@ -356,21 +356,39 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
               </div>
             )}
 
-            {/* Resize grip — bottom-right, with visible diagonal marks */}
+            {/* Resize grip — bottom-right hit area; the rounded-triangle
+                indicator is inset a few px away from the very corner. */}
             <div
               onMouseDown={handleResizeMouseDown}
               title="Resize"
               style={{
-                position:        'absolute',
-                right:           0,
-                bottom:          0,
-                width:           18,
-                height:          18,
-                cursor:          'nwse-resize',
-                zIndex:          10,
-                backgroundImage: 'linear-gradient(135deg, transparent 0 46%, var(--text-faint) 46% 54%, transparent 54% 70%, var(--text-faint) 70% 80%, transparent 80%)',
+                position:       'absolute',
+                right:          0,
+                bottom:         0,
+                width:          22,
+                height:         22,
+                cursor:         'nwse-resize',
+                zIndex:         10,
+                display:        'flex',
+                alignItems:     'flex-end',
+                justifyContent: 'flex-end',
+                padding:        5,
               }}
-            />
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" style={{ display: 'block', pointerEvents: 'none' }}>
+                {/* Only the bottom-right point is rounded (r=5), concentric with
+                    the window's 10px corner radius at this ~5px inset. The two
+                    45° tips stay as soft points. */}
+                <path
+                  d="M11 1 L11 6 A5 5 0 0 1 6 11 L1 11 Z"
+                  fill="var(--text-faint)"
+                  stroke="var(--text-faint)"
+                  strokeWidth="1.4"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
         </div>
       )}
     </>,

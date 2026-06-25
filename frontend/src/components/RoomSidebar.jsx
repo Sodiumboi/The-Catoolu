@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import FairnessTester from './FairnessTester';
+import CustomDropdown from './ui/CustomDropdown';
 import { useTheme } from '../context/ThemeContext';
 
 const TABS = [
@@ -152,36 +153,28 @@ function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters,
       {/* Change my character */}
       <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '12px', marginTop: '12px' }}>
         <SectionLabel>Playing as</SectionLabel>
-        <select
-          value={myCharacter?.id || ''}
-          onChange={e => {
-            const found = myCharacters.find(c => c.id === parseInt(e.target.value));
+        <CustomDropdown
+          value={myCharacter?.id ?? ''}
+          onChange={val => {
+            const found = myCharacters.find(c => c.id === val);
             onChangeCharacter(found || null);
           }}
-          style={{
-            width:        '100%',
-            padding:      '7px 10px',
-            borderRadius: '8px',
-            border:       '1px solid var(--border-input)',
-            background:   'var(--bg-input)',
-            color:        'var(--text-primary)',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '13px',
-            outline:      'none',
-            cursor:       'pointer',
-          }}
-        >
-          <option value="">— Decide later —</option>
-          {myCharacters.map(c => {
-            const name = c.name || 'Unnamed';
-            const occ  = c.occupation || '';
-            return (
-              <option key={c.id} value={c.id}>
-                {name}{occ ? ' — ' + occ : ''}
-              </option>
-            );
-          })}
-        </select>
+          placeholder="— Decide later —"
+          options={[
+            { value: '', label: '— Decide later —' },
+            ...myCharacters.map(c => {
+              const name = c.name || 'Unnamed';
+              return {
+                value: c.id,
+                label: name,
+                sublabel: c.occupation || '',
+                image: c.portrait_data ? `data:image/jpeg;base64,${c.portrait_data}` : undefined,
+                imageFallback: name
+                  .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+              };
+            }),
+          ]}
+        />
       </div>
     </div>
   );
