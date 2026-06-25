@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import apiClient from '../../api/client';
 import UploadProgressBar from '../UploadProgressBar';
 import CustomDropdown from '../ui/CustomDropdown';
+import FileDropZone from '../ui/FileDropZone';
 import ConfirmDialog from '../ConfirmDialog';
 import useConfirm from '../../hooks/useConfirm';
 
@@ -680,6 +681,181 @@ function Grid({ children }) {
   );
 }
 
+// ─── CreateTile (dashed create box) ────────────────────────────
+function CreateTile({ icon, label, hint, chevron, innerRef, onClick, style }) {
+  return (
+    <button
+      ref={innerRef}
+      onClick={onClick}
+      style={{
+        background: 'transparent',
+        border: '2px dashed var(--border-main)',
+        borderRadius: 'var(--radius-squircle, 12px)',
+        color: 'var(--text-muted)', cursor: 'pointer',
+        width: '100%', height: '100%', minHeight: 80,
+        boxSizing: 'border-box', padding: 10,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 4,
+        fontFamily: 'var(--font-sans)',
+        transition: 'border-color 0.15s, color 0.15s',
+        ...style,
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-focus)'; e.currentTarget.style.color = 'var(--accent)'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-main)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+    >
+      <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{icon}</span>
+        <span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
+        {chevron && <span className="material-symbols-outlined" style={{ fontSize: 16 }}>expand_more</span>}
+      </span>
+      {hint && (
+        <span style={{ fontSize: 10, color: 'var(--text-faint)', textAlign: 'center', lineHeight: 1.3 }}>
+          {hint}
+        </span>
+      )}
+    </button>
+  );
+}
+
+// ─── AddMenu (Image / Text popover) ────────────────────────────
+function AddMenu({ anchorRef, onImage, onText, onClose }) {
+  const menuRef = useRef(null);
+  useEffect(() => {
+    const onDown = (e) => {
+      if (menuRef.current?.contains(e.target)) return;
+      if (anchorRef.current?.contains(e.target)) return;
+      onClose();
+    };
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [anchorRef, onClose]);
+
+  const itemStyle = {
+    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+    padding: '8px 12px', fontSize: 13, color: 'var(--text-primary)',
+    fontFamily: 'var(--font-sans)', cursor: 'pointer',
+    background: 'transparent', border: 'none', textAlign: 'left',
+  };
+
+  return (
+    <div
+      ref={menuRef}
+      style={{
+        position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 60,
+        minWidth: 168, background: 'var(--bg-card)',
+        border: '1px solid var(--border-main)', borderRadius: 10,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.18)', overflow: 'hidden',
+        animation: 'hl-form-in 0.12s ease',
+      }}
+    >
+      <button
+        style={itemStyle} onClick={onImage}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>image</span>
+        <span style={{ flex: 1 }}>Image</span>
+        <span style={{ fontSize: 10, color: 'var(--text-faint)' }}>upload</span>
+      </button>
+      <button
+        style={itemStyle} onClick={onText}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>text_fields</span>
+        <span style={{ flex: 1 }}>Text</span>
+      </button>
+    </div>
+  );
+}
+
+// ─── StagingModal (review files before upload) ─────────────────
+function StagingModal({ items, onRemove, onCancel, onUpload, uploading }) {
+  const validCount = items.filter(i => i.isImage).length;
+  return (
+    <HandoutEditModal onClose={uploading ? () => {} : onCancel}>
+      <div style={{
+        background: 'var(--bg-card)', borderRadius: 12,
+        border: '1px solid var(--border-main)', padding: 18,
+      }}>
+        <div style={{
+          fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
+          textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12,
+        }}>
+          Ready to upload ({validCount})
+        </div>
+        <div style={{
+          display: 'flex', flexDirection: 'column', gap: 6,
+          maxHeight: 340, overflowY: 'auto', overscrollBehavior: 'contain',
+        }}>
+          {items.map(it => (
+            <div
+              key={it.id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '6px 8px', borderRadius: 8,
+                border: '1px solid var(--border-main)',
+                background: it.isImage ? 'var(--bg-page)' : 'var(--bg-section-hd)',
+                opacity: it.isImage ? 1 : 0.6,
+              }}
+            >
+              <div style={{
+                width: 40, height: 40, borderRadius: 6, overflow: 'hidden', flexShrink: 0,
+                background: 'var(--bg-section-hd)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {it.isImage ? (
+                  <img src={it.url} alt={it.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--text-faint)' }}>block</span>
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 12, color: 'var(--text-primary)',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {it.name}
+                </div>
+                {!it.isImage && (
+                  <div style={{ fontSize: 10, color: 'var(--danger)', marginTop: 1 }}>
+                    not an image — will be skipped
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => onRemove(it.id)}
+                disabled={uploading}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: '0 2px',
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          <button
+            onClick={onUpload}
+            disabled={uploading || validCount === 0}
+            style={{ ...primaryBtn, opacity: validCount === 0 ? 0.5 : 1 }}
+          >
+            {uploading ? 'Uploading…' : `Upload ${validCount} file${validCount !== 1 ? 's' : ''}`}
+          </button>
+          <button onClick={onCancel} disabled={uploading} style={cancelBtn}>Cancel</button>
+        </div>
+      </div>
+    </HandoutEditModal>
+  );
+}
+
 // ─── HandoutLibrary ────────────────────────────────────────────
 export default function HandoutLibrary({ campaignUuid }) {
   const [handouts,       setHandouts]      = useState([]);
@@ -694,7 +870,18 @@ export default function HandoutLibrary({ campaignUuid }) {
   const [sortBy,         setSortBy]        = useState(
     () => localStorage.getItem('handout-library-sort') || 'date-desc'
   );
+  const [staged,           setStaged]           = useState([]); // files awaiting upload review
+  const [stagingUploading, setStagingUploading] = useState(false);
+  const [addMenuOpen,      setAddMenuOpen]      = useState(false);
   const fileInputRef = useRef(null);
+  const addTileRef   = useRef(null);
+
+  // Revoke any outstanding object URLs on unmount
+  const stagedRef = useRef(staged);
+  useEffect(() => { stagedRef.current = staged; }, [staged]);
+  useEffect(() => () => {
+    stagedRef.current.forEach(i => i.url && URL.revokeObjectURL(i.url));
+  }, []);
 
   const applySortFn = (a, b) => {
     switch (sortBy) {
@@ -730,20 +917,54 @@ export default function HandoutLibrary({ campaignUuid }) {
     } catch { /* silent */ }
   };
 
+  // ── Staging (review files before upload) ──────────────────
+  const stageFiles = (files) => {
+    if (!files || files.length === 0) return;
+    const additions = files.map(f => {
+      const isImage = f.type.startsWith('image/');
+      return {
+        id: crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
+        file: f,
+        name: f.name,
+        isImage,
+        url: isImage ? URL.createObjectURL(f) : null,
+      };
+    });
+    setStaged(prev => [...prev, ...additions]);
+  };
+
+  const removeStaged = (id) => {
+    setStaged(prev => {
+      const target = prev.find(i => i.id === id);
+      if (target?.url) URL.revokeObjectURL(target.url);
+      return prev.filter(i => i.id !== id);
+    });
+  };
+
+  const clearStaged = () => {
+    setStaged(prev => {
+      prev.forEach(i => i.url && URL.revokeObjectURL(i.url));
+      return [];
+    });
+  };
+
+  const handleStagedUpload = async () => {
+    const valid = staged.filter(i => i.isImage);
+    if (valid.length === 0) return;
+    setStagingUploading(true);
+    try {
+      await Promise.all(valid.map(i => uploadImage(i.file)));
+    } finally {
+      setStagingUploading(false);
+      clearStaged();
+    }
+  };
+
   // ── Image upload ──────────────────────────────────────────
   const handleFilePick = (e) => {
     const files = Array.from(e.target.files || []);
     e.target.value = '';
-    if (files.length === 0) return;
-
-    const tooBig = files.filter(f => f.size > 5 * 1024 * 1024);
-    if (tooBig.length > 0) {
-      alert(`${tooBig.length} file${tooBig.length > 1 ? 's' : ''} exceed 5 MB and were skipped.`);
-    }
-    const valid = files.filter(f =>
-      f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024
-    );
-    valid.forEach(uploadImage);
+    stageFiles(files);
   };
 
   const uploadImage = async (file) => {
@@ -882,18 +1103,6 @@ export default function HandoutLibrary({ campaignUuid }) {
     };
   }, [handouts, sortBy]);
 
-  // ── Toolbar pill button style ──────────────────────────────
-  const pillBtn = (active) => ({
-    padding: '6px 14px',
-    border: 'none',
-    borderLeft: '1px solid var(--border-main)',
-    background: active ? 'var(--accent-bg)' : 'transparent',
-    color: active ? 'var(--color-primary)' : 'var(--text-secondary)',
-    fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 500,
-    cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5,
-    transition: 'background 0.12s, color 0.12s',
-  });
-
   if (loading) {
     return (
       <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
@@ -903,7 +1112,12 @@ export default function HandoutLibrary({ campaignUuid }) {
   }
 
   return (
-    <div>
+    <FileDropZone
+      global
+      onFiles={stageFiles}
+      overlayLabel="Drop images to upload"
+      overlayIcon="upload"
+    >
       {/* Hidden file input — multiple files allowed */}
       <input
         ref={fileInputRef}
@@ -914,7 +1128,7 @@ export default function HandoutLibrary({ campaignUuid }) {
         onChange={handleFilePick}
       />
 
-      {/* Header + toolbar */}
+      {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: 12,
@@ -950,41 +1164,6 @@ export default function HandoutLibrary({ campaignUuid }) {
               { value: 'type-text', label: 'Type: text first' },
             ]}
           />
-        </div>
-        <div style={{
-          display: 'inline-flex', alignItems: 'stretch',
-          border: '1px solid var(--border-main)', borderRadius: 999,
-          background: 'var(--bg-card)', overflow: 'hidden',
-        }}>
-          <span style={{
-            padding: '6px 13px', fontSize: 12, fontWeight: 600,
-            color: 'var(--text-muted)', fontFamily: 'var(--font-sans)',
-            display: 'inline-flex', alignItems: 'center',
-          }}>
-            New
-          </span>
-          <button
-            style={pillBtn(creating === 'text' || editing?.type === 'text')}
-            onClick={() => { setEditing(null); setCreating(p => p === 'text' ? null : 'text'); }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>text_fields</span>
-            Text
-          </button>
-          <button
-            style={pillBtn(creating === 'bundle' || editing?.type === 'bundle')}
-            onClick={() => { setEditing(null); setCreating(p => p === 'bundle' ? null : 'bundle'); }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>stacks</span>
-            Bundle
-          </button>
-          <button
-            style={pillBtn(false)}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploadingCount > 0}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>upload</span>
-            {uploadingCount > 0 ? `${uploadingCount} uploading…` : 'Images'}
-          </button>
         </div>
       </div>
 
@@ -1044,51 +1223,75 @@ export default function HandoutLibrary({ campaignUuid }) {
       )}
 
       {/* ── Bundles section ── */}
-      {(bundles.length > 0 || creating === 'bundle') && (
-        <div style={{ marginBottom: 24 }}>
-          <SectionHeading>Bundles</SectionHeading>
-          <Grid>
-            {bundles.map(b => (
-              <BundleCard
-                key={b.uuid}
-                bundle={b}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </Grid>
-        </div>
-      )}
+      <div style={{ marginBottom: 24 }}>
+        <SectionHeading>Bundles</SectionHeading>
+        <Grid>
+          {bundles.map(b => (
+            <BundleCard
+              key={b.uuid}
+              bundle={b}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ))}
+          <CreateTile
+            icon="stacks"
+            label="New bundle"
+            hint="group handouts together"
+            style={{ marginTop: 8, marginBottom: 4, height: 'calc(100% - 12px)' }}
+            onClick={() => { setAddMenuOpen(false); setEditing(null); setCreating('bundle'); }}
+          />
+        </Grid>
+      </div>
 
       {/* ── Individual handouts section ── */}
       <div>
         <SectionHeading>Individual handouts</SectionHeading>
-        {individual.length === 0 && uploadingCount === 0 ? (
-          <div style={{
-            padding: '32px 20px', borderRadius: 10,
-            border: '1px dashed var(--border-main)',
-            textAlign: 'center', fontSize: 13,
-            color: 'var(--text-faint)', fontStyle: 'italic',
-          }}>
-            No handouts yet — use the buttons above to add images or text.
-          </div>
-        ) : (
-          <Grid>
-            {individual.map(h => (
-              <HandoutCard
-                key={h.uuid}
-                handout={h}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
+        <Grid>
+          {individual.map(h => (
+            <HandoutCard
+              key={h.uuid}
+              handout={h}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ))}
+          {Array.from({ length: uploadingCount }).map((_, i) => <LoadingCard key={`loading-${i}`} />)}
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+            <CreateTile
+              innerRef={addTileRef}
+              icon="add"
+              label="Add handout"
+              chevron
+              hint="click, or drag & drop images"
+              style={{ flex: 1 }}
+              onClick={() => setAddMenuOpen(o => !o)}
+            />
+            {addMenuOpen && (
+              <AddMenu
+                anchorRef={addTileRef}
+                onImage={() => { setAddMenuOpen(false); fileInputRef.current?.click(); }}
+                onText={() => { setAddMenuOpen(false); setEditing(null); setCreating('text'); }}
+                onClose={() => setAddMenuOpen(false)}
               />
-            ))}
-            {Array.from({ length: uploadingCount }).map((_, i) => <LoadingCard key={`loading-${i}`} />)}
-          </Grid>
-        )}
+            )}
+          </div>
+        </Grid>
       </div>
+
+      {/* Staging review modal */}
+      {staged.length > 0 && (
+        <StagingModal
+          items={staged}
+          onRemove={removeStaged}
+          onCancel={() => { if (!stagingUploading) clearStaged(); }}
+          onUpload={handleStagedUpload}
+          uploading={stagingUploading}
+        />
+      )}
 
       {/* Delete confirmation dialog */}
       <ConfirmDialog {...dialogProps} />
-    </div>
+    </FileDropZone>
   );
 }
