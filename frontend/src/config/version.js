@@ -4,7 +4,7 @@
 // useVersionCheck compares APP_VERSION against the latest
 // GitHub release tag for GITHUB_REPO.
 
-export const APP_VERSION = ' DEV - 1.6c';
+export const APP_VERSION = '1.6c';
 
 // Per-release codename. Edit this here on each release, alongside APP_VERSION.
 export const APP_CODENAME = 'Atlach-Nacha - Semphar';

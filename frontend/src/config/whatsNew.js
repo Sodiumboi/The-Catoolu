@@ -4,37 +4,72 @@
 
 export const WHATS_NEW = [
   {
-    version: '1.6c',
-    codename: 'Semphar',
-    date: 'June 2026',
-    sections: [
-      {
-        heading: 'Notes Window',
-        items: [
-          'Drag and resize finally work correctly — rebuilt with native pointer events',
-          'Bubble pill animates in smoothly and remembers its position',
-        ],
-      },
-      {
-        heading: 'Session Fixes',
-        items: [
-          'Keeper can now delete rolled result cards from the feed',
-          'Bottom skill roll button no longer hides below the viewport',
-          'Shift+Enter adds a new line in chat instead of sending',
-          'Handout back button now returns to the room correctly',
-        ],
-      },
-      {
-        heading: 'Quality of Life',
-        items: [
-          'File Manager: select multiple files for bulk delete',
-          'Handout library and campaign list now have sort options — preference saved per device',
-          'Pending indicator on chat send, dice rolls, and skill clicks — prevents double-clicks on slow connections',
-          'Upload progress bar on all file uploads',
-        ],
-      },
-    ],
-  },
+  version: '1.6c',
+  codename: 'Semphar',
+  date: 'June 2026',
+  sections: [
+    {
+      heading: 'Notes Window',
+      items: [
+        'Drag and resize finally work correctly — rebuilt with native pointer events',
+        'Minimises to a pill that remembers its position across sessions',
+        'Now available to the Keeper too, not just players',
+        'Notes button moved to the top-right of the tab bar for both roles',
+      ],
+    },
+    {
+      heading: 'Session Fixes',
+      items: [
+        'Keeper can now delete rolled result cards from the feed',
+        'Roll popup no longer hides below the viewport for skills near the bottom of the list',
+        'Shift+Enter adds a new line in chat instead of sending',
+        'Handout back button now returns to the room correctly instead of refreshing',
+        'Chat messages now preserve line breaks',
+        'Own roll cards are right-aligned again',
+      ],
+    },
+    {
+      heading: 'Chat Images',
+      items: [
+        'Players can now attach images directly in the campaign room chat',
+        'Paste an image from clipboard directly into the chat bar',
+        'Attach multiple images at once — they send as a grouped gallery',
+        'Images open in a full-screen viewer on click',
+        'Upload progress bar shows while files are being sent',
+      ],
+    },
+    {
+      heading: 'Anti-Double-Click',
+      items: [
+        'Chat send, dice rolls, and skill clicks now show a pending state while the server responds',
+        'Prevents the same action from firing twice on slow connections',
+      ],
+    },
+    {
+      heading: 'Quality of Life',
+      items: [
+        'File Manager: select multiple files for bulk delete',
+        'Handout library: drag and drop images anywhere on the page to upload',
+        'Handout library: dashed create tiles replace the old toolbar buttons',
+        'Handout library and campaign list now have sort options — preference saved per device',
+        'Six themes: Parchment, Shale, Farmilia Dark, Marsh, Archive, Cosmic Void',
+        'Theme picker with colour swatches in NavBar Preferences',
+        'What\'s New modal — you\'re reading it right now',
+      ],
+    },
+    {
+      heading: 'UI Polish',
+      items: [
+        'Confirmation dialogs are now uniform across the whole app',
+        'Dropdowns are now custom-built — no more browser-default selects',
+        'Hover tooltips throughout the app — no more browser title text',
+        'Notes resize grip redesigned — rounded triangle in the corner',
+        'Jump-to-present button re-centred in the feed',
+        'Chat bubble delete menu moved to the bottom, opens upward',
+      ],
+    },
+  ],
+},
   {
     version: '1.6b',
     codename: 'High Moor',
