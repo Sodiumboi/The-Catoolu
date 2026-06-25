@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar  from '../components/NavBar';
 import Footer  from '../components/Footer';
 import apiClient from '../api/client';
 import JoinCampaignModal from '../components/JoinCampaignModal';
+import CustomDropdown from '../components/ui/CustomDropdown';
 
 export default function CampaignPage() {
   const navigate = useNavigate();
@@ -12,6 +13,26 @@ export default function CampaignPage() {
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState('');
   const [modal,     setModal]     = useState(null); // 'join' | null
+  const [sortBy,    setSortBy]    = useState(
+    () => localStorage.getItem('player-campaign-sort') || 'updated-desc'
+  );
+
+  const sortedCampaigns = useMemo(() => {
+    const copy = [...campaigns];
+    switch (sortBy) {
+      case 'created-desc': copy.sort((a, b) => (b.created_at > a.created_at ? 1 : -1)); break;
+      case 'name-asc':     copy.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case 'name-desc':    copy.sort((a, b) => b.name.localeCompare(a.name)); break;
+      case 'members-desc': copy.sort((a, b) => parseInt(b.member_count) - parseInt(a.member_count)); break;
+      default:             copy.sort((a, b) => (b.updated_at > a.updated_at ? 1 : -1)); break;
+    }
+    return copy;
+  }, [campaigns, sortBy]);
+
+  const handleSortChange = (val) => {
+    setSortBy(val);
+    localStorage.setItem('player-campaign-sort', val);
+  };
 
   // ── Load campaigns ──────────────────────────────────────────
   const loadCampaigns = async () => {
@@ -79,7 +100,23 @@ export default function CampaignPage() {
           </div>
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {!loading && campaigns.length > 0 && (
+              <div style={{ width: 185, flexShrink: 0 }}>
+                <CustomDropdown
+                  value={sortBy}
+                  onChange={handleSortChange}
+                  searchable={false}
+                  options={[
+                    { value: 'updated-desc', label: 'Last updated: newest' },
+                    { value: 'created-desc', label: 'Date created: newest' },
+                    { value: 'name-asc', label: 'Name A–Z' },
+                    { value: 'name-desc', label: 'Name Z–A' },
+                    { value: 'members-desc', label: 'Most players' },
+                  ]}
+                />
+              </div>
+            )}
             <button
               onClick={() => setModal('join')}
               style={{
@@ -181,7 +218,7 @@ export default function CampaignPage() {
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             gap:                 '16px',
           }}>
-            {campaigns.map(campaign => (
+            {sortedCampaigns.map(campaign => (
               <CampaignCard
                 key={campaign.id}
                 campaign={campaign}

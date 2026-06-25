@@ -74,7 +74,8 @@ export default function CustomDropdown({
     setSearch('');
   };
 
-  // Close on outside click / scroll / resize
+  // Close on outside click; reposition (don't close) on scroll / resize so the
+  // panel tracks the trigger instead of vanishing when a scroll container moves.
   useEffect(() => {
     if (!open) return;
     const close = (e) => {
@@ -86,16 +87,16 @@ export default function CustomDropdown({
         setSearch('');
       }
     };
-    const closeOnScroll = () => { setOpen(false); setSearch(''); };
+    const reposition = () => calculatePosition();
     document.addEventListener('mousedown', close);
-    window.addEventListener('scroll', closeOnScroll, true);
-    window.addEventListener('resize', closeOnScroll);
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
     return () => {
       document.removeEventListener('mousedown', close);
-      window.removeEventListener('scroll', closeOnScroll, true);
-      window.removeEventListener('resize', closeOnScroll);
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
     };
-  }, [open]);
+  }, [open, calculatePosition]);
 
   // Escape key
   useEffect(() => {
