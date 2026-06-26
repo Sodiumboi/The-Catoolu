@@ -717,3 +717,82 @@ input[type='number'] {
 .icon-sm { font-size: 16px; }
 .icon-md { font-size: 20px; }
 .icon-lg { font-size: 24px; }
+
+/* ── iOS-style custom slider (.cat-slider) ──────────────────────
+   Used by frontend/src/components/ui/Slider.jsx.
+   --cat-slider-pct is set inline by the component (computed from value).
+   Track fill: accent colour left-of-thumb, muted track colour right-of-thumb.
+   Thumb: round white knob with soft shadow.
+   ──────────────────────────────────────────────────────────────── */
+.cat-slider {
+  -webkit-appearance: none;
+  appearance:         none;
+  width:              100%;
+  height:             6px;
+  border-radius:      999px;
+  outline:            none;
+  cursor:             pointer;
+  background:         linear-gradient(
+    to right,
+    var(--accent)       0%,
+    var(--accent)       var(--cat-slider-pct, 50%),
+    var(--border-input) var(--cat-slider-pct, 50%),
+    var(--border-input) 100%
+  );
+  /* Remove default focus ring — :focus-visible below handles it */
+  border: none;
+  padding: 0;
+}
+
+/* Webkit thumb (Chrome, Safari, Edge) */
+.cat-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance:         none;
+  width:              24px;
+  height:             24px;
+  border-radius:      50%;
+  background:         #ffffff;
+  box-shadow:         0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  cursor:             pointer;
+  transition:         box-shadow 0.12s ease, transform 0.12s ease;
+}
+.cat-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  transform:  scale(1.08);
+}
+.cat-slider:active::-webkit-slider-thumb {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18), 0 0 0 3px rgba(var(--pulse-ring-rgb, 59,109,17), 0.2);
+  transform:  scale(1.04);
+}
+
+/* Firefox thumb */
+.cat-slider::-moz-range-thumb {
+  width:        24px;
+  height:       24px;
+  border-radius:50%;
+  border:       none;
+  background:   #ffffff;
+  box-shadow:   0 1px 4px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  cursor:       pointer;
+  transition:   box-shadow 0.12s ease, transform 0.12s ease;
+}
+.cat-slider::-moz-range-thumb:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  transform:  scale(1.08);
+}
+
+/* Firefox track — the gradient covers the track, but Firefox also
+   exposes the fill/progress track separately; hide the default tint. */
+.cat-slider::-moz-range-track {
+  height:       6px;
+  border-radius:999px;
+  background:   transparent; /* parent gradient shows through */
+}
+
+/* Accessible focus ring — uses existing :focus-visible style from :root,
+   but we refine the border-radius to match the pill shape */
+.cat-slider:focus-visible {
+  outline:        2px solid var(--border-focus);
+  outline-offset: 3px;
+  border-radius:  999px;
+}

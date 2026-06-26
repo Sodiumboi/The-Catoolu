@@ -127,7 +127,6 @@ export default function DashboardPage() {
   return (
     <div style={{
       minHeight:     '100vh',
-      background:    'var(--bg-page)',
       display:       'flex',
       flexDirection: 'column',
     }}>

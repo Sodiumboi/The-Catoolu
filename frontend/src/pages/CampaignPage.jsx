@@ -59,7 +59,6 @@ export default function CampaignPage() {
   return (
     <div style={{
       minHeight:     '100vh',
-      background:    'var(--bg-page)',
       display:       'flex',
       flexDirection: 'column',
       fontFamily:    'var(--font-sans)',

@@ -31,6 +31,20 @@ export function ThemeProvider({ children }) {
   const [feedBackground, setFeedBackgroundState] = useState(
     () => localStorage.getItem('coc_feed_bg') === 'true'
   );
+  // Parallax silhouette background art on main pages (default on)
+  const [bgArtEnabled, setBgArtEnabledState] = useState(
+    () => localStorage.getItem('catoolu_bg_art') !== 'false'
+  );
+  // Parallax motion on the background art (default on)
+  const [parallaxEnabled, setParallaxEnabledState] = useState(
+    () => localStorage.getItem('catoolu_parallax') !== 'false'
+  );
+  // Parallax intensity multiplier, clamped to [0.25, 2.0] (default 1.0)
+  const [parallaxIntensity, setParallaxIntensityState] = useState(() => {
+    const raw = parseFloat(localStorage.getItem('catoolu_parallax_amount'));
+    if (isNaN(raw)) return 1.0;
+    return Math.min(2.0, Math.max(0.25, raw));
+  });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -60,6 +74,22 @@ export function ThemeProvider({ children }) {
     localStorage.setItem('coc_feed_bg', String(v));
   };
 
+  const setBgArtEnabled = (v) => {
+    setBgArtEnabledState(v);
+    localStorage.setItem('catoolu_bg_art', String(v));
+  };
+
+  const setParallaxEnabled = (v) => {
+    setParallaxEnabledState(v);
+    localStorage.setItem('catoolu_parallax', String(v));
+  };
+
+  const setParallaxIntensity = (v) => {
+    const clamped = Math.min(2.0, Math.max(0.25, v));
+    setParallaxIntensityState(clamped);
+    localStorage.setItem('catoolu_parallax_amount', String(clamped));
+  };
+
   return (
     <ThemeContext.Provider value={{
       theme, toggleTheme, setTheme,
@@ -67,6 +97,9 @@ export function ThemeProvider({ children }) {
       roomFontScale,  setRoomFontScale,
       memeEnabled,    setMemeEnabled,
       feedBackground, setFeedBackground,
+      bgArtEnabled,      setBgArtEnabled,
+      parallaxEnabled,   setParallaxEnabled,
+      parallaxIntensity, setParallaxIntensity,
     }}>
       {children}
     </ThemeContext.Provider>

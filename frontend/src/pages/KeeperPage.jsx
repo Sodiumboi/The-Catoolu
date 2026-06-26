@@ -67,7 +67,7 @@ export default function KeeperPage() {
   if (selected) {
     return (
       <div style={{
-        minHeight:'100vh', background:'var(--bg-page)',
+        minHeight:'100vh',
         display:'flex', flexDirection:'column',
       }}>
         <NavBar activeTab="keeper" />
@@ -93,7 +93,7 @@ export default function KeeperPage() {
 
   return (
     <div style={{
-      minHeight:'100vh', background:'var(--bg-page)',
+      minHeight:'100vh',
       display:'flex', flexDirection:'column',
       fontFamily:'var(--font-sans)',
     }}>

@@ -5,6 +5,8 @@ import { useTheme, THEMES } from '../context/ThemeContext';
 import { useCampaign } from '../context/CampaignContext';
 import { useNavBarActions } from '../context/NavBarActionsContext';
 import CustomDropdown from './ui/CustomDropdown';
+import ToggleRow from './ui/ToggleRow';
+import Slider from './ui/Slider';
 import { useSocket } from '../context/SocketContext';
 import logo from '../assets/vault-logo.png';
 import BugReportModal from './BugReportModal';
@@ -698,8 +700,106 @@ const HOME_OPTIONS = [
   { value: '/campaign',  label: 'Campaigns'     },
 ];
 
+// ── Shared section header style (used by every section in PreferencesPanel)
+const sectionLabel = {
+  fontFamily:    'var(--font-sans)',
+  fontSize:      '10px',
+  fontWeight:    '600',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  color:         'var(--text-muted)',
+  marginBottom:  '8px',
+};
+
+// ── Shared setting row wrapper ──────────────────────────────
+// label on the left, control on the right, consistent vertical padding,
+// divider on the bottom. Mirrors the ToggleRow rhythm.
+function SettingRow({ label, desc, children }) {
+  return (
+    <div style={{
+      display:        'flex',
+      alignItems:     'center',
+      justifyContent: 'space-between',
+      gap:            '10px',
+      padding:        '8px 0',
+      borderBottom:   '1px solid var(--border-main)',
+    }}>
+      <div style={{ minWidth: 0 }}>
+        <div style={{
+          fontSize:   '13px',
+          fontWeight: '500',
+          color:      'var(--text-primary)',
+          fontFamily: 'var(--font-sans)',
+        }}>
+          {label}
+        </div>
+        {desc && (
+          <div style={{
+            fontSize:   '11px',
+            color:      'var(--text-muted)',
+            fontFamily: 'var(--font-sans)',
+            lineHeight: 1.4,
+          }}>
+            {desc}
+          </div>
+        )}
+      </div>
+      <div style={{ flexShrink: 0 }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── ± stepper control ───────────────────────────────────────
+function Stepper({ value, idx, min, max, onStep }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <button
+        onClick={() => onStep(-1)}
+        disabled={idx <= min}
+        style={{
+          width: '24px', height: '24px', borderRadius: '6px',
+          border: '1px solid var(--border-main)',
+          background: 'transparent',
+          color: idx <= min ? 'var(--text-faint)' : 'var(--text-secondary)',
+          fontFamily: 'var(--font-sans)', fontSize: '15px', lineHeight: 1,
+          cursor: idx <= min ? 'default' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >−</button>
+      <span style={{
+        fontFamily: 'var(--font-sans)', fontSize: '12px',
+        color: 'var(--text-primary)', minWidth: '36px', textAlign: 'center',
+      }}>
+        {Math.round(value * 100)}%
+      </span>
+      <button
+        onClick={() => onStep(+1)}
+        disabled={idx >= max}
+        style={{
+          width: '24px', height: '24px', borderRadius: '6px',
+          border: '1px solid var(--border-main)',
+          background: 'transparent',
+          color: idx >= max ? 'var(--text-faint)' : 'var(--text-secondary)',
+          fontFamily: 'var(--font-sans)', fontSize: '15px', lineHeight: 1,
+          cursor: idx >= max ? 'default' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >+</button>
+    </div>
+  );
+}
+
 function PreferencesPanel({ theme, setPanel }) {
-  const { setTheme, sheetFontScale, setSheetFontScale, roomFontScale, setRoomFontScale } = useTheme();
+  const {
+    setTheme,
+    sheetFontScale, setSheetFontScale,
+    roomFontScale,  setRoomFontScale,
+    bgArtEnabled,      setBgArtEnabled,
+    parallaxEnabled,   setParallaxEnabled,
+    parallaxIntensity, setParallaxIntensity,
+  } = useTheme();
   const [savedMsg, setSavedMsg]   = useState('');
   const [homePage, setHomePage]   = useState(() => localStorage.getItem('coc_home_page') || '/');
 
@@ -712,29 +812,29 @@ function PreferencesPanel({ theme, setPanel }) {
 
   return (
     <>
-      {/* Header with back button */}
+      {/* ── Header with back button ── */}
       <div style={{
-        padding:      '10px 12px',
-        borderBottom: '1px solid var(--border-main)',
-        display:      'flex',
-        alignItems:   'center',
+        padding:       '10px 12px',
+        borderBottom:  '1px solid var(--border-main)',
+        display:       'flex',
+        alignItems:    'center',
         justifyContent:'space-between',
       }}>
         <button
           onClick={() => setPanel('main')}
           style={{
-            display:    'flex',
-            alignItems: 'center',
-            gap:        '4px',
-            background: 'none',
-            border:     'none',
-            cursor:     'pointer',
-            fontFamily: 'var(--font-sans)',
-            fontSize:   '13px',
-            color:      'var(--text-secondary)',
-            padding:    '2px 6px',
+            display:     'flex',
+            alignItems:  'center',
+            gap:         '4px',
+            background:  'none',
+            border:      'none',
+            cursor:      'pointer',
+            fontFamily:  'var(--font-sans)',
+            fontSize:    '13px',
+            color:       'var(--text-secondary)',
+            padding:     '2px 6px',
             borderRadius:'6px',
-            transition: 'all 0.1s',
+            transition:  'all 0.1s',
           }}
           onMouseEnter={e => {
             e.currentTarget.style.background = 'var(--row-hover)';
@@ -771,23 +871,12 @@ function PreferencesPanel({ theme, setPanel }) {
         </span>
       </div>
 
-      {/* Settings */}
-      <div style={{ padding: '8px 12px 12px' }}>
+      {/* ── Settings body ── */}
+      <div style={{ padding: '10px 12px 14px' }}>
 
-        {/* ── Theme ── */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{
-            fontFamily:    'var(--font-sans)',
-            fontSize:      '11px',
-            fontWeight:    '500',
-            textTransform: 'uppercase',
-            letterSpacing: '0.07em',
-            color:         'var(--text-muted)',
-            marginBottom:  '8px',
-          }}>
-            Theme
-          </div>
-
+        {/* ── THEME ── */}
+        <div style={{ marginBottom: '14px' }}>
+          <div style={sectionLabel}>Theme</div>
           <div style={{
             display:             'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -801,20 +890,18 @@ function PreferencesPanel({ theme, setPanel }) {
                   onClick={() => applySetting(() => setTheme(opt.id))}
                   title={opt.label}
                   style={{
-                    display:        'flex',
-                    flexDirection:  'column',
-                    alignItems:     'center',
-                    gap:            '4px',
-                    padding:        '6px 4px',
-                    borderRadius:   '8px',
-                    border:         isActive
+                    display:       'flex',
+                    flexDirection: 'column',
+                    alignItems:    'center',
+                    gap:           '4px',
+                    padding:       '6px 4px',
+                    borderRadius:  '8px',
+                    border:        isActive
                       ? '2px solid var(--accent)'
                       : '1.5px solid var(--border-main)',
-                    background:     isActive
-                      ? 'var(--accent-bg)'
-                      : 'var(--bg-input)',
-                    cursor:         isActive ? 'default' : 'pointer',
-                    transition:     'border-color 0.15s ease, background 0.15s ease',
+                    background:    isActive ? 'var(--accent-bg)' : 'var(--bg-input)',
+                    cursor:        isActive ? 'default' : 'pointer',
+                    transition:    'border-color 0.15s ease, background 0.15s ease',
                   }}
                 >
                   {/* Three-colour swatch: [background, accent, surface] */}
@@ -843,97 +930,90 @@ function PreferencesPanel({ theme, setPanel }) {
           </div>
         </div>
 
-        {/* ── Font Scale ── */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{
-            fontFamily:    'var(--font-sans)',
-            fontSize:      '11px',
-            fontWeight:    '500',
-            textTransform: 'uppercase',
-            letterSpacing: '0.07em',
-            color:         'var(--text-muted)',
-            marginBottom:  '8px',
-          }}>
-            Font Scale
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {[
-              { label: 'Sheet text',   value: sheetFontScale, set: setSheetFontScale },
-              { label: 'Display text', value: roomFontScale,  set: setRoomFontScale  },
-            ].map(({ label, value, set }) => {
-              const idx = SCALE_OPTIONS.indexOf(value);
-              const step = (dir) => {
-                const next = SCALE_OPTIONS[idx + dir];
-                if (next !== undefined) applySetting(() => set(next));
-              };
-              return (
-                <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    {label}
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <button
-                      onClick={() => step(-1)}
-                      disabled={idx <= 0}
-                      style={{
-                        width: '24px', height: '24px', borderRadius: '6px',
-                        border: '1px solid var(--border-main)',
-                        background: 'transparent',
-                        color: idx <= 0 ? 'var(--text-faint)' : 'var(--text-secondary)',
-                        fontFamily: 'var(--font-sans)', fontSize: '15px', lineHeight: 1,
-                        cursor: idx <= 0 ? 'default' : 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                    >−</button>
-                    <span style={{
-                      fontFamily: 'var(--font-sans)', fontSize: '12px',
-                      color: 'var(--text-primary)', minWidth: '36px', textAlign: 'center',
-                    }}>
-                      {Math.round(value * 100)}%
-                    </span>
-                    <button
-                      onClick={() => step(+1)}
-                      disabled={idx >= SCALE_OPTIONS.length - 1}
-                      style={{
-                        width: '24px', height: '24px', borderRadius: '6px',
-                        border: '1px solid var(--border-main)',
-                        background: 'transparent',
-                        color: idx >= SCALE_OPTIONS.length - 1 ? 'var(--text-faint)' : 'var(--text-secondary)',
-                        fontFamily: 'var(--font-sans)', fontSize: '15px', lineHeight: 1,
-                        cursor: idx >= SCALE_OPTIONS.length - 1 ? 'default' : 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                    >+</button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        {/* ── FONT SCALE ── */}
+        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '10px', marginBottom: '4px' }}>
+          <div style={sectionLabel}>Font Scale</div>
+          {[
+            { label: 'Sheet text',   desc: 'Character sheet size',  value: sheetFontScale, set: setSheetFontScale },
+            { label: 'Display text', desc: 'Room / session panels', value: roomFontScale,  set: setRoomFontScale  },
+          ].map(({ label, desc, value, set }) => {
+            const idx = SCALE_OPTIONS.indexOf(value);
+            const step = (dir) => {
+              const next = SCALE_OPTIONS[idx + dir];
+              if (next !== undefined) applySetting(() => set(next));
+            };
+            return (
+              <SettingRow key={label} label={label} desc={desc}>
+                <Stepper
+                  value={value}
+                  idx={idx}
+                  min={0}
+                  max={SCALE_OPTIONS.length - 1}
+                  onStep={step}
+                />
+              </SettingRow>
+            );
+          })}
         </div>
 
-        {/* ── Home Page ── */}
-        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '12px' }}>
-          <div style={{
-            fontFamily:    'var(--font-sans)',
-            fontSize:      '11px',
-            fontWeight:    '500',
-            textTransform: 'uppercase',
-            letterSpacing: '0.07em',
-            color:         'var(--text-muted)',
-            marginBottom:  '8px',
-          }}>
-            Home Page
-          </div>
-          <CustomDropdown
-            value={homePage}
-            onChange={v => {
-              setHomePage(v);
-              localStorage.setItem('coc_home_page', v);
-              applySetting(() => {});
-            }}
-            options={HOME_OPTIONS}
+        {/* ── VISUALS ── */}
+        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '10px', marginBottom: '4px' }}>
+          <div style={sectionLabel}>Visuals</div>
+
+          {/* Background master toggle */}
+          <ToggleRow
+            label="Background"
+            desc="Atmospheric art behind pages"
+            checked={bgArtEnabled}
+            onChange={() => applySetting(() => setBgArtEnabled(!bgArtEnabled))}
           />
+
+          {/* Sub-controls — shown only when Background is ON */}
+          {bgArtEnabled && (
+            <>
+              <ToggleRow
+                label="Parallax effect"
+                desc="Art moves with your cursor"
+                checked={parallaxEnabled}
+                onChange={() => applySetting(() => setParallaxEnabled(!parallaxEnabled))}
+              />
+
+              {/* Amount slider — shown only when Parallax is also ON.
+                  Indented slightly to show visual nesting under the parallax toggle. */}
+              {parallaxEnabled && (
+                <SettingRow label="Amount" desc="Parallax strength">
+                  <div style={{ width: '88px' }}>
+                    <Slider
+                      value={parallaxIntensity}
+                      min={0.25}
+                      max={2}
+                      step={0.05}
+                      onChange={v => applySetting(() => setParallaxIntensity(v))}
+                      ariaLabel="Parallax amount"
+                    />
+                  </div>
+                </SettingRow>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* ── HOME PAGE ── */}
+        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '10px' }}>
+          <div style={sectionLabel}>Home Page</div>
+          {/* CustomDropdown already fills its container; wrap in a SettingRow-
+              compatible block so spacing matches the rest of the panel. */}
+          <div style={{ paddingBottom: '2px' }}>
+            <CustomDropdown
+              value={homePage}
+              onChange={v => {
+                setHomePage(v);
+                localStorage.setItem('coc_home_page', v);
+                applySetting(() => {});
+              }}
+              options={HOME_OPTIONS}
+            />
+          </div>
         </div>
       </div>
     </>

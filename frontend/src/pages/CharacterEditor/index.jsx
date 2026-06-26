@@ -93,8 +93,7 @@ export default function CharacterEditorPage() {
 
   // ── Loading state ─────────────────────────────────────────
   if (loading || (!editor.sheet && !error) || currentId !== uuid) return (
-    <div className="flex items-center justify-center min-h-screen"
-         style={{ background: 'var(--bg-page)' }}>
+    <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
         <img src={logo} alt="The Catoolu"
              className="object-contain animate-pulse mx-auto mb-4"
@@ -106,8 +105,7 @@ export default function CharacterEditorPage() {
 
   // ── Error state ───────────────────────────────────────────
   if (error && !editor.sheet) return (
-    <div className="flex items-center justify-center min-h-screen"
-         style={{ background: 'var(--bg-page)' }}>
+    <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
         <p style={{ color: 'var(--danger)' }}>{error}</p>
         <button onClick={() => guardedNavigate('/dashboard')}
@@ -139,7 +137,7 @@ export default function CharacterEditorPage() {
 
   // ── Render ────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', '--sheet-font-scale': sheetFontScale }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', '--sheet-font-scale': sheetFontScale }}>
 
       {/* Unsaved changes modal */}
       {showWarning && (

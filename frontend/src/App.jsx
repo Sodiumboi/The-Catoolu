@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './context/AuthContext';
 import ProtectedRoute        from './components/ProtectedRoute';
@@ -27,6 +27,28 @@ import { ABOUT_PRELOAD_IMAGES } from './utils/aboutTeam';
 import { CREATION_ENGINE_ENABLED } from './config/features';
 import { APP_VERSION }       from './config/version';
 import WhatsNewModal         from './components/WhatsNewModal';
+import BackgroundArt         from './components/BackgroundArt';
+
+// ── Renders the parallax background art behind the 4 main pages ─
+// Lives inside <BrowserRouter> so it can read the current path. BackgroundArt
+// itself reads bgArtEnabled + theme from context and gates its own rendering.
+function AppShell({ children }) {
+  const location = useLocation();
+
+  const BG_PAGES = ['/dashboard', '/character/', '/keeper', '/campaign'];
+  const showBgArt = BG_PAGES.some((p) => {
+    // /campaign must match EXACTLY — never /campaign/:uuid (the room).
+    if (p === '/campaign') return location.pathname === '/campaign';
+    return location.pathname.startsWith(p);
+  });
+
+  return (
+    <>
+      {showBgArt && <BackgroundArt />}
+      {children}
+    </>
+  );
+}
 
 function RootRoute() {
   const { user, loading } = useAuth();
@@ -215,6 +237,7 @@ export default function App() {
   return (
     <BrowserRouter>
       {showWhatsNew && <WhatsNewModal onClose={handleCloseWhatsNew} />}
+      <AppShell>
       <Routes>
             {/* Public routes */}
             <Route path="/"                 element={<RootRoute />} />
@@ -267,6 +290,7 @@ export default function App() {
               <ProtectedRoute><CampaignRoomPage /></ProtectedRoute>
             }/>
       </Routes>
+      </AppShell>
     </BrowserRouter>
   );
 }
