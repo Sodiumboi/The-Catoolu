@@ -7,9 +7,9 @@ import ConfirmDialog from './ConfirmDialog';
 import useConfirm from '../hooks/useConfirm';
 
 const TABS = [
-  { id: 'info',        label: 'Info'        },
-  { id: 'handouts',    label: 'Handouts'    },
-  { id: 'danger-zone', label: 'Danger Zone', icon: 'warning' },
+  { id: 'info',        label: 'Info',        icon: 'info'          },
+  { id: 'handouts',    label: 'Handouts',    icon: 'photo_library' },
+  { id: 'danger-zone', label: 'Danger Zone', icon: 'warning'       },
 ];
 
 export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
@@ -58,80 +58,173 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
       display:'flex', flex:1, overflow:'hidden',
       fontFamily:'var(--font-sans)',
     }}>
-      {/* Left nav */}
+      {/* Left nav — floating Apple-Music-sidebar idiom:
+          detached glass card with margin all around so the page art is
+          visible behind and around the card's corners. */}
       <div style={{
-        width:'200px', flexShrink:0,
-        borderRight:'1px solid var(--border-main)',
-        background:'var(--bg-card)',
+        width:'210px', flexShrink:0,
+        /* CHANGE A — floating card: detach from edges, hug content height */
+        margin:'14px 0 14px 14px',
+        borderRadius:'18px',
+        /* FIX 3: no fixed height — let the card hug its content */
+        alignSelf:'flex-start',
+        /* FIX 1: genuinely transparent frosted glass — art shows through */
+        background: 'color-mix(in srgb, var(--bg-card) 42%, transparent)',
+        backdropFilter:       'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        /* lift shadow — alpha-black is conventional for drop shadows */
+        boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)',
+        border: '1px solid color-mix(in srgb, var(--border-main) 70%, transparent)',
         display:'flex', flexDirection:'column',
-        padding:'20px 0',
+        padding:'12px 0 0',
+        overflow:'hidden',
       }}>
-        {/* Back button */}
+
+        {/* Back button row */}
         <button
           onClick={onBack}
           style={{
             display:'flex', alignItems:'center', gap:'6px',
-            padding:'8px 20px', marginBottom:'12px',
+            padding:'7px 12px',
+            margin:'0 8px 4px',
+            borderRadius:'8px',
             background:'none', border:'none', cursor:'pointer',
             fontSize:'13px', color:'var(--text-muted)',
             fontFamily:'var(--font-sans)',
+            transition:'background 0.12s ease-in-out, color 0.12s ease-in-out',
+            textAlign:'left',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-page) 55%, transparent)';
+            e.currentTarget.style.color = 'var(--text-secondary)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'none';
+            e.currentTarget.style.color = 'var(--text-muted)';
           }}
         >
           <span className="icon icon-sm">arrow_back</span>{' '}Back
         </button>
 
-        {/* Campaign name */}
+        {/* Campaign name — quiet section header */}
         <div style={{
-          padding:'0 20px 16px',
-          borderBottom:'1px solid var(--border-main)',
-          marginBottom:'8px',
+          padding:'8px 20px 10px',
+          marginBottom:'4px',
         }}>
           <div style={{
-            fontFamily:'var(--font-serif)', fontSize:'15px',
+            fontSize:'10px', fontWeight:'600',
+            textTransform:'uppercase', letterSpacing:'0.09em',
+            color:'var(--text-faint)',
+            marginBottom:'4px',
+            fontFamily:'var(--font-sans)',
+          }}>
+            Campaign
+          </div>
+          <div style={{
+            fontFamily:'var(--font-serif)', fontSize:'14px',
             color:'var(--text-primary)', lineHeight:'1.3',
+            wordBreak:'break-word',
           }}>
             {campaign.name}
           </div>
         </div>
 
-        {/* Tab nav */}
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding:'9px 20px', textAlign:'left',
-              background:   activeTab === tab.id
-                ? 'var(--accent-bg)' : 'transparent',
-              borderLeft:   '3px solid ' + (activeTab === tab.id
-                ? 'var(--accent)' : 'transparent'),
-              border:       'none',
-              borderLeft:   '3px solid ' + (activeTab === tab.id
-                ? 'var(--color-primary)' : 'transparent'),
-              color:        activeTab === tab.id
-                ? 'var(--color-primary)' : 'var(--text-secondary)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '13px',
-              fontWeight:   activeTab === tab.id ? '500' : '400',
-              cursor:       'pointer',
-              transition:   'all 0.1s ease',
-            }}
-          >
-            {tab.icon && <span className="icon icon-sm" style={{ marginRight: '4px' }}>{tab.icon}</span>}
-            {tab.label}
-          </button>
-        ))}
+        {/* Thin separator */}
+        <div style={{
+          margin:'0 12px 8px',
+          height:'1px',
+          background:'var(--border-main)',
+          opacity:0.6,
+        }} aria-hidden="true" />
 
-        {/* Enter Room button at bottom */}
-        <div style={{ marginTop:'auto', padding:'16px 20px' }}>
+        {/* Section label */}
+        <div style={{
+          padding:'0 20px 6px',
+          fontSize:'10px', fontWeight:'600',
+          textTransform:'uppercase', letterSpacing:'0.09em',
+          color:'var(--text-faint)',
+          fontFamily:'var(--font-sans)',
+        }}>
+          Manage
+        </div>
+
+        {/* Tab nav — pill rows */}
+        <div style={{ padding:'0 8px' }}>
+          {TABS.map(tab => {
+            const isActive   = activeTab === tab.id;
+            const isDanger   = tab.id === 'danger-zone';
+            const activeColor = isDanger ? 'var(--danger)' : 'var(--color-primary)';
+            const activeBg    = isDanger
+              ? 'color-mix(in srgb, var(--danger-bg) 90%, transparent)'
+              : 'color-mix(in srgb, var(--accent-bg) 90%, transparent)';
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display:'flex', alignItems:'center', gap:'8px',
+                  width:'100%',
+                  padding:'8px 12px',
+                  marginBottom:'2px',
+                  borderRadius:'8px',
+                  border:'none',
+                  background:  isActive ? activeBg : 'transparent',
+                  color:       isActive ? activeColor : 'var(--text-secondary)',
+                  fontFamily:  'var(--font-sans)',
+                  fontSize:    '13px',
+                  fontWeight:  isActive ? '600' : '400',
+                  cursor:      'pointer',
+                  textAlign:   'left',
+                  transition:  'background 0.12s ease-in-out, color 0.12s ease-in-out',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-page) 55%, transparent)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }
+                }}
+              >
+                {tab.icon && (
+                  <span
+                    className="icon icon-sm"
+                    style={{ color: isActive ? activeColor : 'var(--text-muted)', flexShrink:0 }}
+                  >
+                    {tab.icon}
+                  </span>
+                )}
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Enter Room CTA — FIX 2: solid primary button, no glass */}
+        <div style={{ padding:'14px 12px 14px' }}>
           <button
             onClick={() => navigate('/campaign/' + campaign.uuid)}
             style={{
-              width:'100%', padding:'8px 0',
-              borderRadius:'8px', border:'none',
-              background:'var(--color-primary)', color:'#ffffff',
+              width:'100%', padding:'9px 0',
+              borderRadius:'9999px', /* pill — per guideline: nav/link actions are pills */
+              /* FIX 2: solid primary fill — no transparency, no backdropFilter */
+              background:'var(--color-primary)',
+              border:'none',
+              color:'#ffffff',
               fontFamily:'var(--font-sans)', fontSize:'13px',
-              fontWeight:'500', cursor:'pointer',
+              fontWeight:'600', cursor:'pointer',
+              letterSpacing:'0.01em',
+              transition:'filter 0.14s ease-in-out',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.filter = 'brightness(1.13)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.filter = '';
             }}
           >
             Enter Room →
