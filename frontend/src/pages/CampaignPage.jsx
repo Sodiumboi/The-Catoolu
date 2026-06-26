@@ -335,48 +335,64 @@ function CampaignCard({ campaign, onEnter }) {
         <span style={{ fontSize: '12px', color: 'var(--text-faint)' }}>
           Keeper: {campaign.keeper_name}
         </span>
-        <button
-          onClick={e => { e.stopPropagation(); onEnter(); }}
-          style={{
-            padding:      '5px 14px',
-            borderRadius: '7px',
-            border:       '1px solid var(--color-primary)',
-            background:   'transparent',
-            color:        'var(--color-primary)',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '12px',
-            fontWeight:   '500',
-            cursor:       'pointer',
-            transition:   'all 0.15s ease',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'var(--color-primary)';
-            e.currentTarget.style.color      = '#ffffff';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color      = 'var(--color-primary)';
-          }}
-        >
-          Enter Room →
-        </button>
-      </div>
-
-      {/* Keeper management link */}
-      {isKeeper && (
-        <div
-          onClick={e => { e.stopPropagation(); navigate('/keeper'); }}
-          style={{
-            fontSize:  '11px',
-            color:     'var(--accent)',
-            cursor:    'pointer',
-            textAlign: 'right',
-            marginTop: '4px',
-          }}
-        >
-          Manage in Keeper tab →
+        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+          {isKeeper && (
+            <button
+              onClick={e => { e.stopPropagation(); navigate('/keeper'); }}
+              title="Manage in Keeper tab"
+              aria-label="Manage in Keeper tab"
+              style={{
+                display:        'inline-flex',
+                alignItems:     'center',
+                justifyContent: 'center',
+                width:          '30px',
+                height:         '30px',
+                borderRadius:   '7px',
+                border:         '1px solid var(--border-main)',
+                background:     'transparent',
+                color:          'var(--accent)',
+                cursor:         'pointer',
+                transition:     'all 0.15s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background  = 'color-mix(in srgb, var(--accent) 12%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background  = 'transparent';
+                e.currentTarget.style.borderColor = 'var(--border-main)';
+              }}
+            >
+              <span className="icon icon-sm">settings</span>
+            </button>
+          )}
+          <button
+            onClick={e => { e.stopPropagation(); onEnter(); }}
+            style={{
+              padding:      '5px 14px',
+              borderRadius: '7px',
+              border:       '1px solid var(--color-primary)',
+              background:   'transparent',
+              color:        'var(--color-primary)',
+              fontFamily:   'var(--font-sans)',
+              fontSize:     '12px',
+              fontWeight:   '500',
+              cursor:       'pointer',
+              transition:   'all 0.15s ease',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'var(--color-primary)';
+              e.currentTarget.style.color      = '#ffffff';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color      = 'var(--color-primary)';
+            }}
+          >
+            Enter Room →
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
