@@ -14,7 +14,7 @@ export default function CampaignPage() {
   const [error,     setError]     = useState('');
   const [modal,     setModal]     = useState(null); // 'join' | null
   const [sortBy,    setSortBy]    = useState(
-    () => localStorage.getItem('player-campaign-sort') || 'updated-desc'
+    () => localStorage.getItem('player-campaign-sort') || 'last-joined-desc'
   );
 
   const sortedCampaigns = useMemo(() => {
@@ -24,6 +24,11 @@ export default function CampaignPage() {
       case 'name-asc':     copy.sort((a, b) => a.name.localeCompare(b.name)); break;
       case 'name-desc':    copy.sort((a, b) => b.name.localeCompare(a.name)); break;
       case 'members-desc': copy.sort((a, b) => parseInt(b.member_count) - parseInt(a.member_count)); break;
+      case 'last-joined-desc':
+        copy.sort((a, b) =>
+          new Date(b.last_joined_at ?? 0) - new Date(a.last_joined_at ?? 0)
+        );
+        break;
       default:             copy.sort((a, b) => (b.updated_at > a.updated_at ? 1 : -1)); break;
     }
     return copy;
@@ -107,6 +112,7 @@ export default function CampaignPage() {
                   onChange={handleSortChange}
                   searchable={false}
                   options={[
+                    { value: 'last-joined-desc', label: 'Last visited' },
                     { value: 'updated-desc', label: 'Last updated: newest' },
                     { value: 'created-desc', label: 'Date created: newest' },
                     { value: 'name-asc', label: 'Name A–Z' },

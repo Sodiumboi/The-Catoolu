@@ -112,6 +112,13 @@ function setupSocket(httpServer) {
         // Join the campaign room
         const room = roomName(campaignId);
         socket.join(room);
+
+        // Fire-and-forget: update last_joined_at; failure must not break the join
+        pool.query(
+          'UPDATE campaign_members SET last_joined_at = NOW() WHERE campaign_id = $1 AND user_id = $2',
+          [campaignId, socket.user.id]
+        ).catch(err => console.error('last_joined_at update failed:', err.message));
+
         socket.currentCampaignId = campaignId;
 
         // Tell the client it successfully joined

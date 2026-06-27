@@ -164,6 +164,7 @@ router.get('/', async (req, res) => {
          c.created_at,
          c.updated_at,
          cm.role,
+         cm.last_joined_at,
          (SELECT COUNT(*) FROM campaign_members
           WHERE campaign_id = c.id) AS member_count,
          (SELECT username FROM users WHERE id = c.keeper_id) AS keeper_name

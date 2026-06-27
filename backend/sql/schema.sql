@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS campaign_members (
                            CHECK (role IN ('keeper', 'player')),
   character_id INTEGER     DEFAULT NULL REFERENCES characters(id) ON DELETE SET NULL,
   joined_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_joined_at TIMESTAMPTZ DEFAULT NULL,
 
   UNIQUE (campaign_id, user_id)
 );
