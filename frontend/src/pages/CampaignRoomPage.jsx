@@ -5,6 +5,7 @@ import RollFeed            from '../components/RollFeed';
 import ChatInput           from '../components/ChatInput';
 import DiceRow             from '../components/DiceRow';
 import RoomSidebar         from '../components/RoomSidebar';
+import RoomLoadingScreen   from '../components/RoomLoadingScreen';
 import KeeperPlayerCard    from '../components/KeeperPlayerCard';
 import confetti            from 'canvas-confetti';
 import SkillRollPopup      from '../components/SkillRollPopup';
@@ -997,15 +998,7 @@ export default function CampaignRoomPage() {
   const handleStopTyping = () => socket?.emit('stop_typing', { campaignId: campaign?.id });
 
   // ── Render guards ─────────────────────────────────────────────
-  if (loading) return (
-    <div style={{
-      minHeight:'100vh', background:'var(--bg-page)',
-      display:'flex', alignItems:'center', justifyContent:'center',
-      color:'var(--text-muted)', fontFamily:'var(--font-sans)',
-    }}>
-      Loading campaign...
-    </div>
-  );
+  if (loading) return <RoomLoadingScreen />;
 
   if (error) return (
     <div style={{

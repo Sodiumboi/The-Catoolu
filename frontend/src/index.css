@@ -695,6 +695,11 @@ input[type='number'] {
   border-radius: 6px;
 }
 
+/* Continuous mechanical spinner rotation (loading screen) */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 
 .icon {
   font-family:             'Material Symbols Outlined';
