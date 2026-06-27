@@ -73,9 +73,6 @@ export default function BoutsOfMadnessPanel() {
           borderRadius: '999px',
           background:   'var(--bg-section-hd)',
           border:       '1px solid var(--border-main)',
-          width:        '100%',
-          minWidth:     0,
-          boxSizing:    'border-box',
         }}
       >
         {/* Single sliding pill — morphs behind the active segment */}
@@ -107,12 +104,10 @@ export default function BoutsOfMadnessPanel() {
               style={{
                 position:       'relative',
                 zIndex:         1,
-                flex:           1,
-                minWidth:       0,
                 display:        'flex',
                 alignItems:     'center',
                 justifyContent: 'center',
-                padding:        '5px 0',
+                padding:        '5px 14px',
                 borderRadius:   '999px',
                 background:     'transparent',
                 border:         '1.5px solid transparent',

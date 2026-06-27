@@ -93,28 +93,36 @@ export default function CharacterEditorPage() {
 
   // ── Loading state ─────────────────────────────────────────
   if (loading || (!editor.sheet && !error) || currentId !== uuid) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <img src={logo} alt="The Catoolu"
-             className="object-contain animate-pulse mx-auto mb-4"
-             style={{ width: '56px', height: '56px' }} />
-        <p style={{ color: 'var(--text-muted)' }}>Loading investigator file...</p>
+    <>
+      <NavBar activeTab="investigators" />
+      <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 56px)' }}>
+        <div className="text-center">
+          <img src={logo} alt="The Catoolu"
+               className="object-contain animate-pulse mx-auto mb-4"
+               style={{ width: '56px', height: '56px' }} />
+          <p style={{ color: 'var(--text-muted)' }}>Loading investigator file...</p>
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 
   // ── Error state ───────────────────────────────────────────
   if (error && !editor.sheet) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <p style={{ color: 'var(--danger)' }}>{error}</p>
-        <button onClick={() => guardedNavigate('/dashboard')}
-                className="mt-4 px-4 py-2 rounded text-sm"
-                style={{ background: 'var(--accent)', color: 'var(--bg-page)' }}>
-          Back to Dashboard
-        </button>
+    <>
+      <NavBar activeTab="investigators" />
+      <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 56px)' }}>
+        <div className="text-center">
+          <p style={{ color: 'var(--danger)' }}>{error}</p>
+          <button onClick={() => guardedNavigate('/dashboard')}
+                  className="mt-4 px-4 py-2 rounded text-sm"
+                  style={{ background: 'var(--accent)', color: 'var(--bg-page)' }}>
+            Back to Dashboard
+          </button>
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 
   // ── Weapon preset handler (needs skills list) ─────────────

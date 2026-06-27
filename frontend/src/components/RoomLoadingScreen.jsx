@@ -27,8 +27,7 @@ export default function RoomLoadingScreen() {
 
   return (
     <div style={{
-      position:       'fixed',
-      inset:          0,
+      minHeight:      'calc(100vh - 56px)',
       display:        'flex',
       flexDirection:  'column',
       alignItems:     'center',

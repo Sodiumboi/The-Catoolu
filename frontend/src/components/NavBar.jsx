@@ -30,7 +30,10 @@ export default function NavBar({ activeTab = 'investigators' }) {
   const { user, logout }          = useAuth();
   const { theme }                 = useTheme();
   const { activeRoom }            = useCampaign();
-  const { onImport }              = useNavBarActions();
+  const { onImport, onLeaveRoom } = useNavBarActions();
+  const [roomPillHovered, setRoomPillHovered] = useState(false);
+  const [roomMenuOpen,    setRoomMenuOpen]    = useState(false);
+  const roomPillRef                           = useRef(null);
   const navigate                  = useNavigate();
   const location                  = useLocation();
   const [dropdownOpen,     setDropdownOpen]     = useState(false);
@@ -79,6 +82,9 @@ export default function NavBar({ activeTab = 'investigators' }) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
         setPanel('main'); // ← reset to main when closed
+      }
+      if (roomPillRef.current && !roomPillRef.current.contains(e.target)) {
+        setRoomMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -136,9 +142,10 @@ export default function NavBar({ activeTab = 'investigators' }) {
     const el        = tabRefs.current[currentActiveTab];
     const container = containerRef.current;
     if (!el || !container) return;
-    const r = el.getBoundingClientRect();
-    const c = container.getBoundingClientRect();
-    const b = { left: r.left - c.left, width: r.width };
+    const r          = el.getBoundingClientRect();
+    const c          = container.getBoundingClientRect();
+    const borderLeft = parseFloat(getComputedStyle(container).borderLeftWidth) || 0;
+    const b = { left: r.left - c.left - borderLeft, width: r.width };
     _lastPillBounds = b;
     setPillBounds(b);
   }, [currentActiveTab]);
@@ -222,12 +229,16 @@ export default function NavBar({ activeTab = 'investigators' }) {
         <div
           ref={containerRef}
           style={{
-            display:   'flex',
-            alignItems:'center',
-            gap:       '4px',
-            position:  'absolute',
-            left:      '50%',
-            transform: 'translateX(-50%)',
+            display:      'flex',
+            alignItems:   'center',
+            gap:          '4px',
+            position:     'absolute',
+            left:         '50%',
+            transform:    'translateX(-50%)',
+            padding:      '3px',
+            borderRadius: '999px',
+            background:   'var(--bg-section-hd)',
+            border:       '1px solid var(--border-main)',
           }}
         >
           {/* Single pill — slides across the container */}
@@ -235,11 +246,11 @@ export default function NavBar({ activeTab = 'investigators' }) {
             <div
               style={{
                 position:      'absolute',
-                top:           0,
-                bottom:        0,
+                top:           '3px',
+                bottom:        '3px',
                 left:          pillBounds.left,
                 width:         pillBounds.width,
-                borderRadius:  '20px',
+                borderRadius:  '999px',
                 background:    'var(--accent-bg)',
                 border:        '1.5px solid var(--color-primary)',
                 zIndex:        0,
@@ -269,18 +280,18 @@ export default function NavBar({ activeTab = 'investigators' }) {
                     alignItems:   'center',
                     gap:          '6px',
                     padding:      '5px 14px',
-                    borderRadius: '20px',
+                    borderRadius: '999px',
                     border:       '1.5px solid transparent',
                     background:   'transparent',
                     cursor:       isSoon ? 'default' : 'pointer',
                     fontFamily:   'var(--font-sans)',
                     fontSize:     '13px',
-                    fontWeight:   isActive ? '500' : '400',
+                    fontWeight:   isActive ? '600' : '400',
                     color:        isActive
-                      ? 'var(--color-primary)'
+                      ? 'var(--accent)'
                       : isSoon
                         ? 'var(--text-faint)'
-                        : 'var(--text-secondary)',
+                        : 'var(--text-muted)',
                     whiteSpace:   'nowrap',
                     transition:   'color 0.15s ease',
                     position:     'relative',
@@ -332,44 +343,122 @@ export default function NavBar({ activeTab = 'investigators' }) {
 
           {/* Return to Room pill — only shown when in a session */}
           {activeRoom && (
-            <button
-              onClick={() => navigate('/campaign/' + activeRoom.uuid)}
-              style={{
-                display:      'flex',
-                alignItems:   'center',
-                gap:          '6px',
-                padding:      '5px 14px',
-                borderRadius: '20px',
-                border:       '1.5px solid var(--color-primary)',
-                background:   'var(--accent-bg)',
-                color:        'var(--color-primary)',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '12px',
-                fontWeight:   '500',
-                cursor:       'pointer',
-                transition:   'all 0.15s ease',
-                animation:    'pulse 2s infinite',
-                maxWidth:     '180px',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'var(--color-primary)';
-                e.currentTarget.style.color      = '#ffffff';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'var(--accent-bg)';
-                e.currentTarget.style.color      = 'var(--color-primary)';
-              }}
-              title={'Return to ' + activeRoom.name}
+            <div
+              ref={roomPillRef}
+              style={{ position: 'relative' }}
+              onMouseEnter={() => setRoomPillHovered(true)}
+              onMouseLeave={() => { setRoomPillHovered(false); }}
             >
-              <span className="icon icon-sm">play_arrow</span>
-              <span style={{
-                overflow:     'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace:   'nowrap',
-              }}>
-                {activeRoom.name}
-              </span>
-            </button>
+              {/* Pill itself */}
+              <div
+                style={{
+                  display:      'flex',
+                  alignItems:   'center',
+                  borderRadius: '999px',
+                  border:       '1.5px solid var(--color-primary)',
+                  background:   roomMenuOpen ? 'var(--color-primary)' : 'var(--accent-bg)',
+                  color:        roomMenuOpen ? '#ffffff' : 'var(--color-primary)',
+                  fontFamily:   'var(--font-sans)',
+                  fontSize:     '12px',
+                  fontWeight:   '500',
+                  animation:    roomMenuOpen ? 'none' : 'pulse 2s infinite',
+                  overflow:     'hidden',
+                  transition:   'background 0.15s ease, color 0.15s ease',
+                  maxWidth:     '220px',
+                }}
+              >
+                {/* Left: navigate to room */}
+                <button
+                  onClick={() => { setRoomMenuOpen(false); navigate('/campaign/' + activeRoom.uuid); }}
+                  title={'Return to ' + activeRoom.name}
+                  style={{
+                    display:    'flex',
+                    alignItems: 'center',
+                    gap:        '6px',
+                    padding:    '5px 10px 5px 14px',
+                    background: 'transparent',
+                    border:     'none',
+                    color:      'inherit',
+                    fontFamily: 'inherit',
+                    fontSize:   'inherit',
+                    fontWeight: 'inherit',
+                    cursor:     'pointer',
+                    minWidth:   0,
+                  }}
+                >
+                  <span className="icon icon-sm">play_arrow</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {activeRoom.name}
+                  </span>
+                </button>
+
+                {/* Right: chevron — morphs in on hover */}
+                <button
+                  onClick={() => setRoomMenuOpen(o => !o)}
+                  style={{
+                    display:        'flex',
+                    alignItems:     'center',
+                    justifyContent: 'center',
+                    padding:        roomPillHovered || roomMenuOpen ? '5px 10px 5px 4px' : '5px 0',
+                    background:     'transparent',
+                    border:         'none',
+                    borderLeft:     roomPillHovered || roomMenuOpen ? '1px solid color-mix(in srgb, var(--color-primary) 35%, transparent)' : 'none',
+                    color:          'inherit',
+                    cursor:         'pointer',
+                    width:          roomPillHovered || roomMenuOpen ? '28px' : '0px',
+                    opacity:        roomPillHovered || roomMenuOpen ? 1 : 0,
+                    overflow:       'hidden',
+                    transition:     'width 0.2s ease, opacity 0.15s ease, padding 0.2s ease, border 0.15s ease',
+                  }}
+                  tabIndex={roomPillHovered || roomMenuOpen ? 0 : -1}
+                >
+                  <span className="icon" style={{ fontSize: '16px', transition: 'transform 0.2s ease', transform: roomMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    expand_more
+                  </span>
+                </button>
+              </div>
+
+              {/* Dropdown */}
+              {roomMenuOpen && (
+                <div style={{
+                  position:     'absolute',
+                  top:          'calc(100% + 6px)',
+                  right:        0,
+                  background:   'var(--bg-card)',
+                  border:       '1px solid var(--border-main)',
+                  borderRadius: '10px',
+                  boxShadow:    '0 4px 16px rgba(0,0,0,0.12)',
+                  padding:      '6px',
+                  minWidth:     '140px',
+                  zIndex:       1000,
+                }}>
+                  <button
+                    onClick={() => { setRoomMenuOpen(false); onLeaveRoom?.(); }}
+                    style={{
+                      display:      'flex',
+                      alignItems:   'center',
+                      gap:          '8px',
+                      width:        '100%',
+                      padding:      '8px 12px',
+                      borderRadius: '6px',
+                      border:       'none',
+                      background:   'transparent',
+                      color:        'var(--danger)',
+                      fontFamily:   'var(--font-sans)',
+                      fontSize:     '13px',
+                      cursor:       'pointer',
+                      textAlign:    'left',
+                      transition:   'background 0.12s ease',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <span className="icon icon-sm">logout</span>
+                    Leave Table
+                  </button>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Import button */}

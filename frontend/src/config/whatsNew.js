@@ -4,6 +4,53 @@
 
 export const WHATS_NEW = [
   {
+    version: '1.6d',
+    codename: 'Icewind Dale',
+    date: 'June 2026',
+    sections: [
+      {
+        heading: 'Background Art',
+        items: [
+          'The app now has a parallax background — dead trees and tentacles shifting as you move your mouse',
+          'Art appears on the dashboard, character editor, Keeper page, and campaign list',
+          'Three layers move independently for depth — front trees move most, back layer drifts slowly',
+          'Theme-adaptive: the silhouettes blend into each theme\'s surface colour rather than sitting on top',
+          'Control it from NavBar Preferences: toggle background on/off, parallax on/off, and adjust intensity',
+        ],
+      },
+      {
+        heading: 'Bouts of Madness',
+        items: [
+          'Full CoC 7e Bouts of Madness reference now lives in the Keeper\'s campaign room panel',
+          'Four tabs: Temporary Insanity, Indefinite Insanity, Sample Phobias (100 entries), Sample Manias (100 entries)',
+          'Official text from the Keeper Rulebook — Tables VII, VIII, IX, and X',
+          'Accordion rows expand on click so you can read the full description without scrolling',
+        ],
+      },
+      {
+        heading: 'Campaign Room',
+        items: [
+          'New loading screen when joining a room — ring spinner with rotating CoC flavour text instead of a blank wait',
+          'Campaign name, role badge, connection dot, and AFK toggle moved into a compact left panel header',
+          'Connection dot breathes slowly when connected, pulses faster when reconnecting, goes red when lost',
+          'Leave Table button moved into the sidebar icon strip — no more hunting through menus',
+          'Sidebar panel now slides open and closed with a smooth animation',
+          'Return to Room pill in the NavBar reveals a Leave Table option on hover',
+        ],
+      },
+      {
+        heading: 'Navigation & Polish',
+        items: [
+          'Campaign cards now open the correct campaign detail panel directly when clicking the gear icon',
+          'All three main pages (dashboard, Keeper, campaigns) show a logo-pulse loading state consistently',
+          'NavBar tabs now sit in a pill tray — subtle track background matching the RoomSubNav style',
+          'Investigator cards now lift and deepen their shadow on hover, matching campaign cards',
+          'All destructive confirmation dialogs now use red consistently — no more mixed warning/danger colours',
+        ],
+      },
+    ],
+  },
+  {
   version: '1.6c',
   codename: 'Semphar',
   date: 'June 2026',

@@ -40,7 +40,10 @@ export default function DashboardPage() {
   const fetchCharacters = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/characters');
+      const [response] = await Promise.all([
+        apiClient.get('/characters'),
+        new Promise(r => setTimeout(r, 400)),
+      ]);
       setCharacters(response.data.characters);
     } catch (err) {
       setError('Failed to load characters. Is the backend running?');

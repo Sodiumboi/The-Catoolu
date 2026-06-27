@@ -12,6 +12,7 @@ import SkillRollPopup      from '../components/SkillRollPopup';
 import { useSocket }       from '../context/SocketContext';
 import { useAuth }         from '../context/AuthContext';
 import { useCampaign }     from '../context/CampaignContext';
+import { useNavBarActions } from '../context/NavBarActionsContext';
 import { useTheme }        from '../context/ThemeContext';
 import apiClient           from '../api/client';
 import SessionSheet        from '../components/SessionSheet';
@@ -63,6 +64,7 @@ export default function CampaignRoomPage() {
   const { socket, connected }     = useSocket();
   const { user }                  = useAuth();
   const { enterRoom, leaveRoom }  = useCampaign();
+  const { setOnLeaveRoom }        = useNavBarActions();
   const { sheetFontScale, roomFontScale, memeEnabled } = useTheme();
 
   // ── Core state ────────────────────────────────────────────────
@@ -833,6 +835,12 @@ export default function CampaignRoomPage() {
     }, 100);
   };
 
+  useEffect(() => {
+    setOnLeaveRoom(() => handleLeave);
+    return () => setOnLeaveRoom(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, campaign?.id]);
+
   // ── Keeper sheet preview ──────────────────────────────────────
   const handleOpenKeeperSheet = async (member) => {
     try {
@@ -969,10 +977,7 @@ export default function CampaignRoomPage() {
 
   // ── Sidebar tab toggle ────────────────────────────────────────
   const handleTabChange = (tab) => {
-    if (tab === 'chat') {
-      setSidebarTab('chat');
-      setSidebarOpen(false);
-    } else if (sidebarOpen && sidebarTab === tab) {
+    if (sidebarOpen && sidebarTab === tab) {
       setSidebarOpen(false);
     } else {
       setSidebarTab(tab);
@@ -999,7 +1004,12 @@ export default function CampaignRoomPage() {
   const handleStopTyping = () => socket?.emit('stop_typing', { campaignId: campaign?.id });
 
   // ── Render guards ─────────────────────────────────────────────
-  if (loading) return <RoomLoadingScreen />;
+  if (loading) return (
+    <>
+      <NavBar activeTab="campaign" />
+      <RoomLoadingScreen />
+    </>
+  );
 
   if (error) return (
     <div style={{
@@ -1080,80 +1090,6 @@ export default function CampaignRoomPage() {
 
       <div className="animate-fade" style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden', '--room-font-scale': roomFontScale, zoom: roomFontScale }}>
 
-      {/* Room header */}
-      <div style={{
-        padding:       '8px 20px',
-        borderBottom:  '1px solid var(--border-main)',
-        background:    'var(--bg-nav)',
-        display:       'flex',
-        alignItems:    'center',
-        justifyContent:'space-between',
-        flexShrink:    0,
-      }}>
-        <div>
-          <h2 style={{
-            fontFamily:'var(--font-serif)', fontSize:'17px',
-            color:'var(--text-primary)', margin:0,
-          }}>
-            {campaign?.name}
-          </h2>
-          <p style={{ fontSize:'12px', color:'var(--text-muted)', margin:0, display:'flex', gap:'8px', alignItems:'center' }}>
-            <span>You are the</span>
-            <span style={{
-              background:'var(--bg-section-hd)',
-              border:'1px solid var(--border-main)',
-              borderRadius:'4px', padding:'1px 6px',
-              fontSize:'11px', color:'var(--text-primary)',
-            }}>
-              {myRole}
-            </span>
-            <span style={{ color: connected && inRoom ? '#22c55e' : 'var(--text-faint)' }}>
-              ● {connected && inRoom ? 'Connected' : 'Connecting...'}
-            </span>
-          </p>
-        </div>
-
-        <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
-          {/* I'm Not Here toggle */}
-          <button
-            onClick={handleToggleAfk}
-            style={{
-              padding:      '6px 14px',
-              borderRadius: '8px',
-              border:       '1px solid var(--border-main)',
-              background:   afk ? 'var(--bg-section-hd)' : 'transparent',
-              color:        afk ? '#EAB308' : 'var(--text-muted)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '13px',
-              cursor:       'pointer',
-              transition:   'all 0.15s ease',
-            }}
-          >
-            {afk ? "I'm Here" : "I'm Not Here"}
-          </button>
-
-          {/* Leave Table */}
-          <button
-            onClick={handleLeave}
-            style={{
-              padding:      '6px 14px',
-              borderRadius: '8px',
-              border:       '1px solid var(--danger)',
-              background:   'transparent',
-              color:        'var(--danger)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '13px',
-              cursor:       'pointer',
-              transition:   'all 0.15s ease',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            Leave Table
-          </button>
-        </div>
-      </div>
-
       {/* Main content */}
       <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
 
@@ -1200,6 +1136,76 @@ export default function CampaignRoomPage() {
               overflow:      'hidden',
               '--sheet-font-scale': sheetFontScale,
             }}>
+
+              {/* Left panel header — campaign name + connection dot + AFK toggle */}
+              <div style={{
+                padding:       '6px 16px',
+                borderBottom:  '1px solid var(--border-main)',
+                background:    'var(--bg-nav)',
+                display:       'flex',
+                alignItems:    'center',
+                justifyContent:'space-between',
+                flexShrink:    0,
+                gap:           '12px',
+              }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', minWidth:0 }}>
+                  <span style={{
+                    width:        '8px',
+                    height:       '8px',
+                    borderRadius: '50%',
+                    flexShrink:   0,
+                    background:   connected && inRoom ? '#22c55e' : !connected ? '#ef4444' : '#EAB308',
+                    animation:    connected && inRoom
+                      ? 'dot-breathe-green 2.5s ease-in-out infinite'
+                      : connected
+                        ? 'dot-breathe-yellow 1.2s ease-in-out infinite'
+                        : 'none',
+                  }} />
+                  <h2 style={{
+                    fontFamily:   'var(--font-serif)',
+                    fontSize:     '15px',
+                    color:        'var(--text-primary)',
+                    margin:       0,
+                    overflow:     'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace:   'nowrap',
+                  }}>
+                    {campaign?.name}
+                  </h2>
+                  {myRole && (
+                    <span style={{
+                      background:   'var(--bg-section-hd)',
+                      border:       '1px solid var(--border-main)',
+                      borderRadius: '4px',
+                      padding:      '1px 6px',
+                      fontSize:     '11px',
+                      color:        'var(--text-primary)',
+                      fontFamily:   'var(--font-sans)',
+                      flexShrink:   0,
+                    }}>
+                      {myRole}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={handleToggleAfk}
+                  style={{
+                    padding:      '4px 12px',
+                    borderRadius: '8px',
+                    border:       '1px solid var(--border-main)',
+                    background:   afk ? 'var(--bg-section-hd)' : 'transparent',
+                    color:        afk ? '#EAB308' : 'var(--text-muted)',
+                    fontFamily:   'var(--font-sans)',
+                    fontSize:     '12px',
+                    cursor:       'pointer',
+                    transition:   'all 0.15s ease',
+                    flexShrink:   0,
+                  }}
+                >
+                  {afk ? "I'm Here" : "I'm Not Here"}
+                </button>
+              </div>
+
               <RoomSubNav
                 tabs={tabs}
                 activeTab={subTab}
@@ -1543,7 +1549,7 @@ export default function CampaignRoomPage() {
 
         {/* Right: vertical tab sidebar */}
         <RoomSidebar
-          activeTab={sidebarOpen ? sidebarTab : 'chat'}
+          activeTab={sidebarOpen ? sidebarTab : null}
           onTabChange={handleTabChange}
           members={members}
           onlineUsers={onlineUsers}
@@ -1552,6 +1558,7 @@ export default function CampaignRoomPage() {
           myCharacters={myCharacters}
           onChangeCharacter={handleChangeCharacter}
           campaignId={uuid}
+          onLeave={handleLeave}
         />
       </div>
 

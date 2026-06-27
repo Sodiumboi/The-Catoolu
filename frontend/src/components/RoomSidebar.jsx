@@ -5,9 +5,8 @@ import ToggleRow from './ui/ToggleRow';
 import { useTheme } from '../context/ThemeContext';
 
 const TABS = [
-  { id: 'chat',     icon: 'chat',       label: 'Chat',     hasPanel: false },
-  { id: 'players',  icon: 'group',      label: 'Players',  hasPanel: true  },
-  { id: 'settings', icon: 'settings',   label: 'Settings', hasPanel: true  },
+  { id: 'players',  icon: 'group',    label: 'Players',  hasPanel: true },
+  { id: 'settings', icon: 'settings', label: 'Settings', hasPanel: true },
 ];
 
 export default function RoomSidebar({
@@ -16,6 +15,7 @@ export default function RoomSidebar({
   myCharacter, myCharacters,
   onChangeCharacter,
   campaignId,
+  onLeave,
 }) {
   return (
     <div style={{
@@ -72,39 +72,61 @@ export default function RoomSidebar({
           </button>
         ))}
 
-        {/* Help at bottom */}
-        <button
-          onClick={() => onTabChange('help')}
-          title="Help"
-          style={{
-            width:        '36px',
-            height:       '36px',
-            borderRadius: '8px',
-            border:       'none',
-            background:   activeTab === 'help' ? 'var(--accent-bg)' : 'transparent',
-            cursor:       'pointer',
-            fontSize:     '14px',
-            display:      'flex',
-            alignItems:   'center',
-            justifyContent:'center',
-            marginTop:    'auto',
-          }}
-        >
-          <span className="icon icon-md">help</span>
-        </button>
+        {/* Leave + Help pinned to bottom */}
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <button
+            onClick={onLeave}
+            title="Leave Table"
+            style={{
+              width:          '36px',
+              height:         '36px',
+              borderRadius:   '8px',
+              border:         'none',
+              background:     'transparent',
+              color:          'var(--danger)',
+              cursor:         'pointer',
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'center',
+              transition:     'background 0.12s ease',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <span className="icon icon-md">logout</span>
+          </button>
+          <button
+            onClick={() => onTabChange('help')}
+            title="Help"
+            style={{
+              width:          '36px',
+              height:         '36px',
+              borderRadius:   '8px',
+              border:         'none',
+              background:     activeTab === 'help' ? 'var(--accent-bg)' : 'transparent',
+              cursor:         'pointer',
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span className="icon icon-md">help</span>
+          </button>
+        </div>
       </div>
 
-      {/* Panel — only rendered when a panel tab is active */}
-      {activeTab !== 'chat' && (
-        <div style={{
-          width:     '236px',
-          flexShrink:0,
-          overflowY: 'auto',
-          overscrollBehavior: 'contain',
-          padding:   '12px',
-          borderLeft:'1px solid var(--border-main)',
-          background:'var(--bg-card)',
-        }}>
+      {/* Panel — slides in/out via width transition */}
+      <div style={{
+        width:      activeTab ? '236px' : '0px',
+        flexShrink: 0,
+        overflowY:  activeTab ? 'auto' : 'hidden',
+        overflowX:  'hidden',
+        overscrollBehavior: 'contain',
+        borderLeft: activeTab ? '1px solid var(--border-main)' : 'none',
+        background: 'var(--bg-card)',
+        transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
+      }}>
+        <div style={{ width: '236px', padding: '12px' }}>
           {activeTab === 'players'  && (
             <PlayersPanel
               members={members}
@@ -118,7 +140,7 @@ export default function RoomSidebar({
           {activeTab === 'settings' && <SettingsPanel campaignId={campaignId} />}
           {activeTab === 'help'     && <HelpPanel />}
         </div>
-      )}
+      </div>
     </div>
   );
 }

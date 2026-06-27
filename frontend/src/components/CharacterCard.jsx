@@ -14,22 +14,21 @@ export default function CharacterCard({ character, onDelete, onOpen }) {
       className="border overflow-hidden transition-all duration-300
                  flex cursor-pointer select-none"
       style={{
-        background:   'var(--bg-card, var(--bg-card))',
-        borderColor:  'var(--border-main, var(--accent)44)',
-        boxShadow:    '0 4px 20px rgba(0,0,0,0.4)',
+        background:   'var(--bg-card)',
+        border:       '1px solid var(--border-main)',
+        boxShadow:    'var(--shadow-card)',
         borderRadius: 'var(--radius-squircle)',
         minHeight:    '180px',
         maxHeight:    '280px',
+        transition:   'box-shadow 0.15s ease, transform 0.15s ease',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = 'var(--accent, var(--accent))';
-        e.currentTarget.style.transform   = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow   = '0 8px 30px rgba(0,0,0,0.5)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-dropdown)';
+        e.currentTarget.style.transform = 'translateY(-2px)';
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = 'var(--border-main, var(--accent)44)';
-        e.currentTarget.style.transform   = 'translateY(0)';
-        e.currentTarget.style.boxShadow   = '0 4px 20px rgba(0,0,0,0.4)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+        e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
 
@@ -53,8 +52,8 @@ export default function CharacterCard({ character, onDelete, onOpen }) {
           <div
             className="w-full h-full flex flex-col items-center justify-center gap-2"
             style={{
-              background:  'var(--bg-card, var(--bg-card))',
-              borderRight: '1px solid var(--border-main, var(--accent)22)',
+              background:  'var(--bg-card)',
+              borderRight: '1px solid var(--border-main)',
             }}
           >
             <span style={{ fontSize: '2rem', opacity: 0.3 }}>🕵</span>

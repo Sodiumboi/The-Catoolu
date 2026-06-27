@@ -37,7 +37,7 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
     const ok = await confirm({
       title: 'Remove player?',
       message: `${username} will be removed from this campaign.`,
-      variant: 'warning',
+      variant: 'danger',
       confirmLabel: 'Remove',
     });
     if (!ok) return;

@@ -5,6 +5,7 @@ import Footer  from '../components/Footer';
 import apiClient from '../api/client';
 import JoinCampaignModal from '../components/JoinCampaignModal';
 import CustomDropdown from '../components/ui/CustomDropdown';
+import logo from '../assets/vault-logo.png';
 
 export default function CampaignPage() {
   const navigate = useNavigate();
@@ -44,7 +45,10 @@ export default function CampaignPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await apiClient.get('/campaigns');
+      const [res] = await Promise.all([
+        apiClient.get('/campaigns'),
+        new Promise(r => setTimeout(r, 400)),
+      ]);
       setCampaigns(res.data.campaigns);
     } catch {
       setError('Could not load campaigns. Please try again.');
@@ -164,18 +168,15 @@ export default function CampaignPage() {
           </div>
         )}
 
-        {/* Loading skeleton */}
+        {/* Loading state */}
         {loading && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{
-                height:       '160px',
-                borderRadius: '12px',
-                background:   'var(--bg-card)',
-                border:       '1px solid var(--border-main)',
-                opacity:      0.5,
-              }} />
-            ))}
+          <div className="flex items-center justify-center py-24">
+            <div className="text-center">
+              <img src={logo} alt="Loading"
+                   className="object-contain animate-pulse mx-auto mb-4"
+                   style={{ width: '56px', height: '56px' }} />
+              <p style={{ color: 'var(--text-muted)' }}>Loading campaigns...</p>
+            </div>
           </div>
         )}
 
@@ -344,7 +345,7 @@ function CampaignCard({ campaign, onEnter }) {
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
           {isKeeper && (
             <button
-              onClick={e => { e.stopPropagation(); navigate('/keeper'); }}
+              onClick={e => { e.stopPropagation(); navigate('/keeper', { state: { openCampaignUuid: campaign.uuid } }); }}
               title="Manage in Keeper tab"
               aria-label="Manage in Keeper tab"
               style={{

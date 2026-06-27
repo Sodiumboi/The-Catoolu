@@ -6,6 +6,7 @@ import CustomDropdown from '../components/ui/CustomDropdown';
 import apiClient from '../api/client';
 import KeeperCampaignDetail  from '../components/KeeperCampaignDetail';
 import CreateCampaignModal   from '../components/CreateCampaignModal';
+import logo from '../assets/vault-logo.png';
 
 export default function KeeperPage() {
   const location = useLocation();
@@ -40,7 +41,10 @@ export default function KeeperPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res  = await apiClient.get('/campaigns');
+      const [res] = await Promise.all([
+        apiClient.get('/campaigns'),
+        new Promise(r => setTimeout(r, 400)),
+      ]);
       const kept = res.data.campaigns.filter(c => c.role === 'keeper');
       setCampaigns(kept);
     } catch { /* silent */ }
@@ -151,6 +155,18 @@ export default function KeeperPage() {
             </button>
           </div>
         </div>
+
+        {/* Loading state */}
+        {loading && (
+          <div className="flex items-center justify-center py-24">
+            <div className="text-center">
+              <img src={logo} alt="Loading"
+                   className="object-contain animate-pulse mx-auto mb-4"
+                   style={{ width: '56px', height: '56px' }} />
+              <p style={{ color: 'var(--text-muted)' }}>Loading campaigns...</p>
+            </div>
+          </div>
+        )}
 
         {/* Empty state */}
         {!loading && campaigns.length === 0 && (
