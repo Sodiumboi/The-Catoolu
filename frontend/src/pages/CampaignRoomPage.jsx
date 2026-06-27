@@ -24,6 +24,7 @@ import KeeperRollPicker    from '../components/KeeperRollPicker';
 import KeeperHandoutPanel  from '../components/handouts/KeeperHandoutPanel';
 import PlayerHandoutTab    from '../components/handouts/PlayerHandoutTab';
 import HandoutViewer       from '../components/handouts/HandoutViewer';
+import BoutsOfMadnessPanel from '../components/BoutsOfMadnessPanel';
 
 // ── Feed dedup key ─────────────────────────────────────────────
 // Message items carry a numeric `id`; handout-share items carry a UUID-string `id`.
@@ -1165,6 +1166,7 @@ export default function CampaignRoomPage() {
           const keeperTabs = [
             { id: 'main',     label: 'Players' },
             { id: 'handouts', label: 'Handouts' },
+            { id: 'madness',  label: 'Madness' },
           ];
           const tabs = myRole === 'keeper' ? keeperTabs : playerTabs;
 
@@ -1265,6 +1267,8 @@ export default function CampaignRoomPage() {
                     sharedHandouts={sharedHandouts}
                     onView={(handout) => setViewingHandout(handout)}
                   />
+                ) : subTab === 'madness' && myRole === 'keeper' ? (
+                  <BoutsOfMadnessPanel />
                 ) : subTab !== 'main' ? comingSoonPanel : myRole === 'keeper' ? (
                   keeperSheetModal ? (
                     <>

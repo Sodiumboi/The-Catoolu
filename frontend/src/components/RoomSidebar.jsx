@@ -5,9 +5,9 @@ import ToggleRow from './ui/ToggleRow';
 import { useTheme } from '../context/ThemeContext';
 
 const TABS = [
-  { id: 'chat',     icon: 'chat',     label: 'Chat',     hasPanel: false },
-  { id: 'players',  icon: 'group',    label: 'Players',  hasPanel: true  },
-  { id: 'settings', icon: 'settings', label: 'Settings', hasPanel: true  },
+  { id: 'chat',     icon: 'chat',       label: 'Chat',     hasPanel: false },
+  { id: 'players',  icon: 'group',      label: 'Players',  hasPanel: true  },
+  { id: 'settings', icon: 'settings',   label: 'Settings', hasPanel: true  },
 ];
 
 export default function RoomSidebar({
