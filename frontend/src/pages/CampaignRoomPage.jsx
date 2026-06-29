@@ -26,6 +26,7 @@ import KeeperHandoutPanel  from '../components/handouts/KeeperHandoutPanel';
 import PlayerHandoutTab    from '../components/handouts/PlayerHandoutTab';
 import HandoutViewer       from '../components/handouts/HandoutViewer';
 import BoutsOfMadnessPanel from '../components/BoutsOfMadnessPanel';
+import Tooltip             from '../components/ui/Tooltip';
 
 // ── Feed dedup key ─────────────────────────────────────────────
 // Message items carry a numeric `id`; handout-share items carry a UUID-string `id`.
@@ -114,6 +115,7 @@ export default function CampaignRoomPage() {
     return saved && saved >= 480 && saved <= 640 ? saved : 480;
   });
   // rollPopup: { label, value, mode, top, left }
+  const disconnectedRef       = useRef(false);  // set true on manual disconnect; blocks re-enter
   const forceMemeNextRollRef  = useRef(false);
   const memeEnabledRef        = useRef(memeEnabled);
   const historyLoadedRef      = useRef(false);
@@ -219,7 +221,7 @@ export default function CampaignRoomPage() {
     const onJoined = (data) => {
       setOnlineUsers(data.onlineUsers || []);
       setInRoom(true);
-      if (campaign) {
+      if (campaign && !disconnectedRef.current) {
         enterRoom(campaign?.id, campaign.name, campaign?.uuid);
       }
     };
@@ -433,7 +435,7 @@ export default function CampaignRoomPage() {
   }, [socket, connected, loading, error, uuid, campaign]);
 
   useEffect(() => {
-    if (campaign && inRoom) {
+    if (campaign && inRoom && !disconnectedRef.current) {
       enterRoom(campaign?.id, campaign.name, campaign?.uuid);
     }
   }, [campaign, inRoom]);
@@ -826,13 +828,13 @@ export default function CampaignRoomPage() {
     socket?.emit('afk_change', { campaignId: campaign?.id, afk: next });
   };
 
-  // ── Leave table ───────────────────────────────────────────────
+  // ── Disconnect from room ──────────────────────────────────────
   const handleLeave = () => {
+    disconnectedRef.current = true;
     socket?.emit('leave_campaign', { campaignId: campaign?.id });
+    setInRoom(false);
     leaveRoom();
-    setTimeout(() => {
-      navigate('/campaign');
-    }, 100);
+    navigate('/campaign');
   };
 
   useEffect(() => {
@@ -1214,13 +1216,13 @@ export default function CampaignRoomPage() {
                   if (tab === 'handouts') setNewHandoutCount(0);
                 }}
                 rightSlot={
+                  <Tooltip content="Pop out notes">
                   <button
                     onClick={() => {
                       if (notesState === 'closed') setNotesState('bubble');
                       else if (notesState === 'bubble') setNotesState('full');
                       else setNotesState('bubble');
                     }}
-                    title="Pop out notes"
                     style={{
                       display:      'flex',
                       alignItems:   'center',
@@ -1253,6 +1255,7 @@ export default function CampaignRoomPage() {
                     Notes
                     <span className="material-symbols-outlined" style={{ fontSize: 15 }}>open_in_new</span>
                   </button>
+                  </Tooltip>
                 }
               />
 
@@ -1334,9 +1337,9 @@ export default function CampaignRoomPage() {
                           Investigators ({members.filter(m => m.role === 'player').length})
                         </div>
                         {members.some(m => m.role === 'player' && m.character_uuid) && (
+                          <Tooltip content="Request a roll from all players">
                           <button
                             onClick={e => handleOpenAllRollPicker(e.currentTarget.getBoundingClientRect())}
-                            title="Request a roll from all players"
                             style={{
                               display:      'flex',
                               alignItems:   'center',
@@ -1357,6 +1360,7 @@ export default function CampaignRoomPage() {
                             <span className="icon icon-sm">casino</span>
                             Request All
                           </button>
+                          </Tooltip>
                         )}
                       </div>
                       {members

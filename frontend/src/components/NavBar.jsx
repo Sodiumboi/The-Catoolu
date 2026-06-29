@@ -7,6 +7,7 @@ import { useNavBarActions } from '../context/NavBarActionsContext';
 import CustomDropdown from './ui/CustomDropdown';
 import ToggleRow from './ui/ToggleRow';
 import Slider from './ui/Slider';
+import Tooltip from './ui/Tooltip';
 import { useSocket } from '../context/SocketContext';
 import logo from '../assets/vault-logo.png';
 import BugReportModal from './BugReportModal';
@@ -29,11 +30,18 @@ let _maintState = { mounted: false, visible: false, message: '' };
 export default function NavBar({ activeTab = 'investigators' }) {
   const { user, logout }          = useAuth();
   const { theme }                 = useTheme();
-  const { activeRoom }            = useCampaign();
+  const { activeRoom, leaveRoom } = useCampaign();
   const { onImport, onLeaveRoom } = useNavBarActions();
   const [roomPillHovered, setRoomPillHovered] = useState(false);
   const [roomMenuOpen,    setRoomMenuOpen]    = useState(false);
   const roomPillRef                           = useRef(null);
+  // roomPill: keep the pill mounted through its exit animation. `data` is a
+  // snapshot of activeRoom so content stays rendered while it fades out;
+  // `visible` drives the opacity/scale transition.
+  const [roomPill, setRoomPill] = useState(
+    activeRoom ? { data: activeRoom, visible: true } : { data: null, visible: false }
+  );
+  const roomPillTimerRef                      = useRef(null);
   const navigate                  = useNavigate();
   const location                  = useLocation();
   const [dropdownOpen,     setDropdownOpen]     = useState(false);
@@ -43,6 +51,45 @@ export default function NavBar({ activeTab = 'investigators' }) {
   const [maintPill, setMaintPill] = useState(_maintState);
   const maintTimerRef             = useRef(null);
   const { socket } = useSocket();
+
+  // Drive the Return-to-Room pill pop-in / pop-out animation off activeRoom.
+  // Exit is the exact reverse of the entrance (scale + fade, matching easing).
+  useEffect(() => {
+    clearTimeout(roomPillTimerRef.current);
+    if (activeRoom) {
+      // If already showing, just refresh the data (no re-pop on page navigation).
+      // Otherwise mount hidden (scaled down), then pop in on the next frame.
+      setRoomPill(p => (p.visible && p.data
+        ? { data: activeRoom, visible: true }
+        : { data: activeRoom, visible: false }
+      ));
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() =>
+          setRoomPill(p => (p.data ? { ...p, visible: true } : p))
+        )
+      );
+    } else {
+      // Pop out: keep the last snapshot mounted, scale/fade away, then unmount.
+      setRoomPill(p => (p.data ? { ...p, visible: false } : p));
+      roomPillTimerRef.current = setTimeout(
+        () => setRoomPill({ data: null, visible: false }),
+        240
+      );
+    }
+    return () => clearTimeout(roomPillTimerRef.current);
+  }, [activeRoom]);
+
+  // Disconnect from the active room. When the room page is mounted it owns the
+  // handler (it also navigates away); otherwise we do it ourselves so the pill
+  // still disconnects from any page and vanishes immediately.
+  const handlePillDisconnect = () => {
+    if (onLeaveRoom) {
+      onLeaveRoom();
+    } else {
+      if (activeRoom?.id) socket?.emit('leave_campaign', { campaignId: activeRoom.id });
+      leaveRoom();
+    }
+  };
 
   const showMaintPill = (message) => {
     _maintState = { mounted: true, visible: true, message };
@@ -342,10 +389,17 @@ export default function NavBar({ activeTab = 'investigators' }) {
           {maintPill.mounted && <MaintPill pill={maintPill} />}
 
           {/* Return to Room pill — only shown when in a session */}
-          {activeRoom && (
+          {roomPill.data && (
             <div
               ref={roomPillRef}
-              style={{ position: 'relative' }}
+              style={{
+                position:        'relative',
+                opacity:         roomPill.visible ? 1 : 0,
+                transform:       roomPill.visible ? 'scale(1)' : 'scale(0.5)',
+                transformOrigin: 'center right',
+                pointerEvents:   roomPill.visible ? 'auto' : 'none',
+                transition:      'opacity 0.2s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              }}
               onMouseEnter={() => setRoomPillHovered(true)}
               onMouseLeave={() => { setRoomPillHovered(false); }}
             >
@@ -368,9 +422,9 @@ export default function NavBar({ activeTab = 'investigators' }) {
                 }}
               >
                 {/* Left: navigate to room */}
+                <Tooltip content={'Return to ' + roomPill.data.name}>
                 <button
-                  onClick={() => { setRoomMenuOpen(false); navigate('/campaign/' + activeRoom.uuid); }}
-                  title={'Return to ' + activeRoom.name}
+                  onClick={() => { setRoomMenuOpen(false); navigate('/campaign/' + roomPill.data.uuid); }}
                   style={{
                     display:    'flex',
                     alignItems: 'center',
@@ -388,9 +442,10 @@ export default function NavBar({ activeTab = 'investigators' }) {
                 >
                   <span className="icon icon-sm">play_arrow</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {activeRoom.name}
+                    {roomPill.data.name}
                   </span>
                 </button>
+                </Tooltip>
 
                 {/* Right: chevron — morphs in on hover */}
                 <button
@@ -433,7 +488,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
                   zIndex:       1000,
                 }}>
                   <button
-                    onClick={() => { setRoomMenuOpen(false); onLeaveRoom?.(); }}
+                    onClick={() => { setRoomMenuOpen(false); handlePillDisconnect(); }}
                     style={{
                       display:      'flex',
                       alignItems:   'center',
@@ -454,7 +509,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
                     <span className="icon icon-sm">logout</span>
-                    Leave Table
+                    Disconnect from Room
                   </button>
                 </div>
               )}
@@ -974,10 +1029,9 @@ function PreferencesPanel({ theme, setPanel }) {
             {THEMES.map(opt => {
               const isActive = theme === opt.id;
               return (
+                <Tooltip key={opt.id} content={opt.label}>
                 <button
-                  key={opt.id}
                   onClick={() => applySetting(() => setTheme(opt.id))}
-                  title={opt.label}
                   style={{
                     display:       'flex',
                     flexDirection: 'column',
@@ -1014,6 +1068,7 @@ function PreferencesPanel({ theme, setPanel }) {
                     {opt.label}
                   </span>
                 </button>
+                </Tooltip>
               );
             })}
           </div>

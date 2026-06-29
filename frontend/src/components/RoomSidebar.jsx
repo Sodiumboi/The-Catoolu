@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FairnessTester from './FairnessTester';
+import ConfirmDialog from './ConfirmDialog';
 import CustomDropdown from './ui/CustomDropdown';
 import ToggleRow from './ui/ToggleRow';
+import Tooltip from './ui/Tooltip';
+import useConfirm from '../hooks/useConfirm';
 import { useTheme } from '../context/ThemeContext';
+import apiClient from '../api/client';
 
 const TABS = [
   { id: 'players',  icon: 'group',    label: 'Players',  hasPanel: true },
@@ -17,7 +21,39 @@ export default function RoomSidebar({
   campaignId,
   onLeave,
 }) {
+  const navigate = useNavigate();
+  const { confirm, dialogProps } = useConfirm();
+
+  const handleLeaveIconClick = async () => {
+    const ok = await confirm({
+      title: 'Disconnect from Room',
+      message: "You'll stay on this page but leave the session. You can reconnect anytime.",
+      confirmLabel: 'Disconnect',
+      cancelLabel: 'Stay',
+      variant: 'danger',
+    });
+    if (ok) onLeave();
+  };
+
+  const handleLeaveCampaign = async () => {
+    const ok = await confirm({
+      title: 'Quit Campaign',
+      message: "You'll be removed from this campaign permanently. Your investigator will be unregistered. This cannot be undone.",
+      confirmLabel: 'Quit Campaign',
+      cancelLabel: 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    try {
+      await apiClient.delete(`/campaigns/${campaignId}/leave`);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Leave campaign error:', err);
+    }
+  };
+
   return (
+    <>
     <div style={{
       display:      'flex',
       flexDirection:'row',
@@ -37,10 +73,9 @@ export default function RoomSidebar({
         background:     'var(--bg-card)',
       }}>
         {TABS.map(tab => (
+          <Tooltip key={tab.id} content={tab.label} placement="left">
           <button
-            key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            title={tab.label}
             style={{
               width:        '36px',
               height:       '36px',
@@ -70,34 +105,39 @@ export default function RoomSidebar({
           >
             <span className="icon icon-md">{tab.icon}</span>
           </button>
+          </Tooltip>
         ))}
 
         {/* Leave + Help pinned to bottom */}
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <button
-            onClick={onLeave}
-            title="Leave Table"
-            style={{
-              width:          '36px',
-              height:         '36px',
-              borderRadius:   '8px',
-              border:         'none',
-              background:     'transparent',
-              color:          'var(--danger)',
-              cursor:         'pointer',
-              display:        'flex',
-              alignItems:     'center',
-              justifyContent: 'center',
-              transition:     'background 0.12s ease',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <span className="icon icon-md">logout</span>
-          </button>
+          <Tooltip content="Disconnect from Room" placement="left">
+            <button
+              onClick={handleLeaveIconClick}
+              style={{
+                width:          '36px',
+                height:         '46px',
+                borderRadius:   '8px',
+                border:         'none',
+                background:     'transparent',
+                color:          'var(--danger)',
+                cursor:         'pointer',
+                display:        'flex',
+                flexDirection:  'column',
+                alignItems:     'center',
+                justifyContent: 'center',
+                gap:            '2px',
+                transition:     'background 0.12s ease',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <span className="icon icon-md">logout</span>
+              <span style={{ fontSize: '8px', fontFamily: 'var(--font-sans)', fontWeight: '600', letterSpacing: '0.04em', lineHeight: 1 }}>EXIT</span>
+            </button>
+          </Tooltip>
+          <Tooltip content="Help" placement="left">
           <button
             onClick={() => onTabChange('help')}
-            title="Help"
             style={{
               width:          '36px',
               height:         '36px',
@@ -112,6 +152,7 @@ export default function RoomSidebar({
           >
             <span className="icon icon-md">help</span>
           </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -135,18 +176,22 @@ export default function RoomSidebar({
               myCharacter={myCharacter}
               myCharacters={myCharacters}
               onChangeCharacter={onChangeCharacter}
+              onLeaveCampaign={handleLeaveCampaign}
             />
           )}
-          {activeTab === 'settings' && <SettingsPanel campaignId={campaignId} />}
+          {activeTab === 'settings' && <SettingsPanel />}
           {activeTab === 'help'     && <HelpPanel />}
         </div>
       </div>
     </div>
+
+    <ConfirmDialog {...dialogProps} />
+    </>
   );
 }
 
 // ── Players panel ─────────────────────────────────────────────
-function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters, onChangeCharacter }) {
+function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters, onChangeCharacter, onLeaveCampaign }) {
   const onlineIds = new Set(onlineUsers.map(u => u.id));
 
   return (
@@ -199,6 +244,36 @@ function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters,
           ]}
         />
       </div>
+
+      {/* Quit campaign — permanent, removes you from the campaign.
+          Hidden for the Keeper: they own the campaign and must delete it instead. */}
+      {myRole !== 'keeper' && (
+        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '12px', marginTop: '12px' }}>
+          <button
+            onClick={onLeaveCampaign}
+            style={{
+              width:        '100%',
+              padding:      '8px 12px',
+              borderRadius: '8px',
+              border:       '1px solid var(--danger)',
+              background:   'transparent',
+              color:        'var(--danger)',
+              fontSize:     '13px',
+              fontFamily:   'var(--font-sans)',
+              cursor:       'pointer',
+              display:      'flex',
+              alignItems:   'center',
+              gap:          '8px',
+              transition:   'background 0.12s ease',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <span className="icon icon-sm">exit_to_app</span>
+            Quit Campaign
+          </button>
+        </div>
+      )}
     </div>
   );
 }
