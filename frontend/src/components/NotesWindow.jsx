@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { loadWindowState, saveWindowState } from './notes/notesWindowState';
 import NotesPane from './notes/NotesPane';
+import Tooltip from './ui/Tooltip';
 
 // ─────────────────────────────────────────────────────────────
 export default function NotesWindow({ windowState, onWindowStateChange, contextTagType, contextTag }) {
@@ -253,9 +254,9 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
               </div>
 
               <div style={{ display: 'flex', gap: '2px' }} data-nodrag>
+                <Tooltip content="Minimise">
                 <button
                   onClick={handleMinimise}
-                  title="Minimise"
                   style={{
                     background: 'transparent', border: 'none',
                     color:      'var(--text-faint)', cursor: 'pointer',
@@ -267,9 +268,10 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
                 >
                   &#8212;
                 </button>
+                </Tooltip>
+                <Tooltip content="Close">
                 <button
                   onClick={() => changeState('closed')}
-                  title="Close"
                   style={{
                     background: 'transparent', border: 'none',
                     color:      'var(--text-faint)', cursor: 'pointer',
@@ -280,6 +282,7 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '16px', display: 'block' }}>close</span>
                 </button>
+                </Tooltip>
               </div>
             </div>
 
@@ -358,9 +361,9 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
 
             {/* Resize grip — bottom-right hit area; the rounded-triangle
                 indicator is inset a few px away from the very corner. */}
+            <Tooltip content="Resize">
             <div
               onMouseDown={handleResizeMouseDown}
-              title="Resize"
               style={{
                 position:       'absolute',
                 right:          0,
@@ -389,6 +392,7 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
                 />
               </svg>
             </div>
+            </Tooltip>
         </div>
       )}
     </>,

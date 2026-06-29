@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import HandoutViewer from './handouts/HandoutViewer';
+import Tooltip from './ui/Tooltip';
 
 export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
   const [hovered,  setHovered]  = useState(false);
@@ -152,6 +153,7 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
           flexShrink:  0,
           position:    'relative',
         }}>
+          <Tooltip content="Message actions">
           <button
             onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
             style={{
@@ -165,10 +167,10 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
               alignItems:    'center',
               justifyContent:'center',
             }}
-            title="Message actions"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>more_vert</span>
           </button>
+          </Tooltip>
 
           {menuOpen && (
             <div style={{

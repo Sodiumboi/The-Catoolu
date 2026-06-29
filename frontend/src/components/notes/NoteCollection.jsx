@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { loadWindowState, saveWindowState } from './notesWindowState';
 import NoteCard from './NoteCard';
+import Tooltip from '../ui/Tooltip';
 
 export default function NoteCollection({ notes, loading, contextTagType, contextTag, onSelectNote, onNewNote }) {
   const [search,   setSearch]   = useState('');
@@ -29,10 +30,9 @@ export default function NoteCollection({ notes, loading, contextTagType, context
         {/* View toggle */}
         <div style={{ display: 'flex', gap: '2px' }}>
           {['grid', 'list'].map(mode => (
+            <Tooltip key={mode} content={mode === 'grid' ? 'Grid view' : 'List view'}>
             <button
-              key={mode}
               onClick={() => toggleView(mode)}
-              title={mode === 'grid' ? 'Grid view' : 'List view'}
               style={{
                 padding:    '4px 7px',
                 borderRadius: '5px',
@@ -48,6 +48,7 @@ export default function NoteCollection({ notes, loading, contextTagType, context
                 {mode === 'grid' ? 'grid_view' : 'view_list'}
               </span>
             </button>
+            </Tooltip>
           ))}
         </div>
 

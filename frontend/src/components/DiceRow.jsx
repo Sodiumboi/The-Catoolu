@@ -1,3 +1,5 @@
+import Tooltip from './ui/Tooltip';
+
 const DICE = [4, 6, 8, 10, 12, 20, 100];
 
 export default function DiceRow({
@@ -32,12 +34,11 @@ export default function DiceRow({
         const notation  = '1d' + sides + (advMode ? 'adv' : disMode ? 'dis' : '');
         const isThisDie = rollingDie === notation;
         return (
+          <Tooltip key={sides} content={'Roll 1d' + sides + (advMode ? ' Adv' : disMode ? ' Dis' : '')
+              + '\nShift+click for a surprise 🎉'}>
           <button
-            key={sides}
             onClick={e => handleDie(sides, e.shiftKey)}
             disabled={isRolling}
-            title={'Roll 1d' + sides + (advMode ? ' Adv' : disMode ? ' Dis' : '')
-              + '\nShift+click for a surprise 🎉'}
             style={{
               padding:      '4px 9px',
               borderRadius: '6px',
@@ -67,6 +68,7 @@ export default function DiceRow({
           >
             D{sides}
           </button>
+          </Tooltip>
         );
       })}
 
@@ -102,11 +104,11 @@ export default function DiceRow({
       <div style={{ width: '1px', height: '20px', background: 'var(--border-main)', margin: '0 2px' }} />
 
       {/* Roll Visibility */}
+      <Tooltip content={rollVisibility === 'everyone'
+        ? 'Rolls visible to everyone — click for Only Me'
+        : 'Rolls only visible to you — click for Everyone'}>
       <button
         onClick={onToggleVisibility}
-        title={rollVisibility === 'everyone'
-          ? 'Rolls visible to everyone — click for Only Me'
-          : 'Rolls only visible to you — click for Everyone'}
         style={{
           padding:     '4px 9px',
           borderRadius:'6px',
@@ -132,6 +134,7 @@ export default function DiceRow({
           : <><span className="icon icon-sm">visibility</span>{' '}Everyone</>
         }
       </button>
+      </Tooltip>
 
     </div>
   );

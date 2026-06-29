@@ -7,6 +7,7 @@
 // (weaponColumns.js) so header cells line up with body cells.
 
 import { WEAPON_COLS, weaponCellWidth as cellWidth } from './weaponColumns';
+import Tooltip from '../ui/Tooltip';
 
 function EditableCell({ value, onChange, wide, center, color }) {
   return (
@@ -71,15 +72,16 @@ export default function WeaponRow({ weapon, index, onChange, onDelete, editable 
 
       {editable && (
         <td className="py-1 pr-2 text-center">
+          <Tooltip content="Delete weapon">
           <button
             onClick={() => onDelete(index)}
             className="text-xs px-1.5 py-0.5 rounded transition-all"
             style={{ color: 'var(--danger)', border: '1px solid var(--danger)33' }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--danger)22'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            title="Delete weapon">
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <span className="icon icon-sm">close</span>
           </button>
+          </Tooltip>
         </td>
       )}
     </tr>

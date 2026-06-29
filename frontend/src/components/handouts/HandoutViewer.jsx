@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import Tooltip from '../ui/Tooltip';
 
 const typeIcon = (type) =>
   type === 'image' ? 'image' : type === 'bundle' ? 'stacks' : 'text_fields';
@@ -149,9 +150,11 @@ export default function HandoutViewer({ handout, onClose }) {
           onClick={e => e.stopPropagation()}
         >
           {viewStack.length > 1 && (
-            <button onClick={() => setViewStack(prev => prev.slice(0, -1))} style={toolbarBtn} title="Back">
+            <Tooltip content="Back">
+            <button onClick={() => setViewStack(prev => prev.slice(0, -1))} style={toolbarBtn}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
             </button>
+            </Tooltip>
           )}
           <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', flexShrink: 0 }}>image</span>
           <span style={{
@@ -161,12 +164,16 @@ export default function HandoutViewer({ handout, onClose }) {
           }}>
             {current.title}
           </span>
-          <button onClick={handleDownload} style={toolbarBtn} title="Save to device">
+          <Tooltip content="Save to device">
+          <button onClick={handleDownload} style={toolbarBtn}>
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>download</span>
           </button>
-          <button onClick={onClose} style={toolbarBtn} title="Close (Esc)">
+          </Tooltip>
+          <Tooltip content="Close (Esc)">
+          <button onClick={onClose} style={toolbarBtn}>
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
           </button>
+          </Tooltip>
         </div>
 
         {/* Image area — click image to toggle zoom, drag when zoomed to pan */}

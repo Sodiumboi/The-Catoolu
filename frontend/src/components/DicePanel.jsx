@@ -1,3 +1,5 @@
+import Tooltip from './ui/Tooltip';
+
 const DICE = [4, 6, 8, 10, 12, 20, 100];
 
 export default function DicePanel({ onRoll, advMode, disMode, onToggleAdv, onToggleDis }) {
@@ -18,10 +20,9 @@ export default function DicePanel({ onRoll, advMode, disMode, onToggleAdv, onTog
 
       {/* Die buttons */}
       {DICE.map(sides => (
+        <Tooltip key={sides} content={'Roll 1d' + sides + (advMode ? ' with advantage' : disMode ? ' with disadvantage' : '')}>
         <button
-          key={sides}
           onClick={() => handleDie(sides)}
-          title={'Roll 1d' + sides + (advMode ? ' with advantage' : disMode ? ' with disadvantage' : '')}
           style={{
             padding:      '4px 10px',
             borderRadius: '6px',
@@ -51,6 +52,7 @@ export default function DicePanel({ onRoll, advMode, disMode, onToggleAdv, onTog
         >
           D{sides}
         </button>
+        </Tooltip>
       ))}
 
       {/* Divider */}
@@ -62,9 +64,9 @@ export default function DicePanel({ onRoll, advMode, disMode, onToggleAdv, onTog
       }} />
 
       {/* Advantage toggle */}
+      <Tooltip content="Advantage — roll twice, take lower">
       <button
         onClick={onToggleAdv}
-        title="Advantage — roll twice, take lower"
         style={{
           padding:      '4px 10px',
           borderRadius: '6px',
@@ -80,11 +82,12 @@ export default function DicePanel({ onRoll, advMode, disMode, onToggleAdv, onTog
       >
         Adv
       </button>
+      </Tooltip>
 
       {/* Disadvantage toggle */}
+      <Tooltip content="Disadvantage — roll twice, take higher">
       <button
         onClick={onToggleDis}
-        title="Disadvantage — roll twice, take higher"
         style={{
           padding:      '4px 10px',
           borderRadius: '6px',
@@ -100,6 +103,7 @@ export default function DicePanel({ onRoll, advMode, disMode, onToggleAdv, onTog
       >
         Dis
       </button>
+      </Tooltip>
 
       {/* Active mode label */}
       {(advMode || disMode) && (

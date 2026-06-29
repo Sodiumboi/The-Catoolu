@@ -5,6 +5,7 @@ import ReadOnlySheet from './ReadOnlySheet';
 import HandoutLibrary from './handouts/HandoutLibrary';
 import ConfirmDialog from './ConfirmDialog';
 import useConfirm from '../hooks/useConfirm';
+import Tooltip from './ui/Tooltip';
 
 const TABS = [
   { id: 'info',        label: 'Info',        icon: 'info'          },
@@ -682,9 +683,9 @@ function InfoTab({
             maxHeight:'calc(100vh - 150px)',
           }}>
           {/* Drag handle */}
+          <Tooltip content="Drag to resize">
           <div
             onMouseDown={handleDragStart}
-            title="Drag to resize"
             style={{
               width:'5px', flexShrink:0, cursor:'col-resize',
               background:'var(--border-main)', borderRadius:'3px',
@@ -693,6 +694,7 @@ function InfoTab({
             onMouseEnter={e => e.currentTarget.style.background = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.background = 'var(--border-main)'}
           />
+          </Tooltip>
 
           {/* Sheet panel — width is the drag target; shrinks within the
               capped wrapper on narrow screens so nothing overflows */}
@@ -721,9 +723,9 @@ function InfoTab({
                   </div>
                 )}
               </div>
+              <Tooltip content="Close">
               <button
                 onClick={() => setSelectedSheet(null)}
-                title="Close"
                 style={{
                   background:'none', border:'none', cursor:'pointer',
                   color:'var(--text-muted)', padding:'2px', flexShrink:0,
@@ -731,6 +733,7 @@ function InfoTab({
               >
                 <span className="icon icon-md">close</span>
               </button>
+              </Tooltip>
             </div>
 
             {/* Sheet or error */}

@@ -12,6 +12,7 @@ import Weapons             from './components/sections/Weapons';
 import Backstory           from './components/sections/Backstory';
 import Possessions         from './components/sections/Possessions';
 import NotesWindow         from '../../components/NotesWindow';
+import Tooltip             from '../../components/ui/Tooltip';
 import { loadWindowState, saveWindowState } from '../../components/notes/notesWindowState';
 import { useParams } from 'react-router-dom';
 
@@ -191,9 +192,9 @@ export default function CharacterEditorPage() {
         <div className="flex items-center gap-3">
           {error && <span style={{ fontSize: '12px', color: 'var(--danger)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">warning</span>{error}</span>}
           {saved && <span style={{ fontSize: '12px', color: 'var(--success)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">check</span>Saved!</span>}
+          <Tooltip content="Toggle notes">
           <button
             onClick={handleNotesButton}
-            title="Toggle notes"
             style={{
               display:    'flex', alignItems: 'center', gap: '4px',
               padding:    '6px 12px', borderRadius: '8px', fontSize: '13px',
@@ -206,6 +207,7 @@ export default function CharacterEditorPage() {
             <span className="icon icon-sm">description</span>
             Notes
           </button>
+          </Tooltip>
           <button onClick={handleExport}
                   style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '13px', border: '1px solid var(--success)', background: 'transparent', color: 'var(--success)', cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}

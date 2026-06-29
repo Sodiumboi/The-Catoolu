@@ -6,6 +6,7 @@ import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import ImageCropModal from '../components/ImageCropModal';
 import UploadProgressBar from '../components/UploadProgressBar';
+import Tooltip from '../components/ui/Tooltip';
 
 // ── Reusable field components ──────────────────────────────
 function FormField({ label, children }) {
@@ -351,6 +352,7 @@ export default function ProfilePage() {
             <Card title="Account">
               {/* Avatar upload area */}
               <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                <Tooltip content="Click to change profile picture">
                 <div
                   onClick={() => avatarInputRef.current?.click()}
                   style={{
@@ -368,7 +370,6 @@ export default function ProfilePage() {
                     transition:     'border-color 0.15s ease',
                     position:       'relative',
                   }}
-                  title="Click to change profile picture"
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-main)'}
                 >
@@ -408,6 +409,7 @@ export default function ProfilePage() {
                     📷
                   </div>
                 </div>
+                </Tooltip>
 
                 <input
                   ref={avatarInputRef}

@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import Tooltip from './ui/Tooltip';
 
 export default function KeeperPlayerCard({
   member,
@@ -24,10 +25,10 @@ export default function KeeperPlayerCard({
       {/* Top-right action buttons */}
       <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '4px' }}>
         {member.character_id && onRequestRoll && (
+          <Tooltip content="Request a roll">
           <button
             ref={rollBtnRef}
             onClick={e => { e.stopPropagation(); onRequestRoll(member, rollBtnRef.current?.getBoundingClientRect()); }}
-            title="Request a roll"
             style={{
               background:   'none',
               border:       'none',
@@ -44,11 +45,12 @@ export default function KeeperPlayerCard({
           >
             <span className="icon icon-sm">casino</span>
           </button>
+          </Tooltip>
         )}
         {member.character_id && onOpenSheet && (
+          <Tooltip content="View character sheet">
           <button
             onClick={e => { e.stopPropagation(); onOpenSheet(member); }}
-            title="View character sheet"
             style={{
               background:   'none',
               border:       'none',
@@ -65,6 +67,7 @@ export default function KeeperPlayerCard({
           >
             <span className="icon icon-sm">open_in_new</span>
           </button>
+          </Tooltip>
         )}
       </div>
 
@@ -182,9 +185,9 @@ export default function KeeperPlayerCard({
               }}
             >
               <span>{rollName} requested...</span>
+              <Tooltip content="Cancel request">
               <button
                 onClick={() => onCancelRequest(requestId)}
-                title="Cancel request"
                 style={{
                   background:   'none',
                   border:       'none',
@@ -199,6 +202,7 @@ export default function KeeperPlayerCard({
               >
                 ✕
               </button>
+              </Tooltip>
             </div>
           ))}
         </div>

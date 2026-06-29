@@ -4,6 +4,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { TextStyleKit } from '@tiptap/extension-text-style';
 import apiClient from '../../api/client';
 import CustomDropdown from '../ui/CustomDropdown';
+import Tooltip from '../ui/Tooltip';
 
 const FONT_OPTIONS = [
   { label: 'Default',          value: '' },
@@ -18,9 +19,9 @@ const SIZE_OPTIONS = ['10','11','12','13','14','16','18','20','24'];
 
 function ToolbarBtn({ onClick, active, children, title }) {
   return (
+    <Tooltip content={title}>
     <button
       onMouseDown={e => { e.preventDefault(); onClick(); }}
-      title={title}
       style={{
         padding:      '3px 7px',
         borderRadius: '4px',
@@ -39,6 +40,7 @@ function ToolbarBtn({ onClick, active, children, title }) {
     >
       {children}
     </button>
+    </Tooltip>
   );
 }
 
@@ -181,15 +183,16 @@ export default function NoteEditor({ noteUuid, onBack, onNoteUpdated, onNoteDele
               <button onClick={() => setConfirmDel(false)} style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-sans)', flexShrink: 0 }}>No</button>
             </>
           ) : (
+            <Tooltip content="Delete note">
             <button
               onClick={() => setConfirmDel(true)}
-              title="Delete note"
               style={{ padding: '3px 6px', borderRadius: '5px', border: 'none', background: 'transparent', color: 'var(--text-faint)', cursor: 'pointer', flexShrink: 0 }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '16px', display: 'block' }}>delete</span>
             </button>
+            </Tooltip>
           )}
         </div>
 

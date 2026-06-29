@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import wojakRight from '../assets/wojak-point_andy_right.png';
 import wojakLeft  from '../assets/wojak-point_andy_left.png';
+import Tooltip from './ui/Tooltip';
 
 // ── Digit helpers ─────────────────────────────────────────────
 
@@ -464,6 +465,7 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
             ? { right: '100%', marginRight: 8 }
             : { left:  '100%', marginLeft:  8 }),
         }}>
+          <Tooltip content="Message actions">
           <button
             onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
             style={{
@@ -477,10 +479,10 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
               alignItems:    'center',
               justifyContent:'center',
             }}
-            title="Message actions"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>more_vert</span>
           </button>
+          </Tooltip>
 
           {menuOpen && (
             <div style={{

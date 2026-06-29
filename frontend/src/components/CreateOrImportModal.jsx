@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Tooltip from './ui/Tooltip';
 
 // ── CreateOrImportModal ──────────────────────────────────────────────
 // Animated chooser shown from the Investigators dashboard:
@@ -105,13 +106,14 @@ export default function CreateOrImportModal({ open, onClose, onCreate, onImport,
           }}>
             Add an Investigator
           </h3>
+          <Tooltip content="Close">
           <button
             onClick={onClose}
-            title="Close"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '2px', lineHeight: 1 }}
           >
             <span className="icon icon-md">close</span>
           </button>
+          </Tooltip>
         </div>
 
         {/* Options */}

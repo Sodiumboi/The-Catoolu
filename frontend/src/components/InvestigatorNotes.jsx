@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import apiClient from '../api/client';
+import Tooltip from './ui/Tooltip';
 
 const MAX_SAVED_COLORS = 8;
 const STORAGE_KEY      = 'coc_note_colors';
@@ -18,9 +19,9 @@ function persistColors(colors) {
 // ── Toolbar button ─────────────────────────────────────────
 function ToolBtn({ title, onClick, children, active }) {
   return (
+    <Tooltip content={title}>
     <button
       type="button"
-      title={title}
       onMouseDown={e => { e.preventDefault(); onClick(); }}
       className="px-2 py-1 rounded text-xs font-bold transition-all duration-150"
       style={{
@@ -42,6 +43,7 @@ function ToolBtn({ title, onClick, children, active }) {
     >
       {children}
     </button>
+    </Tooltip>
   );
 }
 
@@ -181,10 +183,9 @@ export default function InvestigatorNotes({ characterId, initialNotes, onSave })
         {/* ── Colour section ── */}
         {/* Saved swatches — click to apply */}
         {savedColors.map(color => (
+          <Tooltip key={color} content={`Apply ${color} — right-click to remove`}>
           <button
-            key={color}
             type="button"
-            title={`Apply ${color} — right-click to remove`}
             onMouseDown={e => {
               e.preventDefault();
               saveSelection();
@@ -217,13 +218,14 @@ export default function InvestigatorNotes({ characterId, initialNotes, onSave })
               e.currentTarget.style.boxShadow = 'none';
             }}
           />
+          </Tooltip>
         ))}
 
         {/* ── Color picker button ── */}
         <div className="relative flex items-center">
+          <Tooltip content="Choose custom colour">
           <button
             type="button"
-            title="Choose custom colour"
             onMouseDown={e => {
               e.preventDefault();
               saveSelection();        // save BEFORE picker steals focus
@@ -254,6 +256,7 @@ export default function InvestigatorNotes({ characterId, initialNotes, onSave })
             }} />
             <span>A</span>
           </button>
+          </Tooltip>
 
           {/* Hidden native color input */}
           <input
@@ -266,9 +269,9 @@ export default function InvestigatorNotes({ characterId, initialNotes, onSave })
         </div>
 
         {/* Save swatch button */}
+        <Tooltip content={`Save ${pickerColor} as a swatch`}>
         <button
           type="button"
-          title={`Save ${pickerColor} as a swatch`}
           onMouseDown={e => { e.preventDefault(); saveColorSwatch(); }}
           className="px-1.5 py-1 rounded text-xs transition-all duration-150"
           style={{
@@ -288,6 +291,7 @@ export default function InvestigatorNotes({ characterId, initialNotes, onSave })
         >
           +🎨
         </button>
+        </Tooltip>
 
         <div className="w-px mx-0.5 self-stretch" style={{ background: 'var(--border-main)' }} />
 

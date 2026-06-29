@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import apiClient from '../api/client';
 import CustomDropdown from './ui/CustomDropdown';
+import Tooltip from './ui/Tooltip';
 
 // ── Chi-squared critical values (95% confidence) ──────────────
 const CRITICAL_VALUES = {
@@ -405,9 +406,8 @@ export default function FairnessTester() {
                 const isHigh = b.count > expected * 1.3;
                 const isLow  = b.count < expected * 0.7 && totalRolled > 50;
                 return (
+                  <Tooltip key={i} content={b.label + ': ' + b.count}>
                   <div
-                    key={i}
-                    title={b.label + ': ' + b.count}
                     style={{
                       flex:         1,
                       height:       h + 'px',
@@ -423,6 +423,7 @@ export default function FairnessTester() {
                       cursor:       'default',
                     }}
                   />
+                  </Tooltip>
                 );
               })}
             </div>

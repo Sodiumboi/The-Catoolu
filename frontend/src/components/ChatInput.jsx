@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import Tooltip from './ui/Tooltip';
 
 export default function ChatInput({
   text, setText,
@@ -140,9 +141,8 @@ export default function ChatInput({
           scrollbarWidth: 'none',
         }}>
           {attachedFiles.map((file, index) => (
+            <Tooltip key={index} content={file.name}>
             <div
-              key={index}
-              title={file.name}
               style={{
                 display: 'flex', gap: 6, alignItems: 'center',
                 padding: '4px 8px 4px 4px', borderRadius: 8,
@@ -168,9 +168,9 @@ export default function ChatInput({
               }}>
                 {file.name}
               </span>
+              <Tooltip content="Remove">
               <button
                 onClick={() => onClearAttachment?.(index)}
-                title="Remove"
                 style={{
                   width: 16, height: 16,
                   background: 'var(--danger)', border: 'none', borderRadius: '50%',
@@ -181,7 +181,9 @@ export default function ChatInput({
               >
                 ×
               </button>
+              </Tooltip>
             </div>
+            </Tooltip>
           ))}
         </div>
       )}
@@ -199,9 +201,9 @@ export default function ChatInput({
         }}>
           <span className="material-symbols-outlined" style={{ fontSize: 16, flexShrink: 0 }}>error</span>
           <span style={{ flex: 1, lineHeight: 1.4 }}>{uploadError}</span>
+          <Tooltip content="Dismiss">
           <button
             onClick={() => onClearUploadError?.()}
-            title="Dismiss"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               color: 'var(--danger)', padding: 0, display: 'flex',
@@ -210,6 +212,7 @@ export default function ChatInput({
           >
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
           </button>
+          </Tooltip>
         </div>
       )}
 
@@ -217,10 +220,10 @@ export default function ChatInput({
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         {/* Attach button */}
         {onFileSelect && (
+          <Tooltip content="Attach image">
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled}
-            title="Attach image"
             style={{
               width: 36, height: 36, border: '1px solid var(--border-input)',
               borderRadius: 8, background: 'transparent',
@@ -242,6 +245,7 @@ export default function ChatInput({
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>attach_file</span>
           </button>
+          </Tooltip>
         )}
 
         <div style={{

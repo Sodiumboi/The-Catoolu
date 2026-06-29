@@ -6,6 +6,7 @@ import apiClient from '../api/client';
 import JoinCampaignModal from '../components/JoinCampaignModal';
 import CustomDropdown from '../components/ui/CustomDropdown';
 import logo from '../assets/vault-logo.png';
+import Tooltip from '../components/ui/Tooltip';
 
 export default function CampaignPage() {
   const navigate = useNavigate();
@@ -344,9 +345,9 @@ function CampaignCard({ campaign, onEnter }) {
         </span>
         <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
           {isKeeper && (
+            <Tooltip content="Manage in Keeper tab">
             <button
               onClick={e => { e.stopPropagation(); navigate('/keeper', { state: { openCampaignUuid: campaign.uuid } }); }}
-              title="Manage in Keeper tab"
               aria-label="Manage in Keeper tab"
               style={{
                 display:        'inline-flex',
@@ -372,6 +373,7 @@ function CampaignCard({ campaign, onEnter }) {
             >
               <span className="icon icon-sm">settings</span>
             </button>
+            </Tooltip>
           )}
           <button
             onClick={e => { e.stopPropagation(); onEnter(); }}

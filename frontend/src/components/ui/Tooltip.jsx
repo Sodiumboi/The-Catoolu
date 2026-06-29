@@ -5,7 +5,7 @@ export default function Tooltip({
   children,
   content,
   placement = 'auto',
-  delay = 400,
+  delay = 300,
   maxWidth = 220,
 }) {
   const [visible, setVisible] = useState(false);
@@ -14,8 +14,11 @@ export default function Tooltip({
   const timerRef = useRef(null);
 
   const calculateStyle = useCallback(() => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
+    // The wrapper span is display:contents, so it has no layout box and its own
+    // getBoundingClientRect() returns all-zeros. Measure the real child element.
+    const node = triggerRef.current?.firstElementChild || triggerRef.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
     const GAP = 6;
 
     const positions = {

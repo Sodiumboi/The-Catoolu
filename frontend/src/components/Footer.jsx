@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { APP_VERSION, APP_CODENAME } from '../config/version';
 import useVersionCheck from '../hooks/useVersionCheck';
 import WhatsNewModal from './WhatsNewModal';
+import Tooltip from './ui/Tooltip';
 
 const VERSION = `V${APP_VERSION} · ${APP_CODENAME}`;
 const CREDIT  = 'Built by Someone at Saltlakes with an unreasonable amount of help from Claude';
@@ -48,10 +49,10 @@ export default function Footer() {
             color:         'var(--text-faint)',
           }}>
             <span>
+              <Tooltip content="What's new in this version">
               <button
                 type="button"
                 onClick={() => setShowWhatsNew(true)}
-                title="What's new in this version"
                 style={{
                   background:           'none',
                   border:               'none',
@@ -68,12 +69,13 @@ export default function Footer() {
               >
                 {VERSION}
               </button>
+              </Tooltip>
               {updateAvailable && releaseUrl && (
+                <Tooltip content={latestVersion ? `Update available — v${latestVersion}` : 'Update available'}>
                 <a
                   href={releaseUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  title={latestVersion ? `Update available — v${latestVersion}` : 'Update available'}
                   style={{
                     color:          'var(--accent)',
                     fontSize:       '11px',
@@ -83,6 +85,7 @@ export default function Footer() {
                 >
                   · update available{latestVersion ? ` (v${latestVersion})` : ''}
                 </a>
+                </Tooltip>
               )}
             </span>
             <span>{CREDIT}</span>

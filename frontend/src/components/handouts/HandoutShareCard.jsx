@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import HandoutViewer from './HandoutViewer';
+import Tooltip from '../ui/Tooltip';
 
 const typeIcon = (type) =>
   type === 'image' ? 'image' : type === 'bundle' ? 'stacks' : 'text_fields';
@@ -256,6 +257,7 @@ export default function HandoutShareCard({ msg, isOwn, canDelete, onDelete }) {
             {/* Always in flow when canDelete — visibility toggled so no layout shift on hover */}
             {canDelete && (
               <div style={{ position: 'relative', flexShrink: 0, visibility: (hovered || menuOpen) ? 'visible' : 'hidden' }}>
+                <Tooltip content="Message actions">
                 <button
                   onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
                   style={{
@@ -269,10 +271,10 @@ export default function HandoutShareCard({ msg, isOwn, canDelete, onDelete }) {
                     alignItems:     'center',
                     justifyContent: 'center',
                   }}
-                  title="Message actions"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 14 }}>more_vert</span>
                 </button>
+                </Tooltip>
 
                 {menuOpen && (
                   <div style={{

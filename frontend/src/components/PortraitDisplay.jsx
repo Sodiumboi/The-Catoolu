@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import Tooltip from './ui/Tooltip';
 
 // Renders a portrait image at its natural aspect ratio.
 // The padding-bottom trick: a percentage padding-bottom is always
@@ -24,6 +25,7 @@ export default function PortraitDisplay({ portrait, onUploadClick, readOnly = fa
     <div className="flex flex-col items-center gap-2 flex-shrink-0" style={{ width: '140px' }}>
 
       {/* Aspect-ratio box */}
+      <Tooltip content={readOnly ? undefined : 'Click to change portrait'}>
       <div
         className={`relative group rounded overflow-hidden w-full ${readOnly ? '' : 'cursor-pointer'}`}
         style={{
@@ -32,7 +34,6 @@ export default function PortraitDisplay({ portrait, onUploadClick, readOnly = fa
           transition: 'padding-bottom 0.2s ease',
         }}
         onClick={readOnly ? undefined : onUploadClick}
-        title={readOnly ? undefined : 'Click to change portrait'}
       >
         {/* Absolute inner layer fills the padded space exactly */}
         <div className="absolute inset-0">
@@ -63,6 +64,7 @@ export default function PortraitDisplay({ portrait, onUploadClick, readOnly = fa
           )}
         </div>
       </div>
+      </Tooltip>
 
       {!readOnly && (
         <span className="text-xs" style={{ color: 'var(--text-faint)' }}>

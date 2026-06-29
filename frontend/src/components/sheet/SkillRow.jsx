@@ -1,4 +1,5 @@
 import { calcHalf, calcFifth } from '../../utils/cocCalculations';
+import Tooltip from '../ui/Tooltip';
 
 // ── SkillRow ─────────────────────────────────────────────────────────
 // FlatSkillRow and SubSkillRow both use --sheet-font-scale CSS variable
@@ -37,7 +38,7 @@ export function FlatSkillRow({ skill, onChange, isOcc, editable = false }) {
     >
       {/* Occupation dot */}
       <span style={{ width: '8px', flexShrink: 0 }}>
-        {isOcc && <span style={{ color: 'var(--accent)', fontSize: 'calc(7px * var(--sheet-font-scale))' }} title="Occupation">●</span>}
+        {isOcc && <Tooltip content="Occupation"><span style={{ color: 'var(--accent)', fontSize: 'calc(7px * var(--sheet-font-scale))' }}>●</span></Tooltip>}
       </span>
 
       {/* Skill name */}
@@ -95,7 +96,7 @@ export function SubSkillRow({ skill, index, isOcc, onChangeEntry, editable = fal
     >
       {/* Occupation dot */}
       <span style={{ width: '8px', flexShrink: 0 }}>
-        {isOcc && <span style={{ color: 'var(--accent)', fontSize: 'calc(7px * var(--sheet-font-scale))' }} title="Occupation">●</span>}
+        {isOcc && <Tooltip content="Occupation"><span style={{ color: 'var(--accent)', fontSize: 'calc(7px * var(--sheet-font-scale))' }}>●</span></Tooltip>}
       </span>
 
       {/* Subskill name */}

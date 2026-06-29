@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import HandoutViewer from '../components/handouts/HandoutViewer';
 import ConfirmDialog from '../components/ConfirmDialog';
 import useConfirm from '../hooks/useConfirm';
+import Tooltip from '../components/ui/Tooltip';
 
 const KIND = {
   avatar:  { label: 'Avatar',         icon: 'person',       color: 'var(--accent)' },
@@ -295,9 +296,9 @@ export default function FileManagerPage() {
                     />
                   )}
                   {/* Thumbnail (click to preview, or toggle in selection mode) */}
+                  <Tooltip content={selectionMode ? 'Select' : 'Preview'}>
                   <div
                     onClick={() => selectionMode ? toggleSelection(f.id) : setViewing(f)}
-                    title={selectionMode ? 'Select' : 'Preview'}
                     style={{
                       width: 48, height: 48, borderRadius: 8, overflow: 'hidden', flexShrink: 0, cursor: 'pointer',
                       background: 'var(--bg-section-hd)', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -310,6 +311,7 @@ export default function FileManagerPage() {
                       onError={e => { e.currentTarget.style.display = 'none'; }}
                     />
                   </div>
+                  </Tooltip>
 
                   {/* Info (click to preview, or toggle in selection mode) — shows the real file name */}
                   <div onClick={() => selectionMode ? toggleSelection(f.id) : setViewing(f)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
@@ -328,13 +330,17 @@ export default function FileManagerPage() {
                   </div>
 
                   {/* Actions */}
-                  <a href={f.url} target="_blank" rel="noreferrer" style={{ ...iconBtn, color: 'var(--text-muted)' }} title="Open raw file">
+                  <Tooltip content="Open raw file">
+                  <a href={f.url} target="_blank" rel="noreferrer" style={{ ...iconBtn, color: 'var(--text-muted)' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>open_in_new</span>
                   </a>
+                  </Tooltip>
                   {!selectionMode && (
-                    <button onClick={() => requestDelete(f)} disabled={busy} title="Delete" style={{ ...iconBtn, color: 'var(--danger)' }}>
+                    <Tooltip content="Delete">
+                    <button onClick={() => requestDelete(f)} disabled={busy} style={{ ...iconBtn, color: 'var(--danger)' }}>
                       <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{busy ? 'hourglass_empty' : 'delete'}</span>
                     </button>
+                    </Tooltip>
                   )}
                 </div>
               );
