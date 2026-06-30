@@ -215,59 +215,24 @@ export default function NavBar({ activeTab = 'investigators' }) {
 
   return (
   <>
-    <nav style={{
-      background:   'var(--bg-nav)',
-      borderBottom: '1px solid var(--border-main)',
-      boxShadow:    'var(--shadow-nav)',
-      position:     'sticky',
-      top:          0,
-      zIndex:       50,
-    }}>
-      <div style={{
-        padding:    '0 24px',
-        display:    'flex',
-        alignItems: 'center',
-        height:     '56px',
-        gap:        '24px',
-        position:   'relative',
-      }}>
+    <nav className="bg-(--bg-nav) border-b border-(--border-main) shadow-(--shadow-nav) sticky top-0 z-50">
+      <div className="px-6 flex items-center h-14 gap-6 relative">
 
         {/* ── Logo ── */}
         <button
           onClick={() => navigate('/dashboard')}
-          style={{
-            display:    'flex',
-            alignItems: 'center',
-            gap:        '8px',
-            background: 'none',
-            border:     'none',
-            cursor:     'pointer',
-            padding:    '0',
-            outline:    'none',
-            flexShrink: 0,
-            marginRight:'auto',
-          }}
+          className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0 outline-none shrink-0 mr-auto"
         >
           <img
             src={logo}
             alt="The Catoolu"
-            style={{ width: '36px', height: '36px', objectFit: 'contain' }}
+            className="w-9 h-9 object-contain"
           />
-          <div style={{ textAlign: 'left' }}>
-            <div style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize:   '18px',
-              color:      'var(--color-primary-dark)',
-              lineHeight: '1.1',
-            }}>
+          <div className="text-left">
+            <div className="font-serif text-lg text-(--color-primary-dark) leading-[1.1]">
               The Catoolu
             </div>
-            <div style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize:   '11px',
-              color:      'var(--text-muted)',
-              lineHeight: '1.2',
-            }}>
+            <div className="font-sans text-[11px] text-(--text-muted) leading-[1.2]">
               welcome back, {user?.username}
             </div>
           </div>
@@ -275,35 +240,14 @@ export default function NavBar({ activeTab = 'investigators' }) {
         {/* ── Tabs — absolutely centered regardless of logo/avatar width ── */}
         <div
           ref={containerRef}
-          style={{
-            display:      'flex',
-            alignItems:   'center',
-            gap:          '4px',
-            position:     'absolute',
-            left:         '50%',
-            transform:    'translateX(-50%)',
-            padding:      '3px',
-            borderRadius: '999px',
-            background:   'var(--bg-section-hd)',
-            border:       '1px solid var(--border-main)',
-          }}
+          className="flex items-center gap-1 absolute left-1/2 -translate-x-1/2 p-[3px] rounded-full bg-(--bg-section-hd) border border-(--border-main)"
         >
           {/* Single pill — slides across the container */}
           {pillBounds && (
             <div
-              style={{
-                position:      'absolute',
-                top:           '3px',
-                bottom:        '3px',
-                left:          pillBounds.left,
-                width:         pillBounds.width,
-                borderRadius:  '999px',
-                background:    'var(--accent-bg)',
-                border:        '1.5px solid var(--color-primary)',
-                zIndex:        0,
-                pointerEvents: 'none',
-                transition:    'left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
+              // left/width are runtime-measured (getBoundingClientRect) — stay inline
+              className="absolute top-[3px] bottom-[3px] rounded-full bg-(--accent-bg) border-[1.5px] border-(--color-primary) z-0 pointer-events-none [transition:left_0.3s_cubic-bezier(0.4,0,0.2,1),width_0.3s_cubic-bezier(0.4,0,0.2,1)]"
+              style={{ left: pillBounds.left, width: pillBounds.width }}
             />
           )}
 
@@ -312,7 +256,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
             const isSoon   = tab.status === 'soon';
 
             return (
-              <div key={tab.id} style={{ position: 'relative' }}>
+              <div key={tab.id} className="relative">
                 <button
                   ref={el => { tabRefs.current[tab.id] = el; }}
                   onClick={() => !isSoon && navigate(tab.path)}
@@ -322,52 +266,18 @@ export default function NavBar({ activeTab = 'investigators' }) {
                   onMouseLeave={() => {
                     setTooltip(null);
                   }}
-                  style={{
-                    display:      'flex',
-                    alignItems:   'center',
-                    gap:          '6px',
-                    padding:      '5px 14px',
-                    borderRadius: '999px',
-                    border:       '1.5px solid transparent',
-                    background:   'transparent',
-                    cursor:       isSoon ? 'default' : 'pointer',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '13px',
-                    fontWeight:   isActive ? '600' : '400',
-                    color:        isActive
-                      ? 'var(--accent)'
-                      : isSoon
-                        ? 'var(--text-faint)'
-                        : 'var(--text-muted)',
-                    whiteSpace:   'nowrap',
-                    transition:   'color 0.15s ease',
-                    position:     'relative',
-                    zIndex:       1,
-                  }}
+                  className={`flex items-center gap-1.5 py-[5px] px-3.5 rounded-full border-[1.5px] border-transparent bg-transparent font-sans text-[13px] whitespace-nowrap [transition:color_0.15s_ease] relative z-[1] ${isSoon ? 'cursor-default' : 'cursor-pointer'} ${isActive ? 'font-semibold' : 'font-normal'} ${isActive ? 'text-(--accent)' : isSoon ? 'text-(--text-faint)' : 'text-(--text-muted)'}`}
                 >
                   {tab.label}
 
                   {isSoon && (
-                    <span className="icon icon-sm" style={{ opacity: 0.4 }}>lock</span>
+                    <span className="icon icon-sm opacity-40">lock</span>
                   )}
                 </button>
 
                 {/* Tooltip */}
                 {tooltip?.id === tab.id && (
-                  <div style={{
-                    position:     'absolute',
-                    top:          'calc(100% + 6px)',
-                    left:         '50%',
-                    transform:    'translateX(-50%)',
-                    background:   'var(--text-primary)',
-                    color:        'var(--bg-page)',
-                    fontSize:     '11px',
-                    padding:      '4px 10px',
-                    borderRadius: '6px',
-                    whiteSpace:   'nowrap',
-                    pointerEvents:'none',
-                    zIndex:       100,
-                  }}>
+                  <div className="absolute top-[calc(100%+6px)] left-1/2 -translate-x-1/2 bg-(--text-primary) text-(--bg-page) text-[11px] py-1 px-2.5 rounded-md whitespace-nowrap pointer-events-none z-[100]">
                     Coming in {tab.version}
                   </div>
                 )}
@@ -377,13 +287,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
         </div>
 
         {/* ── Right side — pushed to far right with marginLeft auto ── */}
-        <div style={{
-          display:        'flex',
-          alignItems:     'center',
-          gap:            '8px',
-          flex:           1,
-          justifyContent: 'flex-end',
-        }}>
+        <div className="flex items-center gap-2 flex-1 justify-end">
 
           {/* Maintenance warning pill — fades in/out, pulses like Return to Room */}
           {maintPill.mounted && <MaintPill pill={maintPill} />}
@@ -392,56 +296,22 @@ export default function NavBar({ activeTab = 'investigators' }) {
           {roomPill.data && (
             <div
               ref={roomPillRef}
-              style={{
-                position:        'relative',
-                opacity:         roomPill.visible ? 1 : 0,
-                transform:       roomPill.visible ? 'scale(1)' : 'scale(0.5)',
-                transformOrigin: 'center right',
-                pointerEvents:   roomPill.visible ? 'auto' : 'none',
-                transition:      'opacity 0.2s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              }}
+              className={`relative origin-right [transition:opacity_0.2s_ease,transform_0.22s_cubic-bezier(0.34,1.56,0.64,1)] ${roomPill.visible ? 'opacity-100' : 'opacity-0'} ${roomPill.visible ? '[transform:scale(1)]' : '[transform:scale(0.5)]'} ${roomPill.visible ? 'pointer-events-auto' : 'pointer-events-none'}`}
               onMouseEnter={() => setRoomPillHovered(true)}
               onMouseLeave={() => { setRoomPillHovered(false); }}
             >
               {/* Pill itself */}
               <div
-                style={{
-                  display:      'flex',
-                  alignItems:   'center',
-                  borderRadius: '999px',
-                  border:       '1.5px solid var(--color-primary)',
-                  background:   roomMenuOpen ? 'var(--color-primary)' : 'var(--accent-bg)',
-                  color:        roomMenuOpen ? '#ffffff' : 'var(--color-primary)',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '12px',
-                  fontWeight:   '500',
-                  animation:    roomMenuOpen ? 'none' : 'pulse 2s infinite',
-                  overflow:     'hidden',
-                  transition:   'background 0.15s ease, color 0.15s ease',
-                  maxWidth:     '220px',
-                }}
+                className={`flex items-center rounded-full border-[1.5px] border-(--color-primary) font-sans text-xs font-medium overflow-hidden [transition:background_0.15s_ease,color_0.15s_ease] max-w-[220px] ${roomMenuOpen ? 'bg-(--color-primary)' : 'bg-(--accent-bg)'} ${roomMenuOpen ? 'text-white' : 'text-(--color-primary)'} ${roomMenuOpen ? 'animate-none' : 'animate-[pulse_2s_infinite]'}`}
               >
                 {/* Left: navigate to room */}
                 <Tooltip content={'Return to ' + roomPill.data.name}>
                 <button
                   onClick={() => { setRoomMenuOpen(false); navigate('/campaign/' + roomPill.data.uuid); }}
-                  style={{
-                    display:    'flex',
-                    alignItems: 'center',
-                    gap:        '6px',
-                    padding:    '5px 10px 5px 14px',
-                    background: 'transparent',
-                    border:     'none',
-                    color:      'inherit',
-                    fontFamily: 'inherit',
-                    fontSize:   'inherit',
-                    fontWeight: 'inherit',
-                    cursor:     'pointer',
-                    minWidth:   0,
-                  }}
+                  className="flex items-center gap-1.5 py-[5px] pr-2.5 pl-3.5 bg-transparent border-none text-inherit [font-family:inherit] [font-size:inherit] [font-weight:inherit] cursor-pointer min-w-0"
                 >
                   <span className="icon icon-sm">play_arrow</span>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span className="truncate">
                     {roomPill.data.name}
                   </span>
                 </button>
@@ -450,24 +320,10 @@ export default function NavBar({ activeTab = 'investigators' }) {
                 {/* Right: chevron — morphs in on hover */}
                 <button
                   onClick={() => setRoomMenuOpen(o => !o)}
-                  style={{
-                    display:        'flex',
-                    alignItems:     'center',
-                    justifyContent: 'center',
-                    padding:        roomPillHovered || roomMenuOpen ? '5px 10px 5px 4px' : '5px 0',
-                    background:     'transparent',
-                    border:         'none',
-                    borderLeft:     roomPillHovered || roomMenuOpen ? '1px solid color-mix(in srgb, var(--color-primary) 35%, transparent)' : 'none',
-                    color:          'inherit',
-                    cursor:         'pointer',
-                    width:          roomPillHovered || roomMenuOpen ? '28px' : '0px',
-                    opacity:        roomPillHovered || roomMenuOpen ? 1 : 0,
-                    overflow:       'hidden',
-                    transition:     'width 0.2s ease, opacity 0.15s ease, padding 0.2s ease, border 0.15s ease',
-                  }}
+                  className={`flex items-center justify-center bg-transparent border-none text-inherit cursor-pointer overflow-hidden [transition:width_0.2s_ease,opacity_0.15s_ease,padding_0.2s_ease,border_0.15s_ease] ${(roomPillHovered || roomMenuOpen) ? 'py-[5px] pr-2.5 pl-1 border-l border-l-[color-mix(in_srgb,var(--color-primary)_35%,transparent)] w-7 opacity-100' : 'py-[5px] px-0 border-l-0 w-0 opacity-0'}`}
                   tabIndex={roomPillHovered || roomMenuOpen ? 0 : -1}
                 >
-                  <span className="icon" style={{ fontSize: '16px', transition: 'transform 0.2s ease', transform: roomMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                  <span className={`icon text-base [transition:transform_0.2s_ease] ${roomMenuOpen ? '[transform:rotate(180deg)]' : '[transform:rotate(0deg)]'}`}>
                     expand_more
                   </span>
                 </button>
@@ -475,36 +331,10 @@ export default function NavBar({ activeTab = 'investigators' }) {
 
               {/* Dropdown */}
               {roomMenuOpen && (
-                <div style={{
-                  position:     'absolute',
-                  top:          'calc(100% + 6px)',
-                  right:        0,
-                  background:   'var(--bg-card)',
-                  border:       '1px solid var(--border-main)',
-                  borderRadius: '10px',
-                  boxShadow:    '0 4px 16px rgba(0,0,0,0.12)',
-                  padding:      '6px',
-                  minWidth:     '140px',
-                  zIndex:       1000,
-                }}>
+                <div className="absolute top-[calc(100%+6px)] right-0 bg-(--bg-card) border border-(--border-main) rounded-[10px] shadow-[0_4px_16px_rgba(0,0,0,0.12)] p-1.5 min-w-[140px] z-[1000]">
                   <button
                     onClick={() => { setRoomMenuOpen(false); handlePillDisconnect(); }}
-                    style={{
-                      display:      'flex',
-                      alignItems:   'center',
-                      gap:          '8px',
-                      width:        '100%',
-                      padding:      '8px 12px',
-                      borderRadius: '6px',
-                      border:       'none',
-                      background:   'transparent',
-                      color:        'var(--danger)',
-                      fontFamily:   'var(--font-sans)',
-                      fontSize:     '13px',
-                      cursor:       'pointer',
-                      textAlign:    'left',
-                      transition:   'background 0.12s ease',
-                    }}
+                    className="flex items-center gap-2 w-full py-2 px-3 rounded-md border-none bg-transparent text-(--danger) font-sans text-[13px] cursor-pointer text-left [transition:background_0.12s_ease]"
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
@@ -521,20 +351,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
             <>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                style={{
-                  display:      'flex',
-                  alignItems:   'center',
-                  gap:          '5px',
-                  background:   'transparent',
-                  border:       '1px solid var(--border-main)',
-                  borderRadius: '8px',
-                  padding:      '5px 12px',
-                  cursor:       'pointer',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '13px',
-                  color:        'var(--text-secondary)',
-                  transition:   'all 0.15s ease',
-                }}
+                className="flex items-center gap-[5px] bg-transparent border border-(--border-main) rounded-lg py-[5px] px-3 cursor-pointer font-sans text-[13px] text-(--text-secondary) [transition:all_0.15s_ease]"
                 onMouseEnter={e => {
                   e.currentTarget.style.borderColor = 'var(--accent)';
                   e.currentTarget.style.color       = 'var(--accent)';
@@ -551,33 +368,16 @@ export default function NavBar({ activeTab = 'investigators' }) {
                 type="file"
                 accept=".json"
                 onChange={handleFileChange}
-                style={{ display: 'none' }}
+                className="hidden"
               />
             </>
           )}
 
           {/* Avatar */}
-          <div ref={dropdownRef} style={{ position: 'relative' }}>
+          <div ref={dropdownRef} className="relative">
             <button
               onClick={() => setDropdownOpen(o => !o)}
-              style={{
-                width:         '36px',
-                height:        '36px',
-                borderRadius:  '50%',
-                background:    'var(--color-primary-light)',
-                border:        `1.5px solid ${dropdownOpen ? 'var(--color-primary)' : 'var(--border-main)'}`,
-                cursor:        'pointer',
-                fontFamily:    'var(--font-sans)',
-                fontSize:      '12px',
-                fontWeight:    '500',
-                color:         'var(--color-primary-dark)',
-                display:       'flex',
-                alignItems:    'center',
-                justifyContent:'center',
-                transition:    'border-color 0.15s ease',
-                overflow:      'hidden',
-                padding:       0,
-              }}
+              className={`w-9 h-9 rounded-full bg-(--color-primary-light) border-[1.5px] cursor-pointer font-sans text-xs font-medium text-(--color-primary-dark) flex items-center justify-center [transition:border-color_0.15s_ease] overflow-hidden p-0 ${dropdownOpen ? 'border-(--color-primary)' : 'border-(--border-main)'}`}
               onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
               onMouseLeave={e => {
                 if (!dropdownOpen)
@@ -588,7 +388,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
                 <img
                   src={user.avatar_url.startsWith('http') ? user.avatar_url : (import.meta.env.VITE_API_URL || '') + user.avatar_url}
                   alt={user.username}
-                  style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
+                  className="w-9 h-9 object-cover rounded-full block"
                 />
               ) : initials}
             </button>
@@ -596,28 +396,14 @@ export default function NavBar({ activeTab = 'investigators' }) {
             {/* Dropdown */}
             {/* ── Dropdown ─────────────────────────── */}
               {dropdownOpen && (
-                <div style={{
-                  position:   'absolute',
-                  top:        'calc(100% + 8px)',
-                  right:      0,
-                  width:      panel === 'main' ? '200px' : '240px',
-                  background: 'var(--bg-card)',
-                  border:     '1px solid var(--border-main)',
-                  borderRadius:'12px',
-                  boxShadow:  'var(--shadow-dropdown)',
-                  overflow:   'hidden',
-                  zIndex:     100,
-                  transition: 'width 0.2s ease',
-                }}>
+                <div className={`absolute top-[calc(100%+8px)] right-0 bg-(--bg-card) border border-(--border-main) rounded-xl shadow-(--shadow-dropdown) overflow-hidden z-[100] [transition:width_0.2s_ease] ${panel === 'main' ? 'w-[200px]' : 'w-[240px]'}`}>
 
                   {/* Panel content — key triggers remount + animation */}
                   <div
                     key={panel}
-                    style={{
-                      animation: panel === 'preferences'
-                        ? 'slideInFromRight 0.18s ease'
-                        : 'slideInFromLeft 0.18s ease',
-                    }}
+                    className={panel === 'preferences'
+                      ? 'animate-[slideInFromRight_0.18s_ease]'
+                      : 'animate-[slideInFromLeft_0.18s_ease]'}
                   >
                     {panel === 'main' && (
                       <MainMenuPanel
@@ -655,58 +441,21 @@ export default function NavBar({ activeTab = 'investigators' }) {
 function MaintPill({ pill }) {
   const [hover, setHover] = useState(false);
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       <div
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
-        style={{
-          display:       'flex',
-          alignItems:    'center',
-          gap:           '6px',
-          padding:       '5px 14px',
-          borderRadius:  '20px',
-          border:        '1.5px solid var(--danger, #E24B4A)',
-          background:    'var(--danger-bg, rgba(226,75,74,0.12))',
-          color:         'var(--danger, #E24B4A)',
-          fontFamily:    'var(--font-sans)',
-          fontSize:      '12px',
-          fontWeight:    500,
-          cursor:        'help',
-          userSelect:    'none',
-          overflow:      'hidden',
-          maxWidth:      '180px',
-          animation:     pill.visible ? 'pulse-danger 2s infinite' : 'none',
-          opacity:       pill.visible ? 1 : 0,
-          transform:     pill.visible ? 'translateY(0) scale(1)' : 'translateY(4px) scale(0.95)',
-          transition:    'opacity 0.3s ease, transform 0.3s ease',
-          pointerEvents: pill.visible ? 'auto' : 'none',
-        }}
+        className={`flex items-center gap-1.5 py-[5px] px-3.5 rounded-[20px] border-[1.5px] border-[var(--danger,#E24B4A)] bg-[var(--danger-bg,rgba(226,75,74,0.12))] text-[var(--danger,#E24B4A)] font-sans text-xs font-medium cursor-help select-none overflow-hidden max-w-[180px] [transition:opacity_0.3s_ease,transform_0.3s_ease] ${pill.visible ? 'animate-[pulse-danger_2s_infinite]' : 'animate-none'} ${pill.visible ? 'opacity-100' : 'opacity-0'} ${pill.visible ? '[transform:translateY(0)_scale(1)]' : '[transform:translateY(4px)_scale(0.95)]'} ${pill.visible ? 'pointer-events-auto' : 'pointer-events-none'}`}
       >
-        <span className="icon icon-sm" style={{ flexShrink: 0 }}>warning</span>
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span className="icon icon-sm shrink-0">warning</span>
+        <span className="truncate">
           Maintenance soon
         </span>
       </div>
 
       {/* Custom tooltip — faster than the native title attribute */}
       {hover && pill.message && (
-        <div style={{
-          position:     'absolute',
-          top:          'calc(100% + 7px)',
-          right:        0,
-          background:   'var(--text-primary)',
-          color:        'var(--bg-page)',
-          fontSize:     '11px',
-          lineHeight:   1.5,
-          padding:      '6px 10px',
-          borderRadius: '7px',
-          whiteSpace:   'pre-wrap',
-          maxWidth:     '240px',
-          wordBreak:    'break-word',
-          pointerEvents:'none',
-          zIndex:       200,
-          boxShadow:    '0 2px 8px rgba(0,0,0,0.18)',
-        }}>
+        <div className="absolute top-[calc(100%+7px)] right-0 bg-(--text-primary) text-(--bg-page) text-[11px] leading-normal py-1.5 px-2.5 rounded-[7px] whitespace-pre-wrap max-w-[240px] break-words pointer-events-none z-[200] shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
           {pill.message}
         </div>
       )}
@@ -719,22 +468,7 @@ function DropdownItem({ label, icon, onClick, danger, chevron }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        display:       'flex',
-        alignItems:    'center',
-        gap:           '8px',
-        width:         '100%',
-        padding:       '8px 10px',
-        borderRadius:  '8px',
-        background:    'transparent',
-        border:        'none',
-        cursor:        'pointer',
-        fontFamily:    'var(--font-sans)',
-        fontSize:      '13px',
-        color:         danger ? 'var(--danger)' : 'var(--text-secondary)',
-        textAlign:     'left',
-        transition:    'background 0.1s ease, color 0.1s ease',
-      }}
+      className={`flex items-center gap-2 w-full py-2 px-2.5 rounded-lg bg-transparent border-none cursor-pointer font-sans text-[13px] text-left [transition:background_0.1s_ease,color_0.1s_ease] ${danger ? 'text-(--danger)' : 'text-(--text-secondary)'}`}
       onMouseEnter={e => {
         e.currentTarget.style.background = danger ? 'var(--danger-bg)' : 'var(--row-hover)';
         if (!danger) e.currentTarget.style.color = 'var(--text-primary)';
@@ -744,14 +478,10 @@ function DropdownItem({ label, icon, onClick, danger, chevron }) {
         e.currentTarget.style.color = danger ? 'var(--danger)' : 'var(--text-secondary)';
       }}
     >
-      <span style={{ fontSize: '14px' }}>{icon}</span>
-      <span style={{ flex: 1 }}>{label}</span>
+      <span className="text-sm">{icon}</span>
+      <span className="flex-1">{label}</span>
       {chevron && (
-        <span style={{
-          fontSize:  '14px',
-          color:     'var(--text-faint)',
-          lineHeight: 1,
-        }}>
+        <span className="text-sm text-(--text-faint) leading-none">
           ›
         </span>
       )}
@@ -766,21 +496,14 @@ function MainMenuPanel({
   return (
     <>
       {/* Username header */}
-      <div style={{
-        padding:      '12px 16px 10px',
-        borderBottom: '1px solid var(--border-main)',
-      }}>
-        <div style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize:   '15px',
-          color:      'var(--text-primary)',
-        }}>
+      <div className="pt-3 px-4 pb-2.5 border-b border-(--border-main)">
+        <div className="font-serif text-[15px] text-(--text-primary)">
           {user?.username}
         </div>
       </div>
 
       {/* Menu items */}
-      <div style={{ padding: '6px' }}>
+      <div className="p-1.5">
         <DropdownItem
           label="Profile"
           icon="👤"
@@ -821,7 +544,7 @@ function MainMenuPanel({
           onClick={() => { setBugModalOpen(true); setDropdownOpen(false); }}
         />
 
-        <div style={{ height: '1px', background: 'var(--border-main)', margin: '4px 0' }} />
+        <div className="h-px bg-(--border-main) my-1" />
 
         <DropdownItem
           label="Sign Out"
@@ -844,51 +567,26 @@ const HOME_OPTIONS = [
   { value: '/campaign',  label: 'Campaigns'     },
 ];
 
-// ── Shared section header style (used by every section in PreferencesPanel)
-const sectionLabel = {
-  fontFamily:    'var(--font-sans)',
-  fontSize:      '10px',
-  fontWeight:    '600',
-  textTransform: 'uppercase',
-  letterSpacing: '0.08em',
-  color:         'var(--text-muted)',
-  marginBottom:  '8px',
-};
+// ── Shared section header utility classes (used by every section in
+// PreferencesPanel) — expanded inline at each call site.
 
 // ── Shared setting row wrapper ──────────────────────────────
 // label on the left, control on the right, consistent vertical padding,
 // divider on the bottom. Mirrors the ToggleRow rhythm.
 function SettingRow({ label, desc, children }) {
   return (
-    <div style={{
-      display:        'flex',
-      alignItems:     'center',
-      justifyContent: 'space-between',
-      gap:            '10px',
-      padding:        '8px 0',
-      borderBottom:   '1px solid var(--border-main)',
-    }}>
-      <div style={{ minWidth: 0 }}>
-        <div style={{
-          fontSize:   '13px',
-          fontWeight: '500',
-          color:      'var(--text-primary)',
-          fontFamily: 'var(--font-sans)',
-        }}>
+    <div className="flex items-center justify-between gap-2.5 py-2 border-b border-(--border-main)">
+      <div className="min-w-0">
+        <div className="text-[13px] font-medium text-(--text-primary) font-sans">
           {label}
         </div>
         {desc && (
-          <div style={{
-            fontSize:   '11px',
-            color:      'var(--text-muted)',
-            fontFamily: 'var(--font-sans)',
-            lineHeight: 1.4,
-          }}>
+          <div className="text-[11px] text-(--text-muted) font-sans leading-[1.4]">
             {desc}
           </div>
         )}
       </div>
-      <div style={{ flexShrink: 0 }}>
+      <div className="shrink-0">
         {children}
       </div>
     </div>
@@ -898,38 +596,19 @@ function SettingRow({ label, desc, children }) {
 // ── ± stepper control ───────────────────────────────────────
 function Stepper({ value, idx, min, max, onStep }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+    <div className="flex items-center gap-1">
       <button
         onClick={() => onStep(-1)}
         disabled={idx <= min}
-        style={{
-          width: '24px', height: '24px', borderRadius: '6px',
-          border: '1px solid var(--border-main)',
-          background: 'transparent',
-          color: idx <= min ? 'var(--text-faint)' : 'var(--text-secondary)',
-          fontFamily: 'var(--font-sans)', fontSize: '15px', lineHeight: 1,
-          cursor: idx <= min ? 'default' : 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
+        className={`w-6 h-6 rounded-md border border-(--border-main) bg-transparent font-sans text-[15px] leading-none flex items-center justify-center ${idx <= min ? 'text-(--text-faint) cursor-default' : 'text-(--text-secondary) cursor-pointer'}`}
       >−</button>
-      <span style={{
-        fontFamily: 'var(--font-sans)', fontSize: '12px',
-        color: 'var(--text-primary)', minWidth: '36px', textAlign: 'center',
-      }}>
+      <span className="font-sans text-xs text-(--text-primary) min-w-9 text-center">
         {Math.round(value * 100)}%
       </span>
       <button
         onClick={() => onStep(+1)}
         disabled={idx >= max}
-        style={{
-          width: '24px', height: '24px', borderRadius: '6px',
-          border: '1px solid var(--border-main)',
-          background: 'transparent',
-          color: idx >= max ? 'var(--text-faint)' : 'var(--text-secondary)',
-          fontFamily: 'var(--font-sans)', fontSize: '15px', lineHeight: 1,
-          cursor: idx >= max ? 'default' : 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
+        className={`w-6 h-6 rounded-md border border-(--border-main) bg-transparent font-sans text-[15px] leading-none flex items-center justify-center ${idx >= max ? 'text-(--text-faint) cursor-default' : 'text-(--text-secondary) cursor-pointer'}`}
       >+</button>
     </div>
   );
@@ -957,29 +636,10 @@ function PreferencesPanel({ theme, setPanel }) {
   return (
     <>
       {/* ── Header with back button ── */}
-      <div style={{
-        padding:       '10px 12px',
-        borderBottom:  '1px solid var(--border-main)',
-        display:       'flex',
-        alignItems:    'center',
-        justifyContent:'space-between',
-      }}>
+      <div className="py-2.5 px-3 border-b border-(--border-main) flex items-center justify-between">
         <button
           onClick={() => setPanel('main')}
-          style={{
-            display:     'flex',
-            alignItems:  'center',
-            gap:         '4px',
-            background:  'none',
-            border:      'none',
-            cursor:      'pointer',
-            fontFamily:  'var(--font-sans)',
-            fontSize:    '13px',
-            color:       'var(--text-secondary)',
-            padding:     '2px 6px',
-            borderRadius:'6px',
-            transition:  'all 0.1s',
-          }}
+          className="flex items-center gap-1 bg-transparent border-none cursor-pointer font-sans text-[13px] text-(--text-secondary) py-0.5 px-1.5 rounded-md [transition:all_0.1s]"
           onMouseEnter={e => {
             e.currentTarget.style.background = 'var(--row-hover)';
             e.currentTarget.style.color      = 'var(--text-primary)';
@@ -992,79 +652,39 @@ function PreferencesPanel({ theme, setPanel }) {
           <span className="icon icon-sm">arrow_back</span>{' '}Back
         </button>
 
-        <span style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize:   '12px',
-          fontWeight: '500',
-          color:      'var(--text-primary)',
-        }}>
+        <span className="font-sans text-xs font-medium text-(--text-primary)">
           Preferences
         </span>
 
         {/* Saved confirmation flash */}
-        <span style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize:   '11px',
-          color:      'var(--success)',
-          opacity:    savedMsg ? 1 : 0,
-          transition: 'opacity 0.2s ease',
-          minWidth:   '48px',
-          textAlign:  'right',
-        }}>
+        <span className={`font-sans text-[11px] text-(--success) [transition:opacity_0.2s_ease] min-w-12 text-right ${savedMsg ? 'opacity-100' : 'opacity-0'}`}>
           {savedMsg}
         </span>
       </div>
 
       {/* ── Settings body ── */}
-      <div style={{ padding: '10px 12px 14px' }}>
+      <div className="pt-2.5 px-3 pb-3.5">
 
         {/* ── THEME ── */}
-        <div style={{ marginBottom: '14px' }}>
-          <div style={sectionLabel}>Theme</div>
-          <div style={{
-            display:             'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap:                 '6px',
-          }}>
+        <div className="mb-3.5">
+          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Theme</div>
+          <div className="grid grid-cols-3 gap-1.5">
             {THEMES.map(opt => {
               const isActive = theme === opt.id;
               return (
                 <Tooltip key={opt.id} content={opt.label}>
                 <button
                   onClick={() => applySetting(() => setTheme(opt.id))}
-                  style={{
-                    display:       'flex',
-                    flexDirection: 'column',
-                    alignItems:    'center',
-                    gap:           '4px',
-                    padding:       '6px 4px',
-                    borderRadius:  '8px',
-                    border:        isActive
-                      ? '2px solid var(--accent)'
-                      : '1.5px solid var(--border-main)',
-                    background:    isActive ? 'var(--accent-bg)' : 'var(--bg-input)',
-                    cursor:        isActive ? 'default' : 'pointer',
-                    transition:    'border-color 0.15s ease, background 0.15s ease',
-                  }}
+                  className={`flex flex-col items-center gap-1 py-1.5 px-1 rounded-lg [transition:border-color_0.15s_ease,background_0.15s_ease] ${isActive ? 'border-2 border-(--accent)' : 'border-[1.5px] border-(--border-main)'} ${isActive ? 'bg-(--accent-bg)' : 'bg-(--bg-input)'} ${isActive ? 'cursor-default' : 'cursor-pointer'}`}
                 >
                   {/* Three-colour swatch: [background, accent, surface] */}
-                  <div style={{ display: 'flex', gap: '2px', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div className="flex gap-0.5 rounded-[3px] overflow-hidden">
                     {opt.swatch.map((color, i) => (
-                      <div key={i} style={{ width: '14px', height: '14px', background: color }} />
+                      // swatch colour is dynamic per-theme data — stays inline
+                      <div key={i} className="w-3.5 h-3.5" style={{ background: color }} />
                     ))}
                   </div>
-                  <span style={{
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '10px',
-                    color:        isActive ? 'var(--accent)' : 'var(--text-muted)',
-                    fontWeight:   isActive ? '500' : '400',
-                    lineHeight:   1.2,
-                    textAlign:    'center',
-                    whiteSpace:   'nowrap',
-                    overflow:     'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth:     '100%',
-                  }}>
+                  <span className={`font-sans text-[10px] leading-[1.2] text-center truncate max-w-full ${isActive ? 'text-(--accent)' : 'text-(--text-muted)'} ${isActive ? 'font-medium' : 'font-normal'}`}>
                     {opt.label}
                   </span>
                 </button>
@@ -1075,8 +695,8 @@ function PreferencesPanel({ theme, setPanel }) {
         </div>
 
         {/* ── FONT SCALE ── */}
-        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '10px', marginBottom: '4px' }}>
-          <div style={sectionLabel}>Font Scale</div>
+        <div className="border-t border-(--border-main) pt-2.5 mb-1">
+          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Font Scale</div>
           {[
             { label: 'Sheet text',   desc: 'Character sheet size',  value: sheetFontScale, set: setSheetFontScale },
             { label: 'Display text', desc: 'Room / session panels', value: roomFontScale,  set: setRoomFontScale  },
@@ -1101,8 +721,8 @@ function PreferencesPanel({ theme, setPanel }) {
         </div>
 
         {/* ── VISUALS ── */}
-        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '10px', marginBottom: '4px' }}>
-          <div style={sectionLabel}>Visuals</div>
+        <div className="border-t border-(--border-main) pt-2.5 mb-1">
+          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Visuals</div>
 
           {/* Background master toggle */}
           <ToggleRow
@@ -1126,7 +746,7 @@ function PreferencesPanel({ theme, setPanel }) {
                   Indented slightly to show visual nesting under the parallax toggle. */}
               {parallaxEnabled && (
                 <SettingRow label="Amount" desc="Parallax strength">
-                  <div style={{ width: '88px' }}>
+                  <div className="w-[88px]">
                     <Slider
                       value={parallaxIntensity}
                       min={0.25}
@@ -1143,11 +763,11 @@ function PreferencesPanel({ theme, setPanel }) {
         </div>
 
         {/* ── HOME PAGE ── */}
-        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '10px' }}>
-          <div style={sectionLabel}>Home Page</div>
+        <div className="border-t border-(--border-main) pt-2.5">
+          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Home Page</div>
           {/* CustomDropdown already fills its container; wrap in a SettingRow-
               compatible block so spacing matches the rest of the panel. */}
-          <div style={{ paddingBottom: '2px' }}>
+          <div className="pb-0.5">
             <CustomDropdown
               value={homePage}
               onChange={v => {
@@ -1196,77 +816,62 @@ function QuotaPanel({ setPanel, navigate, onClose }) {
   return (
     <>
       {/* Header */}
-      <div style={{
-        padding:        '10px 12px',
-        borderBottom:   '1px solid var(--border-main)',
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'space-between',
-      }}>
+      <div className="py-2.5 px-3 border-b border-(--border-main) flex items-center justify-between">
         <button
           onClick={() => setPanel('main')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '4px',
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: 'var(--font-sans)', fontSize: '13px',
-            color: 'var(--text-secondary)', padding: '2px 6px',
-            borderRadius: '6px', transition: 'all 0.1s',
-          }}
+          className="flex items-center gap-1 bg-transparent border-none cursor-pointer font-sans text-[13px] text-(--text-secondary) py-0.5 px-1.5 rounded-md [transition:all_0.1s]"
           onMouseEnter={e => { e.currentTarget.style.background = 'var(--row-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
         >
           <span className="icon icon-sm">arrow_back</span>{' '}Back
         </button>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: '500', color: 'var(--text-primary)' }}>
+        <span className="font-sans text-xs font-medium text-(--text-primary)">
           Upload Quota
         </span>
-        <span style={{ minWidth: '48px' }} />
+        <span className="min-w-12" />
       </div>
 
       {/* Content */}
-      <div style={{ padding: '16px 14px 18px' }}>
+      <div className="pt-4 px-3.5 pb-[18px]">
 
         {/* Total storage */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+        <div className="flex justify-between items-baseline mb-1.5">
+          <span className="font-sans text-[13px] text-(--text-secondary)">
             Storage used
           </span>
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: '600', color: barColor(totalPct) }}>
-            {fmt(totalUsed)} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>/ {fmt(totalLimit)} MB</span>
+          {/* color is dynamic (barColor) — stays inline */}
+          <span className="font-sans text-[13px] font-semibold" style={{ color: barColor(totalPct) }}>
+            {fmt(totalUsed)} <span className="text-(--text-faint) font-normal">/ {fmt(totalLimit)} MB</span>
           </span>
         </div>
-        <div style={{ height: '8px', borderRadius: '4px', background: 'var(--border-main)', overflow: 'hidden', marginBottom: '14px' }}>
-          <div style={{ height: '100%', width: `${totalPct}%`, borderRadius: '4px', background: barColor(totalPct), transition: 'width 0.4s ease, background 0.3s ease' }} />
+        <div className="h-2 rounded bg-(--border-main) overflow-hidden mb-3.5">
+          {/* width + background are runtime values — stay inline */}
+          <div className="h-full rounded [transition:width_0.4s_ease,background_0.3s_ease]" style={{ width: `${totalPct}%`, background: barColor(totalPct) }} />
         </div>
 
         {/* 5-minute rate */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+        <div className="flex justify-between items-baseline mb-1.5">
+          <span className="font-sans text-[13px] text-(--text-secondary)">
             Uploaded · last 5 min
           </span>
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: '600', color: barColor(winPct) }}>
-            {fmt(winUsed)} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>/ {fmt(winLimit)} MB</span>
+          {/* color is dynamic (barColor) — stays inline */}
+          <span className="font-sans text-[13px] font-semibold" style={{ color: barColor(winPct) }}>
+            {fmt(winUsed)} <span className="text-(--text-faint) font-normal">/ {fmt(winLimit)} MB</span>
           </span>
         </div>
-        <div style={{ height: '8px', borderRadius: '4px', background: 'var(--border-main)', overflow: 'hidden', marginBottom: '10px' }}>
-          <div style={{ height: '100%', width: `${winPct}%`, borderRadius: '4px', background: barColor(winPct), transition: 'width 0.4s ease, background 0.3s ease' }} />
+        <div className="h-2 rounded bg-(--border-main) overflow-hidden mb-2.5">
+          {/* width + background are runtime values — stay inline */}
+          <div className="h-full rounded [transition:width_0.4s_ease,background_0.3s_ease]" style={{ width: `${winPct}%`, background: barColor(winPct) }} />
         </div>
 
-        <div style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--text-faint)', lineHeight: 1.5, marginBottom: '14px' }}>
+        <div className="font-sans text-[11px] text-(--text-faint) leading-normal mb-3.5">
           200&nbsp;MB total &middot; 50&nbsp;MB per 5 minutes.
         </div>
 
         {/* Manage files → */}
         <button
           onClick={() => { navigate('/files'); onClose?.(); }}
-          style={{
-            width: '100%', padding: '8px 12px',
-            border: '1px solid var(--color-primary-mid)', borderRadius: '8px',
-            background: 'var(--accent-bg)', color: 'var(--accent)',
-            fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 500,
-            cursor: 'pointer', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', gap: '6px', transition: 'background 0.1s',
-          }}
+          className="w-full py-2 px-3 border border-(--color-primary-mid) rounded-lg bg-(--accent-bg) text-(--accent) font-sans text-[13px] font-medium cursor-pointer flex items-center justify-center gap-1.5 [transition:background_0.1s]"
           onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-hover)'}
           onMouseLeave={e => e.currentTarget.style.background = 'var(--accent-bg)'}
         >

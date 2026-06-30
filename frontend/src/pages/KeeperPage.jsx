@@ -70,10 +70,7 @@ export default function KeeperPage() {
   // If a campaign is selected, show the detail view
   if (selected) {
     return (
-      <div style={{
-        minHeight:'100vh',
-        display:'flex', flexDirection:'column',
-      }}>
+      <div className="min-h-screen flex flex-col">
         <NavBar activeTab="keeper" />
         <KeeperCampaignDetail
           campaign={selected}
@@ -96,38 +93,25 @@ export default function KeeperPage() {
   }
 
   return (
-    <div style={{
-      minHeight:'100vh',
-      display:'flex', flexDirection:'column',
-      fontFamily:'var(--font-sans)',
-    }}>
+    <div className="min-h-screen flex flex-col font-sans">
       <NavBar activeTab="keeper" />
 
-      <main className="animate-fade-rise" style={{
-        maxWidth:'1200px', margin:'0 auto',
-        padding:'32px 24px', flex:1, width:'100%',
-      }}>
-        <div style={{
-          marginBottom:'28px', display:'flex',
-          justifyContent:'space-between', alignItems:'flex-end',
-        }}>
+      <main className="animate-fade-rise max-w-[1200px] mx-auto py-8 px-6 flex-1 w-full">
+        <div className="mb-7 flex justify-between items-end">
           <div>
-            <h1 style={{
-              fontFamily:'var(--font-serif)', fontSize:'28px',
-              color:'var(--text-primary)', margin:'0 0 4px',
-            }}>
+            <h1 className="font-serif text-[28px] text-(--text-primary) m-0 mb-1">
               Keeper
             </h1>
-            <p style={{ fontSize:'13px', color:'var(--text-muted)', margin:0 }}>
+            <p className="text-[13px] text-(--text-muted) m-0">
               {loading ? 'Loading...' :
                campaigns.length === 0
                  ? 'No campaigns yet — create one below'
                  : campaigns.length + ' campaign' + (campaigns.length !== 1 ? 's' : '')}
             </p>
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:'12px', flexWrap:'wrap' }}>
+          <div className="flex items-center gap-3 flex-wrap">
             {!loading && campaigns.length > 0 && (
-              <div style={{ width: 190, flexShrink: 0 }}>
+              <div className="w-[190px] shrink-0">
                 <CustomDropdown
                   value={sortBy}
                   onChange={handleSortChange}
@@ -144,12 +128,7 @@ export default function KeeperPage() {
             )}
             <button
               onClick={() => setShowCreate(true)}
-              style={{
-                padding:'8px 18px', borderRadius:'8px',
-                border:'none', background:'var(--color-primary)',
-                color:'#ffffff', fontFamily:'var(--font-sans)',
-                fontSize:'13px', fontWeight:'500', cursor:'pointer',
-              }}
+              className="py-2 px-[18px] rounded-lg border-none bg-(--color-primary) text-white font-sans text-[13px] font-medium cursor-pointer"
             >
               + Create Campaign
             </button>
@@ -161,26 +140,22 @@ export default function KeeperPage() {
           <div className="flex items-center justify-center py-24">
             <div className="text-center">
               <img src={logo} alt="Loading"
-                   className="object-contain animate-pulse mx-auto mb-4"
-                   style={{ width: '56px', height: '56px' }} />
-              <p style={{ color: 'var(--text-muted)' }}>Loading campaigns...</p>
+                   className="object-contain animate-pulse mx-auto mb-4 w-14 h-14" />
+              <p className="text-(--text-muted)">Loading campaigns...</p>
             </div>
           </div>
         )}
 
         {/* Empty state */}
         {!loading && campaigns.length === 0 && (
-          <div style={{ textAlign:'center', padding:'80px 20px' }}>
-            <div style={{ marginBottom:'12px', opacity:0.3 }}>
-              <span className="icon" style={{ fontSize:'48px' }}>theater_comedy</span>
+          <div className="text-center py-20 px-5">
+            <div className="mb-3 opacity-30">
+              <span className="icon text-[48px]">theater_comedy</span>
             </div>
-            <p style={{
-              fontFamily:'var(--font-serif)', fontSize:'18px',
-              color:'var(--text-primary)', margin:'0 0 8px',
-            }}>
+            <p className="font-serif text-lg text-(--text-primary) m-0 mb-2">
               No campaigns to keep
             </p>
-            <p style={{ fontSize:'13px', color:'var(--text-muted)', margin:0 }}>
+            <p className="text-[13px] text-(--text-muted) m-0">
               Create a campaign using the button above.
             </p>
           </div>
@@ -188,22 +163,12 @@ export default function KeeperPage() {
 
         {/* Campaign grid */}
         {!loading && campaigns.length > 0 && (
-          <div style={{
-            display:'grid',
-            gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))',
-            gap:'16px',
-          }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
             {sortedCampaigns.map(c => (
               <div
                 key={c.id}
                 onClick={() => setSelected(c)}
-                style={{
-                  background:'var(--bg-card)',
-                  border:'1px solid var(--border-main)',
-                  borderRadius:'12px', padding:'20px',
-                  cursor:'pointer', transition:'all 0.15s ease',
-                  boxShadow:'var(--shadow-card)',
-                }}
+                className="bg-(--bg-card) border border-(--border-main) rounded-xl p-5 cursor-pointer transition-all duration-150 ease-[ease] shadow-(--shadow-card)"
                 onMouseEnter={e => {
                   e.currentTarget.style.boxShadow = 'var(--shadow-dropdown)';
                   e.currentTarget.style.transform = 'translateY(-2px)';
@@ -213,37 +178,18 @@ export default function KeeperPage() {
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <div style={{
-                  display:'inline-flex', alignItems:'center', gap:'5px',
-                  background:'var(--accent-bg)',
-                  color:'var(--accent)', borderRadius:'20px',
-                  fontSize:'11px', fontWeight:'500',
-                  padding:'3px 10px', marginBottom:'10px',
-                }}>
+                <div className="inline-flex items-center gap-[5px] bg-(--accent-bg) text-(--accent) rounded-[20px] text-[11px] font-medium py-[3px] px-2.5 mb-2.5">
                   <span className="icon icon-sm">theater_comedy</span>{' '}Keeper
                 </div>
-                <h3 style={{
-                  fontFamily:'var(--font-serif)', fontSize:'18px',
-                  color:'var(--text-primary)', margin:'0 0 6px',
-                }}>
+                <h3 className="font-serif text-lg text-(--text-primary) m-0 mb-1.5">
                   {c.name}
                 </h3>
                 {c.description && (
-                  <p style={{
-                    fontSize:'13px', color:'var(--text-muted)',
-                    margin:'0 0 12px', lineHeight:'1.5',
-                    display:'-webkit-box',
-                    WebkitLineClamp:2, WebkitBoxOrient:'vertical',
-                    overflow:'hidden',
-                  }}>
+                  <p className="text-[13px] text-(--text-muted) m-0 mb-3 leading-normal line-clamp-2">
                     {c.description}
                   </p>
                 )}
-                <div style={{
-                  fontSize:'12px', color:'var(--text-faint)',
-                  borderTop:'1px solid var(--border-main)',
-                  paddingTop:'10px', marginTop:'auto',
-                }}>
+                <div className="text-xs text-(--text-faint) border-t border-(--border-main) pt-2.5 mt-auto">
                   {c.member_count} member{c.member_count !== '1' ? 's' : ''}
                 </div>
               </div>

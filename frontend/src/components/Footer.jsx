@@ -17,55 +17,23 @@ export default function Footer() {
   const [showWhatsNew, setShowWhatsNew] = useState(false);
 
   return (
-    <footer style={{
-      position:   'relative',
-      marginTop:  'auto',
-    }}>
+    <footer className="relative mt-auto">
       {/* Single tall top-fade — no hard line, no stepped scrim.
           One continuous gradient fades from transparent (well above the text)
           down to a soft tint of --bg-page, so the background art dissolves
           seamlessly into the footer. On plain-page routes (no art) the tint is
           the same colour as the page, so it stays invisible. */}
-      <div style={{
-        position:   'relative',
-        background: 'linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--bg-page) 62%, transparent) 100%)',
-      }}>
-        <div style={{
-          padding:        '72px 24px 16px',
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'space-between',
-          flexWrap:       'wrap',
-          gap:            '16px',
-        }}>
+      <div className="relative bg-[linear-gradient(to_bottom,transparent_0%,color-mix(in_srgb,var(--bg-page)_62%,transparent)_100%)]">
+        <div className="pt-[72px] px-6 pb-4 flex items-center justify-between flex-wrap gap-4">
 
           {/* Left Side: 2 Lines */}
-          <div style={{
-            display:       'flex',
-            flexDirection: 'column',
-            gap:           '4px',
-            fontFamily:    'var(--font-sans)',
-            fontSize:      '12px',
-            color:         'var(--text-faint)',
-          }}>
+          <div className="flex flex-col gap-1 font-sans text-xs text-(--text-faint)">
             <span>
               <Tooltip content="What's new in this version">
               <button
                 type="button"
                 onClick={() => setShowWhatsNew(true)}
-                style={{
-                  background:           'none',
-                  border:               'none',
-                  padding:              0,
-                  margin:               0,
-                  font:                 'inherit',
-                  fontSize:             'inherit',
-                  color:                'var(--text-muted)',
-                  cursor:               'pointer',
-                  textDecoration:       'underline',
-                  textDecorationStyle:  'dotted',
-                  textUnderlineOffset:  3,
-                }}
+                className="bg-transparent border-none p-0 m-0 [font:inherit] [font-size:inherit] text-(--text-muted) cursor-pointer underline decoration-dotted underline-offset-[3px]"
               >
                 {VERSION}
               </button>
@@ -76,12 +44,7 @@ export default function Footer() {
                   href={releaseUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    color:          'var(--accent)',
-                    fontSize:       '11px',
-                    textDecoration: 'none',
-                    marginLeft:     '8px',
-                  }}
+                  className="text-(--accent) text-[11px] no-underline ml-2"
                 >
                   · update available{latestVersion ? ` (v${latestVersion})` : ''}
                 </a>
@@ -92,25 +55,12 @@ export default function Footer() {
           </div>
 
           {/* Right Side: 2 Lines */}
-          <div style={{
-            display:       'flex',
-            flexDirection: 'column',
-            alignItems:    'flex-end',
-            gap:           '4px',
-            fontFamily:    'var(--font-sans)',
-            fontSize:      '12px',
-            color:         'var(--text-faint)',
-            textAlign:     'right',
-          }}>
+          <div className="flex flex-col items-end gap-1 font-sans text-xs text-(--text-faint) text-right">
             <span>2026 · The Catoolu.</span>
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div className="flex gap-3">
               <Link
                 to="/about"
-                style={{
-                  color:          'var(--text-faint)',
-                  textDecoration: 'none',
-                  fontStyle:      'italic',
-                }}
+                className="text-(--text-faint) no-underline italic"
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-faint)'; }}
               >
@@ -118,11 +68,7 @@ export default function Footer() {
               </Link>
               <Link
                 to="/legal"
-                style={{
-                  color:          'var(--text-faint)',
-                  textDecoration: 'none',
-                  fontStyle:      'italic',
-                }}
+                className="text-(--text-faint) no-underline italic"
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-faint)'; }}
               >

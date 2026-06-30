@@ -108,67 +108,34 @@ export default function CustomDropdown({
 
   // Default rich row renderer
   const defaultRenderOption = (option, isSelected) => (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      padding: '7px 10px',
-      cursor: 'pointer',
-      background: isSelected ? 'var(--accent-bg)' : 'transparent',
-      transition: 'background 0.1s ease',
-    }}
-    onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--row-hover)'; }}
-    onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
-    onClick={() => handleSelect(option)}>
+    <div
+      className={`flex items-center gap-2.5 py-[7px] px-2.5 cursor-pointer [transition:background_0.1s_ease] ${isSelected ? 'bg-(--accent-bg)' : 'bg-transparent'}`}
+      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--row-hover)'; }}
+      onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+      onClick={() => handleSelect(option)}>
       {/* Portrait / avatar */}
       {(option.image || option.imageFallback) && (
-        <div style={{
-          width: 32, height: 32,
-          borderRadius: '50%',
-          background: 'var(--bg-input)',
-          border: '0.5px solid var(--border-main)',
-          overflow: 'hidden',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 11,
-          fontWeight: 500,
-          color: 'var(--text-muted)',
-        }}>
+        <div className="w-8 h-8 rounded-full bg-(--bg-input) border-[0.5px] border-(--border-main) overflow-hidden shrink-0 flex items-center justify-center text-[11px] font-medium text-(--text-muted)">
           {option.image
-            ? <img src={option.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ? <img src={option.image} alt="" className="w-full h-full object-cover" />
             : option.imageFallback
           }
         </div>
       )}
       {/* Text */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 13,
-          fontWeight: isSelected ? 500 : 400,
-          color: isSelected ? 'var(--accent)' : 'var(--text-primary)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
+      <div className="flex-1 min-w-0">
+        <div className={`text-[13px] overflow-hidden text-ellipsis whitespace-nowrap ${isSelected ? 'font-medium text-(--accent)' : 'font-normal text-(--text-primary)'}`}>
           {option.label}
         </div>
         {option.sublabel && (
-          <div style={{
-            fontSize: 11,
-            color: 'var(--text-muted)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
+          <div className="text-[11px] text-(--text-muted) overflow-hidden text-ellipsis whitespace-nowrap">
             {option.sublabel}
           </div>
         )}
       </div>
       {/* Selected checkmark */}
       {isSelected && (
-        <span className="icon icon-sm" style={{ color: 'var(--accent)', flexShrink: 0 }}>
+        <span className="icon icon-sm text-(--accent) shrink-0">
           check
         </span>
       )}
@@ -178,53 +145,24 @@ export default function CustomDropdown({
   const panel = open && createPortal(
     <div
       ref={panelRef}
-      style={{
-        ...panelStyle,
-        background: 'var(--bg-popup)',
-        border: '0.5px solid var(--border-main)',
-        borderRadius: 8,
-        boxShadow: 'var(--shadow-dropdown)',
-        overflow: 'hidden',
-        animation: 'fadeRise 150ms ease-out both',
-      }}>
+      className="bg-(--bg-popup) border-[0.5px] border-(--border-main) rounded-lg shadow-(--shadow-dropdown) overflow-hidden animate-[fadeRise_150ms_ease-out_both]"
+      style={panelStyle}>
       {/* Search bar */}
       {showSearch && (
-        <div style={{
-          padding: '6px 8px',
-          borderBottom: '0.5px solid var(--border-main)',
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            background: 'var(--bg-input)',
-            border: '0.5px solid var(--border-input)',
-            borderRadius: 6,
-            padding: '5px 8px',
-          }}>
-            <span className="icon icon-sm" style={{ color: 'var(--text-faint)' }}>search</span>
+        <div className="py-1.5 px-2 border-b-[0.5px] border-(--border-main)">
+          <div className="flex items-center gap-1.5 bg-(--bg-input) border-[0.5px] border-(--border-input) rounded-md py-[5px] px-2">
+            <span className="icon icon-sm text-(--text-faint)">search</span>
             <input
               ref={searchRef}
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search..."
-              style={{
-                border: 'none',
-                background: 'transparent',
-                outline: 'none',
-                fontSize: 12,
-                color: 'var(--text-primary)',
-                flex: 1,
-                fontFamily: 'var(--font-sans)',
-              }}
+              className="border-none bg-transparent outline-none text-xs text-(--text-primary) flex-1 font-sans"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--text-faint)', fontSize: 14, lineHeight: 1, padding: 0,
-                }}>
+                className="bg-transparent border-none cursor-pointer text-(--text-faint) text-sm leading-none p-0">
                 ×
               </button>
             )}
@@ -233,18 +171,9 @@ export default function CustomDropdown({
       )}
 
       {/* Options list */}
-      <div style={{
-        maxHeight: 280,
-        overflowY: 'auto',
-        overscrollBehavior: 'contain',
-      }}>
+      <div className="max-h-[280px] overflow-y-auto overscroll-contain">
         {filtered.length === 0 ? (
-          <div style={{
-            padding: '12px 10px',
-            fontSize: 12,
-            color: 'var(--text-faint)',
-            textAlign: 'center',
-          }}>
+          <div className="py-3 px-2.5 text-xs text-(--text-faint) text-center">
             No results
           </div>
         ) : filtered.map(option => (
@@ -264,46 +193,17 @@ export default function CustomDropdown({
         ref={triggerRef}
         onClick={toggle}
         disabled={disabled}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          width: '100%',
-          padding: '7px 10px',
-          background: 'var(--bg-input)',
-          border: `0.5px solid ${open ? 'var(--border-focus)' : 'var(--border-input)'}`,
-          borderRadius: 8,
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.55 : 1,
-          textAlign: 'left',
-          transition: 'border-color 0.15s ease',
-          fontFamily: 'var(--font-sans)',
-        }}>
+        className={`flex items-center gap-2 w-full py-[7px] px-2.5 bg-(--bg-input) border-[0.5px] rounded-lg text-left [transition:border-color_0.15s_ease] font-sans ${open ? 'border-(--border-focus)' : 'border-(--border-input)'} ${disabled ? 'cursor-not-allowed opacity-[0.55]' : 'cursor-pointer opacity-100'}`}>
         {/* Selected value preview */}
         {selectedOption?.image && (
-          <div style={{
-            width: 22, height: 22, borderRadius: '50%',
-            overflow: 'hidden', flexShrink: 0,
-          }}>
-            <img src={selectedOption.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div className="w-[22px] h-[22px] rounded-full overflow-hidden shrink-0">
+            <img src={selectedOption.image} alt="" className="w-full h-full object-cover" />
           </div>
         )}
-        <span style={{
-          flex: 1,
-          fontSize: 13,
-          color: selectedOption ? 'var(--text-primary)' : 'var(--text-faint)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
+        <span className={`flex-1 text-[13px] overflow-hidden text-ellipsis whitespace-nowrap ${selectedOption ? 'text-(--text-primary)' : 'text-(--text-faint)'}`}>
           {selectedOption?.label ?? placeholder}
         </span>
-        <span className="icon icon-sm" style={{
-          color: 'var(--text-muted)',
-          transform: open ? 'rotate(180deg)' : 'none',
-          transition: 'transform 0.15s ease',
-          flexShrink: 0,
-        }}>
+        <span className={`icon icon-sm text-(--text-muted) [transition:transform_0.15s_ease] shrink-0 ${open ? '[transform:rotate(180deg)]' : '[transform:none]'}`}>
           expand_more
         </span>
       </button>

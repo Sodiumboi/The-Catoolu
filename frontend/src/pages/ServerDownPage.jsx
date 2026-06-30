@@ -1,51 +1,20 @@
 export default function ServerDownPage() {
   return (
-    <div style={{
-      minHeight:      '100vh',
-      background:     '#1C1C1A',
-      display:        'flex',
-      flexDirection:  'column',
-      alignItems:     'center',
-      justifyContent: 'center',
-      padding:        '32px 16px',
-      textAlign:      'center',
-    }}>
-      <span className="icon" style={{ fontSize: '48px', color: '#E24B4A', marginBottom: '20px' }}>
+    <div className="min-h-screen bg-[#1C1C1A] flex flex-col items-center justify-center py-8 px-4 text-center">
+      <span className="icon text-[48px] text-[#E24B4A] mb-5">
         cloud_off
       </span>
-      <h1 style={{
-        margin:     '0 0 12px',
-        fontFamily: 'var(--font-serif)',
-        fontSize:   '26px',
-        color:      '#EAF3DE',
-      }}>Server Unreachable</h1>
-      <p style={{
-        margin:     0,
-        fontFamily: 'var(--font-sans)',
-        fontSize:   '14px',
-        color:      '#888780',
-        maxWidth:   '360px',
-        lineHeight: 1.6,
-      }}>
+      <h1 className="m-0 mb-3 font-serif text-[26px] text-[#EAF3DE]">Server Unreachable</h1>
+      <p className="m-0 font-sans text-sm text-[#888780] max-w-[360px] leading-[1.6]">
         The Catoolu server isn't responding. Check your connection or try again in a moment.
       </p>
-      <p style={{ margin: '20px 0 0', fontSize: '12px', color: '#3A3A37', fontFamily: 'var(--font-sans)' }}>
+      <p className="m-0 mt-5 text-xs text-[#3A3A37] font-sans">
         Reconnecting automatically…
       </p>
       <button
         type="button"
         onClick={() => window.location.reload()}
-        style={{
-          margin:       '20px 0 0',
-          padding:      '8px 18px',
-          fontFamily:   'var(--font-sans)',
-          fontSize:     '13px',
-          color:        '#EAF3DE',
-          background:   'transparent',
-          border:       '1px solid #4A4A45',
-          borderRadius: '8px',
-          cursor:       'pointer',
-        }}
+        className="m-0 mt-5 py-2 px-[18px] font-sans text-[13px] text-[#EAF3DE] bg-transparent border border-[#4A4A45] rounded-lg cursor-pointer"
       >
         Try again
       </button>

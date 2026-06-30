@@ -2,38 +2,17 @@ import logo from '../assets/vault-logo.png';
 
 export default function MaintenancePage({ message }) {
   return (
-    <div style={{
-      minHeight:      '100vh',
-      background:     'var(--bg-page)',
-      display:        'flex',
-      flexDirection:  'column',
-      alignItems:     'center',
-      justifyContent: 'center',
-      padding:        '32px 16px',
-      textAlign:      'center',
-    }}>
+    <div className="min-h-screen bg-(--bg-page) flex flex-col items-center justify-center py-8 px-4 text-center">
       <img
         src={logo}
         alt="The Catoolu"
-        style={{ width: '72px', height: '72px', objectFit: 'contain', marginBottom: '24px', opacity: 0.7 }}
+        className="w-[72px] h-[72px] object-contain mb-6 opacity-70"
       />
-      <h1 style={{
-        margin:     '0 0 12px',
-        fontFamily: 'var(--font-serif)',
-        fontSize:   '28px',
-        color:      'var(--text-primary)',
-      }}>Under Maintenance</h1>
-      <p style={{
-        margin:     '0 0 8px',
-        fontFamily: 'var(--font-sans)',
-        fontSize:   '15px',
-        color:      'var(--text-secondary)',
-        maxWidth:   '400px',
-        lineHeight: 1.6,
-      }}>
+      <h1 className="m-0 mb-3 font-serif text-[28px] text-(--text-primary)">Under Maintenance</h1>
+      <p className="m-0 mb-2 font-sans text-[15px] text-(--text-secondary) max-w-[400px] leading-[1.6]">
         {message || 'We are updating The Catoolu. Back soon.'}
       </p>
-      <p style={{ margin: '24px 0 0', fontSize: '12px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+      <p className="m-0 mt-6 text-xs text-(--text-faint) font-sans">
         You can check back later, Refresh if needed.
       </p>
     </div>

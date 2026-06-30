@@ -66,156 +66,81 @@ export default function BugReportModal({ onClose }) {
       {/* Backdrop */}
       <div
         onClick={onClose}
-        style={{
-          position:   'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.45)',
-          zIndex:     200,
-        }}
+        className="fixed inset-0 bg-[rgba(0,0,0,0.45)] z-[200]"
       />
 
       {/* Modal */}
-      <div style={{
-        position:     'fixed',
-        top:          '50%',
-        left:         '50%',
-        transform:    'translate(-50%,-50%)',
-        zIndex:       201,
-        width:        '100%',
-        maxWidth:     '480px',
-        background:   'var(--bg-card)',
-        border:       '1px solid var(--border-main)',
-        borderRadius: '16px',
-        boxShadow:    'var(--shadow-dropdown)',
-        padding:      '28px',
-      }}>
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-full max-w-[480px] bg-(--bg-card) border border-(--border-main) rounded-2xl shadow-(--shadow-dropdown) p-7">
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <span className="icon" style={{ color: 'var(--text-faint)', fontSize: '20px' }}>bug_report</span>
-          <h2 style={{
-            margin: 0, flex: 1,
-            fontFamily: 'var(--font-serif)',
-            fontSize:   '18px',
-            color:      'var(--text-primary)',
-          }}>Report a Bug</h2>
+        <div className="flex items-center gap-2.5 mb-5">
+          <span className="icon text-(--text-faint) text-xl">bug_report</span>
+          <h2 className="m-0 flex-1 font-serif text-lg text-(--text-primary)">Report a Bug</h2>
           <button
             onClick={onClose}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text-faint)', fontSize: '20px', lineHeight: 1, padding: '2px',
-            }}
+            className="bg-transparent border-none cursor-pointer text-(--text-faint) text-xl leading-none p-0.5"
           >✕</button>
         </div>
 
         {done ? (
           /* Success state */
-          <div style={{ textAlign: 'center', padding: '24px 0' }}>
-            <span className="icon" style={{ fontSize: '40px', color: 'var(--color-primary)' }}>check_circle</span>
-            <p style={{
-              margin:     '12px 0 4px',
-              fontFamily: 'var(--font-serif)',
-              fontSize:   '16px',
-              color:      'var(--text-primary)',
-            }}>Thanks for the report!</p>
-            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-faint)' }}>
+          <div className="text-center py-6">
+            <span className="icon text-[40px] text-(--color-primary)">check_circle</span>
+            <p className="mt-3 mb-1 mx-0 font-serif text-base text-(--text-primary)">Thanks for the report!</p>
+            <p className="m-0 text-[13px] text-(--text-faint)">
               We'll look into it.
             </p>
             <button
               onClick={onClose}
-              style={{
-                marginTop:    '20px',
-                padding:      '8px 28px',
-                background:   'var(--color-primary)',
-                color:        '#fff',
-                border:       'none',
-                borderRadius: '8px',
-                cursor:       'pointer',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '13px',
-                fontWeight:   500,
-              }}
+              className="mt-5 py-2 px-7 bg-(--color-primary) text-white border-none rounded-lg cursor-pointer font-sans text-[13px] font-medium"
             >Close</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
 
             {/* Title */}
-            <label style={labelStyle}>Title</label>
+            <label className="block text-xs font-medium text-(--text-secondary) mb-1.5 font-sans uppercase tracking-[0.06em]">Title</label>
             <input
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="Short summary of the issue"
               maxLength={200}
-              style={inputStyle}
+              className="w-full py-[9px] px-3 bg-(--bg-input) border-[1.5px] border-(--border-input) rounded-lg text-(--text-primary) font-sans text-sm outline-none box-border"
             />
 
             {/* Description */}
-            <label style={{ ...labelStyle, marginTop: '14px' }}>Description</label>
+            <label className="block text-xs font-medium text-(--text-secondary) mb-1.5 font-sans uppercase tracking-[0.06em] mt-3.5">Description</label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="What happened? What did you expect to happen?"
               rows={4}
-              style={{ ...inputStyle, resize: 'vertical', minHeight: '100px' }}
+              className="w-full py-[9px] px-3 bg-(--bg-input) border-[1.5px] border-(--border-input) rounded-lg text-(--text-primary) font-sans text-sm outline-none box-border resize-y min-h-[100px]"
             />
 
             {/* Screenshot */}
-            <label style={{ ...labelStyle, marginTop: '14px' }}>
-              Screenshot <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>(optional, max 2 MB)</span>
+            <label className="block text-xs font-medium text-(--text-secondary) mb-1.5 font-sans uppercase tracking-[0.06em] mt-3.5">
+              Screenshot <span className="text-(--text-faint) font-normal">(optional, max 2 MB)</span>
             </label>
 
             {preview ? (
-              <div style={{ position: 'relative', display: 'inline-block', marginBottom: '4px' }}>
+              <div className="relative inline-block mb-1">
                 <img
                   src={preview}
                   alt="preview"
-                  style={{
-                    maxWidth:     '100%',
-                    maxHeight:    '160px',
-                    borderRadius: '8px',
-                    border:       '1px solid var(--border-main)',
-                    display:      'block',
-                  }}
+                  className="max-w-full max-h-[160px] rounded-lg border border-(--border-main) block"
                 />
                 <button
                   type="button"
                   onClick={removeImage}
-                  style={{
-                    position:     'absolute',
-                    top:          '6px',
-                    right:        '6px',
-                    background:   'rgba(0,0,0,0.55)',
-                    color:        '#fff',
-                    border:       'none',
-                    borderRadius: '50%',
-                    width:        '22px',
-                    height:       '22px',
-                    cursor:       'pointer',
-                    fontSize:     '12px',
-                    lineHeight:   '22px',
-                    textAlign:    'center',
-                    padding:      0,
-                  }}
+                  className="absolute top-1.5 right-1.5 bg-[rgba(0,0,0,0.55)] text-white border-none rounded-full w-[22px] h-[22px] cursor-pointer text-xs leading-[22px] text-center p-0"
                 >✕</button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                style={{
-                  display:      'flex',
-                  alignItems:   'center',
-                  gap:          '6px',
-                  padding:      '8px 14px',
-                  background:   'var(--bg-input)',
-                  border:       '1.5px dashed var(--border-input)',
-                  borderRadius: '8px',
-                  cursor:       'pointer',
-                  color:        'var(--text-faint)',
-                  fontSize:     '13px',
-                  fontFamily:   'var(--font-sans)',
-                  marginBottom: '4px',
-                }}
+                className="flex items-center gap-1.5 py-2 px-3.5 bg-(--bg-input) border-[1.5px] border-dashed border-(--border-input) rounded-lg cursor-pointer text-(--text-faint) text-[13px] font-sans mb-1"
               >
                 <span className="icon icon-sm">attach_file</span>
                 Attach screenshot
@@ -226,60 +151,36 @@ export default function BugReportModal({ onClose }) {
               type="file"
               accept="image/*"
               onChange={handleImage}
-              style={{ display: 'none' }}
+              className="hidden"
             />
 
             {/* Auto-filled info note */}
-            <p style={{ margin: '12px 0 0', fontSize: '11px', color: 'var(--text-faint)' }}>
+            <p className="mt-3 mx-0 mb-0 text-[11px] text-(--text-faint)">
               Current page and browser info will be sent automatically.
             </p>
 
             {error && (
-              <p style={{
-                margin:     '10px 0 0',
-                fontSize:   '13px',
-                color:      'var(--danger)',
-                fontFamily: 'var(--font-sans)',
-              }}>{error}</p>
+              <p className="mt-2.5 mx-0 mb-0 text-[13px] text-(--danger) font-sans">{error}</p>
             )}
 
             {/* Upload progress */}
             {uploadProgress !== null && (
-              <div style={{ marginTop: 12 }}>
+              <div className="mt-3">
                 <UploadProgressBar progress={uploadProgress} />
               </div>
             )}
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
+            <div className="flex gap-2.5 mt-5 justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                style={{
-                  padding:      '8px 20px',
-                  background:   'transparent',
-                  border:       '1px solid var(--border-main)',
-                  borderRadius: '8px',
-                  cursor:       'pointer',
-                  color:        'var(--text-secondary)',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '13px',
-                }}
+                className="py-2 px-5 bg-transparent border border-(--border-main) rounded-lg cursor-pointer text-(--text-secondary) font-sans text-[13px]"
               >Cancel</button>
               <button
                 type="submit"
                 disabled={submitting}
-                style={{
-                  padding:      '8px 24px',
-                  background:   submitting ? 'var(--text-faint)' : 'var(--color-primary)',
-                  color:        '#fff',
-                  border:       'none',
-                  borderRadius: '8px',
-                  cursor:       submitting ? 'not-allowed' : 'pointer',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '13px',
-                  fontWeight:   500,
-                }}
+                className={`py-2 px-6 text-white border-none rounded-lg font-sans text-[13px] font-medium ${submitting ? 'bg-(--text-faint) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
               >{submitting ? 'Sending…' : 'Submit Report'}</button>
             </div>
 
@@ -289,27 +190,3 @@ export default function BugReportModal({ onClose }) {
     </>
   );
 }
-
-const labelStyle = {
-  display:    'block',
-  fontSize:   '12px',
-  fontWeight: 500,
-  color:      'var(--text-secondary)',
-  marginBottom: '6px',
-  fontFamily: 'var(--font-sans)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.06em',
-};
-
-const inputStyle = {
-  width:        '100%',
-  padding:      '9px 12px',
-  background:   'var(--bg-input)',
-  border:       '1.5px solid var(--border-input)',
-  borderRadius: '8px',
-  color:        'var(--text-primary)',
-  fontFamily:   'var(--font-sans)',
-  fontSize:     '14px',
-  outline:      'none',
-  boxSizing:    'border-box',
-};

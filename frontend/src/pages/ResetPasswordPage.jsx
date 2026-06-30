@@ -40,67 +40,34 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div style={{
-      minHeight:      '100vh',
-      display:        'flex',
-      alignItems:     'center',
-      justifyContent: 'center',
-      padding:        '24px 16px',
-      background:     'var(--bg-page)',
-      fontFamily:     'var(--font-sans)',
-    }}>
-      <div style={{ width: '100%', maxWidth: '400px' }}>
+    <div className="min-h-screen flex items-center justify-center py-6 px-4 bg-(--bg-page) font-sans">
+      <div className="w-full max-w-[400px]">
 
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div className="text-center mb-8">
           <img src={logo} alt="The Catoolu"
-               style={{ display: 'block', margin: '0 auto 12px', width: '64px', height: '64px', objectFit: 'contain' }} />
-          <h1 style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize:   '28px',
-            color:      'var(--color-primary-dark)',
-            margin:     0,
-          }}>
+               className="block mx-auto mb-3 w-16 h-16 object-contain" />
+          <h1 className="font-serif text-[28px] text-(--color-primary-dark) m-0">
             The Catoolu
           </h1>
         </div>
 
-        <div style={{
-          background:   'var(--bg-card)',
-          border:       '1px solid var(--border-main)',
-          borderRadius: '16px',
-          boxShadow:    'var(--shadow-card)',
-          padding:      '28px',
-        }}>
+        <div className="bg-(--bg-card) border border-(--border-main) rounded-2xl shadow-(--shadow-card) p-7">
           {success ? (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '40px', marginBottom: '16px' }}>✅</div>
-              <h2 style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize:   '20px',
-                color:      'var(--text-primary)',
-                margin:     '0 0 8px',
-              }}>
+            <div className="text-center">
+              <div className="text-[40px] mb-4">✅</div>
+              <h2 className="font-serif text-xl text-(--text-primary) m-0 mb-2">
                 Password Reset!
               </h2>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              <p className="text-[13px] text-(--text-muted)">
                 Redirecting you to the vault...
               </p>
             </div>
           ) : (
             <>
-              <h2 style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize:   '20px',
-                color:      'var(--text-primary)',
-                margin:     '0 0 8px',
-              }}>
+              <h2 className="font-serif text-xl text-(--text-primary) m-0 mb-2">
                 Set New Password
               </h2>
-              <p style={{
-                fontSize:   '13px',
-                color:      'var(--text-muted)',
-                margin:     '0 0 24px',
-              }}>
+              <p className="text-[13px] text-(--text-muted) m-0 mb-6">
                 Choose a strong password for your account.
               </p>
 
@@ -109,16 +76,8 @@ export default function ResetPasswordPage() {
                   { label: 'New Password',      value: password, set: setPassword },
                   { label: 'Confirm Password',  value: confirm,  set: setConfirm  },
                 ].map(field => (
-                  <div key={field.label} style={{ marginBottom: '16px' }}>
-                    <label style={{
-                      display:       'block',
-                      fontSize:      '11px',
-                      fontWeight:    '500',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.07em',
-                      color:         'var(--text-muted)',
-                      marginBottom:  '6px',
-                    }}>
+                  <div key={field.label} className="mb-4">
+                    <label className="block text-[11px] font-medium uppercase tracking-[0.07em] text-(--text-muted) mb-1.5">
                       {field.label}
                     </label>
                     <input
@@ -127,18 +86,7 @@ export default function ResetPasswordPage() {
                       onChange={e => field.set(e.target.value)}
                       required
                       minLength={8}
-                      style={{
-                        width:        '100%',
-                        padding:      '9px 12px',
-                        borderRadius: '8px',
-                        border:       '1px solid var(--border-input)',
-                        background:   'var(--bg-input)',
-                        color:        'var(--text-primary)',
-                        fontFamily:   'var(--font-sans)',
-                        fontSize:     '14px',
-                        outline:      'none',
-                        boxSizing:    'border-box',
-                      }}
+                      className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none box-border"
                       onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
                       onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
                     />
@@ -146,25 +94,17 @@ export default function ResetPasswordPage() {
                 ))}
 
                 {confirm && confirm !== password && (
-                  <p style={{ fontSize: '12px', color: 'var(--danger)', margin: '-8px 0 12px' }}>
+                  <p className="text-xs text-(--danger) mt-[-8px] mx-0 mb-3">
                     Passwords don't match
                   </p>
                 )}
 
                 {error && (
-                  <div style={{
-                    background:   'var(--danger-bg)',
-                    border:       '1px solid var(--danger)',
-                    borderRadius: '8px',
-                    padding:      '10px 14px',
-                    marginBottom: '16px',
-                    fontSize:     '13px',
-                    color:        'var(--danger)',
-                  }}>
+                  <div className="bg-(--danger-bg) border border-(--danger) rounded-lg py-2.5 px-3.5 mb-4 text-[13px] text-(--danger)">
                     ⚠ {error}
                     {error.includes('expired') && (
                       <> <Link to="/forgot-password"
-                               style={{ color: 'var(--accent)', textDecoration: 'none' }}>
+                               className="text-(--accent) no-underline">
                         Request a new link
                       </Link></>
                     )}
@@ -174,18 +114,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading || !token}
-                  style={{
-                    width:        '100%',
-                    padding:      '11px',
-                    borderRadius: '10px',
-                    border:       'none',
-                    background:   loading ? 'var(--text-muted)' : 'var(--color-primary)',
-                    color:        '#ffffff',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '14px',
-                    fontWeight:   '500',
-                    cursor:       loading ? 'not-allowed' : 'pointer',
-                  }}
+                  className={`w-full p-[11px] rounded-[10px] border-none text-white font-sans text-sm font-medium ${loading ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
                 >
                   {loading ? 'Saving...' : 'Set New Password'}
                 </button>

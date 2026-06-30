@@ -6,52 +6,20 @@ import logo from '../assets/vault-logo.png';
 // Dhole's House import remains the working path for adding characters.
 export default function CreationUnavailablePage() {
   return (
-    <div style={{
-      minHeight:      '100vh',
-      background:     'var(--bg-page)',
-      display:        'flex',
-      flexDirection:  'column',
-      alignItems:     'center',
-      justifyContent: 'center',
-      padding:        '32px 16px',
-      textAlign:      'center',
-    }}>
+    <div className="min-h-screen bg-(--bg-page) flex flex-col items-center justify-center py-8 px-4 text-center">
       <img
         src={logo}
         alt="The Catoolu"
-        style={{ width: '72px', height: '72px', objectFit: 'contain', marginBottom: '24px', opacity: 0.7 }}
+        className="w-[72px] h-[72px] object-contain mb-6 opacity-70"
       />
-      <h1 style={{
-        margin:     '0 0 12px',
-        fontFamily: 'var(--font-serif)',
-        fontSize:   '28px',
-        color:      'var(--text-primary)',
-      }}>Character Creation</h1>
-      <p style={{
-        margin:     '0 0 8px',
-        fontFamily: 'var(--font-sans)',
-        fontSize:   '15px',
-        color:      'var(--text-secondary)',
-        maxWidth:   '400px',
-        lineHeight: 1.6,
-      }}>
+      <h1 className="m-0 mb-3 font-serif text-[28px] text-(--text-primary)">Character Creation</h1>
+      <p className="m-0 mb-2 font-sans text-[15px] text-(--text-secondary) max-w-[400px] leading-[1.6]">
         We're rebuilding the character creation engine from the ground up. In
         the meantime, you can import a character from Dhole's House.
       </p>
       <Link
         to="/dashboard"
-        style={{
-          display:        'inline-block',
-          marginTop:      '24px',
-          padding:        '10px 20px',
-          background:     'var(--accent)',
-          color:          'var(--accent-contrast, #fff)',
-          borderRadius:   '8px',
-          fontFamily:     'var(--font-sans)',
-          fontSize:       '14px',
-          fontWeight:     500,
-          textDecoration: 'none',
-        }}
+        className="inline-block mt-6 py-2.5 px-5 bg-(--accent) text-[var(--accent-contrast,#fff)] rounded-lg font-sans text-sm font-medium no-underline"
       >
         ← Back to Dashboard
       </Link>

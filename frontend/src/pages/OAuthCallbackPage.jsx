@@ -34,17 +34,9 @@ export default function OAuthCallbackPage() {
   }, []);
 
   return (
-    <div style={{
-      minHeight:      '100vh',
-      display:        'flex',
-      flexDirection:  'column',
-      alignItems:     'center',
-      justifyContent: 'center',
-      gap:            '1rem',
-      background:     'var(--bg-page)',
-    }}>
-      <img src={logo} alt="" style={{ width: '48px', height: '48px', objectFit: 'contain', opacity: 0.6 }} />
-      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-(--bg-page)">
+      <img src={logo} alt="" className="w-12 h-12 object-contain opacity-60" />
+      <p className="font-sans text-[0.9rem] text-(--text-muted)">
         Signing you in…
       </p>
     </div>

@@ -1,6 +1,124 @@
 @import "tailwindcss";
 
 /* ══════════════════════════════════════════════════════════
+   v1.7 EIHORT — Tailwind @theme token bridge
+   ──────────────────────────────────────────────────────────
+   Exposes the design tokens (defined in the :root blocks below)
+   to Tailwind so utility classes can reference them.
+
+   `@theme inline` is deliberate: with `inline`, Tailwind does NOT
+   emit an intermediate --color-* variable — it inlines the value
+   into each utility. So `--color-bg-card: var(--bg-card)` compiles
+   to `.bg-bg-card { background-color: var(--bg-card) }`, which
+   resolves the LIVE --bg-card token at the element. That means the
+   [data-theme="…"] runtime overrides (dark, mud, marsh, sienna,
+   arcane) flow through utilities automatically — same as inline
+   style={{ var(--bg-card) }} does today.
+
+   This block provides the DEFAULT (light) mapping only. The :root
+   blocks below are the single source of truth for values and are
+   left completely untouched — they still drive theme switching.
+
+   ── UTILITY NAMING CONVENTION (the v1.7 migration standard) ──
+   Migrate inline `var(--token)` usage to the arbitrary CSS-variable
+   shorthand, keeping the token name VERBATIM:
+
+     background: var(--bg-card)          →  className="bg-(--bg-card)"
+     color:      var(--text-primary)     →  className="text-(--text-primary)"
+     border: 1px solid var(--border-main)→  className="border border-(--border-main)"
+     box-shadow: var(--shadow-card)      →  className="shadow-(--shadow-card)"
+
+   `prop-(--token)` is the v4 shorthand for `prop-[var(--token)]`. It
+   is the shortest readable form, keeps the exact token name (1:1
+   mechanical translation), and is theme-override-safe.
+
+   The named utilities this bridge also enables — `bg-accent`,
+   `text-primary`, `bg-bg-card`, etc. — are available as an ergonomic
+   option for the clean cases, but the arbitrary `(--token)` form is
+   the documented standard so the migration stays a pure rename.
+
+   Excluded from the bridge (no valid utility namespace, used only via
+   var() in calc()/rgba()/background-image): --pulse-ring-rgb (rgb
+   triplet), --sheet-font-scale / --room-font-scale (unitless
+   multipliers), --sheet-bg-art (image/none). They stay in :root.
+   ══════════════════════════════════════════════════════════ */
+@theme inline {
+  /* Primary — Catoolu Green (tokens are already --color-* namespaced) */
+  --color-primary:       var(--color-primary);
+  --color-primary-dark:  var(--color-primary-dark);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-mid:   var(--color-primary-mid);
+
+  /* Page backgrounds */
+  --color-bg-page:       var(--bg-page);
+  --color-bg-card:       var(--bg-card);
+  --color-bg-nav:        var(--bg-nav);
+  --color-bg-popup:      var(--bg-popup);
+  --color-bg-input:      var(--bg-input);
+  --color-bg-section-hd: var(--bg-section-hd);
+
+  /* Borders */
+  --color-border-main:   var(--border-main);
+  --color-border-input:  var(--border-input);
+  --color-border-focus:  var(--border-focus);
+
+  /* Text */
+  --color-text-primary:   var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted:     var(--text-muted);
+  --color-text-faint:     var(--text-faint);
+
+  /* Accent */
+  --color-accent:        var(--accent);
+  --color-accent-bg:     var(--accent-bg);
+  --color-accent-hover:  var(--accent-hover);
+
+  /* Semantic */
+  --color-danger:        var(--danger);
+  --color-danger-bg:     var(--danger-bg);
+  --color-success:       var(--success);
+  --color-warning:       var(--warning);
+  --color-row-hover:     var(--row-hover);
+
+  /* CoC roll-result colours */
+  --color-roll-critical-bg:     var(--roll-critical-bg);
+  --color-roll-critical-border: var(--roll-critical-border);
+  --color-roll-critical-text:   var(--roll-critical-text);
+  --color-roll-extreme-bg:      var(--roll-extreme-bg);
+  --color-roll-extreme-border:  var(--roll-extreme-border);
+  --color-roll-extreme-text:    var(--roll-extreme-text);
+  --color-roll-hard-bg:         var(--roll-hard-bg);
+  --color-roll-hard-border:     var(--roll-hard-border);
+  --color-roll-hard-text:       var(--roll-hard-text);
+  --color-roll-regular-bg:      var(--roll-regular-bg);
+  --color-roll-regular-border:  var(--roll-regular-border);
+  --color-roll-regular-text:    var(--roll-regular-text);
+  --color-roll-failure-bg:      var(--roll-failure-bg);
+  --color-roll-failure-border:  var(--roll-failure-border);
+  --color-roll-failure-text:    var(--roll-failure-text);
+  --color-roll-fumble-bg:       var(--roll-fumble-bg);
+  --color-roll-fumble-border:   var(--roll-fumble-border);
+  --color-roll-fumble-text:     var(--roll-fumble-text);
+  --color-roll-none-bg:         var(--roll-none-bg);
+  --color-roll-none-border:     var(--roll-none-border);
+  --color-roll-none-text:       var(--roll-none-text);
+
+  /* Typography */
+  --font-serif: var(--font-serif);
+  --font-sans:  var(--font-sans);
+
+  /* Shadows */
+  --shadow-card:     var(--shadow-card);
+  --shadow-nav:      var(--shadow-nav);
+  --shadow-dropdown: var(--shadow-dropdown);
+
+  /* Radii */
+  --radius-card:           var(--radius-card);
+  --radius-squircle:       var(--radius-squircle);
+  --radius-squircle-inner: var(--radius-squircle-inner);
+}
+
+/* ══════════════════════════════════════════════════════════
    THE CATOOLU — v1.1 Dagon
    Design System: CSS Custom Properties
    All colours, fonts, and tokens live here.
