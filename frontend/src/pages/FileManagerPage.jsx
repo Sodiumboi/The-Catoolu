@@ -79,8 +79,14 @@ export default function FileManagerPage() {
     handleDelete(f.id);
   };
 
+  // The active profile picture is protected — it can never be selected or deleted here.
+  const isProtected = (f) => f.isCurrentAvatar;
+  const selectableFiles = files.filter(f => !isProtected(f));
+
   const toggleSelection = (id) => {
     if (!selectionMode) return;
+    const f = files.find(x => x.id === id);
+    if (f && isProtected(f)) return;
     setSelected(prev => {
       const n = new Set(prev);
       if (n.has(id)) n.delete(id); else n.add(id);
@@ -89,10 +95,10 @@ export default function FileManagerPage() {
   };
 
   const toggleSelectAll = () => {
-    if (selected.size === files.length) {
+    if (selected.size === selectableFiles.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(files.map(f => f.id)));
+      setSelected(new Set(selectableFiles.map(f => f.id)));
     }
   };
 
@@ -134,9 +140,9 @@ export default function FileManagerPage() {
   useEffect(() => {
     if (selectAllRef.current) {
       selectAllRef.current.indeterminate =
-        selected.size > 0 && selected.size < files.length;
+        selected.size > 0 && selected.size < selectableFiles.length;
     }
-  }, [selected, files]);
+  }, [selected, selectableFiles.length]);
 
   const totalUsed  = quota?.totalUsed  ?? 0;
   const totalLimit = quota?.totalLimit ?? 200 * 1024 * 1024;
@@ -226,12 +232,13 @@ export default function FileManagerPage() {
             <input
               ref={selectAllRef}
               type="checkbox"
-              checked={selected.size === files.length && files.length > 0}
+              checked={selected.size === selectableFiles.length && selectableFiles.length > 0}
               onChange={toggleSelectAll}
-              style={{ cursor: 'pointer' }}
+              disabled={selectableFiles.length === 0}
+              style={{ cursor: selectableFiles.length === 0 ? 'default' : 'pointer' }}
             />
             <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-              {selected.size} of {files.length} selected
+              {selected.size} of {selectableFiles.length} selected
             </span>
             <button
               onClick={handleBulkDelete}
@@ -279,6 +286,7 @@ export default function FileManagerPage() {
               const k          = KIND[f.kind] || { label: f.kind, icon: 'draft', color: 'var(--text-muted)' };
               const busy       = busyId === f.id;
               const isSel      = selected.has(f.id);
+              const locked     = isProtected(f);
               return (
                 <div key={f.id} style={{
                   display: 'flex', alignItems: 'center', gap: 12,
@@ -286,19 +294,25 @@ export default function FileManagerPage() {
                   border: isSel ? '2px solid var(--accent)' : '1px solid var(--border-main)',
                   borderRadius: 10, padding: '10px 12px',
                 }}>
-                  {/* Selection checkbox */}
+                  {/* Selection checkbox — locked for the active profile picture */}
                   {selectionMode && (
-                    <input
-                      type="checkbox"
-                      checked={isSel}
-                      onChange={() => toggleSelection(f.id)}
-                      style={{ cursor: 'pointer', flexShrink: 0 }}
-                    />
+                    locked ? (
+                      <Tooltip content="Current profile picture — can't be deleted">
+                        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--text-faint)', flexShrink: 0, width: 18, textAlign: 'center' }}>lock</span>
+                      </Tooltip>
+                    ) : (
+                      <input
+                        type="checkbox"
+                        checked={isSel}
+                        onChange={() => toggleSelection(f.id)}
+                        style={{ cursor: 'pointer', flexShrink: 0 }}
+                      />
+                    )
                   )}
                   {/* Thumbnail (click to preview, or toggle in selection mode) */}
-                  <Tooltip content={selectionMode ? 'Select' : 'Preview'}>
+                  <Tooltip content={selectionMode && !locked ? 'Select' : 'Preview'}>
                   <div
-                    onClick={() => selectionMode ? toggleSelection(f.id) : setViewing(f)}
+                    onClick={() => (selectionMode && !locked) ? toggleSelection(f.id) : setViewing(f)}
                     style={{
                       width: 48, height: 48, borderRadius: 8, overflow: 'hidden', flexShrink: 0, cursor: 'pointer',
                       background: 'var(--bg-section-hd)', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -314,7 +328,7 @@ export default function FileManagerPage() {
                   </Tooltip>
 
                   {/* Info (click to preview, or toggle in selection mode) — shows the real file name */}
-                  <div onClick={() => selectionMode ? toggleSelection(f.id) : setViewing(f)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
+                  <div onClick={() => (selectionMode && !locked) ? toggleSelection(f.id) : setViewing(f)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span className="material-symbols-outlined" style={{ fontSize: 15, color: k.color, flexShrink: 0 }}>{k.icon}</span>
                       <span style={{
@@ -336,11 +350,19 @@ export default function FileManagerPage() {
                   </a>
                   </Tooltip>
                   {!selectionMode && (
-                    <Tooltip content="Delete">
-                    <button onClick={() => requestDelete(f)} disabled={busy} style={{ ...iconBtn, color: 'var(--danger)' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{busy ? 'hourglass_empty' : 'delete'}</span>
-                    </button>
-                    </Tooltip>
+                    locked ? (
+                      <Tooltip content="Current profile picture — can't be deleted">
+                        <span style={{ ...iconBtn, color: 'var(--text-faint)', cursor: 'default' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>lock</span>
+                        </span>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip content="Delete">
+                      <button onClick={() => requestDelete(f)} disabled={busy} style={{ ...iconBtn, color: 'var(--danger)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{busy ? 'hourglass_empty' : 'delete'}</span>
+                      </button>
+                      </Tooltip>
+                    )
                   )}
                 </div>
               );

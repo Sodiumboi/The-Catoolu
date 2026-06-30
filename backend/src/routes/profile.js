@@ -211,6 +211,8 @@ router.post('/avatar', avatarUpload.single('avatar'), async (req, res) => {
 router.get('/uploads', async (req, res) => {
   try {
     await quota.reconcile(req.user.id, { prune: true }); // sync with source tables
+    const me = await pool.query('SELECT avatar_url FROM users WHERE id = $1', [req.user.id]);
+    const currentAvatarUrl = me.rows[0]?.avatar_url || null;
     const result = await pool.query(
       `SELECT u.id, u.url, u.size_bytes, u.kind, u.campaign_id, u.created_at,
               c.name  AS campaign_name,
@@ -237,6 +239,7 @@ router.get('/uploads', async (req, res) => {
       campaignId:    r.campaign_id,
       campaignName:  r.campaign_name,
       createdAt:     r.created_at,
+      isCurrentAvatar: r.kind === 'avatar' && r.url === currentAvatarUrl,
     }));
     res.json({ files, quota: await quota.getQuota(req.user.id) });
   } catch (err) {
@@ -257,6 +260,15 @@ router.delete('/uploads/:id', async (req, res) => {
     if (row.rows[0].user_id !== req.user.id) return res.status(403).json({ error: 'Not your file.' });
 
     const { url, kind } = row.rows[0];
+
+    // Never allow deleting the active profile picture from the file manager.
+    // (Replacing it via POST /avatar untracks the old one through a separate path.)
+    if (kind === 'avatar') {
+      const me = await pool.query('SELECT avatar_url FROM users WHERE id = $1', [req.user.id]);
+      if (me.rows[0]?.avatar_url === url) {
+        return res.status(400).json({ error: 'Your current profile picture cannot be deleted. Change it from your profile first.' });
+      }
+    }
 
     // Remove the object from R2 (ignore if already gone)
     await deleteFromR2(url).catch(() => {});
