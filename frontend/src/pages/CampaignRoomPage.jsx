@@ -403,6 +403,15 @@ export default function CampaignRoomPage() {
       setMessages(prev => prev.filter(m => m.id !== id));
     };
 
+    const onSheetUpdated = async ({ character_uuid }) => {
+      if (!keeperSheetModal || keeperSheetModal._error) return;
+      if (keeperSheetModal.uuid !== character_uuid) return;
+      try {
+        const res = await apiClient.get('/characters/' + character_uuid);
+        setKeeperSheetModal(res.data.character);
+      } catch { /* silently fail — sheet stays showing stale data */ }
+    };
+
     socket.on('joined',                    onJoined);
     socket.on('receive_message',           onMessage);
     socket.on('user_joined',               onUserJoined);
@@ -416,6 +425,7 @@ export default function CampaignRoomPage() {
     socket.on('player:roll_response',      onPlayerRollResponse);
     socket.on('handout:shared',            onHandoutShared);
     socket.on('message:deleted',           onMessageDeleted);
+    socket.on('sheet_updated',             onSheetUpdated);
 
     return () => {
       socket.off('joined',                    onJoined);
@@ -431,8 +441,9 @@ export default function CampaignRoomPage() {
       socket.off('player:roll_response',      onPlayerRollResponse);
       socket.off('handout:shared',            onHandoutShared);
       socket.off('message:deleted',           onMessageDeleted);
+      socket.off('sheet_updated',             onSheetUpdated);
     };
-  }, [socket, connected, loading, error, uuid, campaign]);
+  }, [socket, connected, loading, error, uuid, campaign, keeperSheetModal]);
 
   useEffect(() => {
     if (campaign && inRoom && !disconnectedRef.current) {

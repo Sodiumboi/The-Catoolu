@@ -259,6 +259,18 @@ router.put('/:uuid', async (req, res) => {
       [name, occupation, game_type, cleanSheet, portrait_data, req.params.uuid, req.user.id]
     );
 
+    // Fire-and-forget: notify keeper(s) who have this sheet open
+    const io = req.app.get('io');
+    if (io) {
+      pool.query('SELECT campaign_id FROM campaign_members WHERE character_id = $1', [charCheck.rows[0].id])
+        .then(campRes => {
+          campRes.rows.forEach(row => {
+            io.to(`campaign:${row.campaign_id}`).emit('sheet_updated', { character_uuid: req.params.uuid });
+          });
+        })
+        .catch(err => console.error('sheet_updated emit error:', err.message));
+    }
+
     res.json({
       message:   'Character saved!',
       character: result.rows[0]
@@ -372,6 +384,18 @@ router.put('/:uuid/stat', async (req, res) => {
        WHERE uuid = $3 AND user_id = $4`,
       [stat, String(value), req.params.uuid, req.user.id]
     );
+
+    // Fire-and-forget: notify keeper(s) who have this sheet open
+    const io = req.app.get('io');
+    if (io) {
+      pool.query('SELECT campaign_id FROM campaign_members WHERE character_id = $1', [charCheck.rows[0].id])
+        .then(campRes => {
+          campRes.rows.forEach(row => {
+            io.to(`campaign:${row.campaign_id}`).emit('sheet_updated', { character_uuid: req.params.uuid });
+          });
+        })
+        .catch(err => console.error('sheet_updated emit error:', err.message));
+    }
 
     res.json({ message: 'Stat updated.' });
   } catch (err) {

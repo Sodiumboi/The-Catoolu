@@ -26,6 +26,7 @@ const EVENTS = {
   USER_LEFT:       'user_left',
   TYPING_START:    'typing_start',
   TYPING_STOP:     'typing_stop',
+  SHEET_UPDATED:   'sheet_updated',
   ERROR:           'error',
 };
 
