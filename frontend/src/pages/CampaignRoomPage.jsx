@@ -16,6 +16,7 @@ import { useNavBarActions } from '../context/NavBarActionsContext';
 import { useTheme }        from '../context/ThemeContext';
 import apiClient           from '../api/client';
 import SessionSheet        from '../components/SessionSheet';
+import PossessionsList     from '../components/PossessionsList';
 import ReadOnlySheet       from '../components/ReadOnlySheet';
 import RoomSubNav          from '../components/RoomSubNav';
 import NotesWindow         from '../components/NotesWindow';
@@ -796,6 +797,33 @@ export default function CampaignRoomPage() {
     }
   };
 
+  // ── Possessions save handler (optimistic + fire-and-forget PUT) ─
+  // Receives the full new Possessions.item array, updates local view
+  // state immediately so the player sees their own edits, then persists
+  // via PUT /characters/:uuid (which emits sheet_updated for keeper sync).
+  const handlePossessionsSave = (characterId, newItems) => {
+    setMyCharFullData(prev => {
+      if (!prev) return prev;
+      const next = {
+        ...prev,
+        sheet_data: {
+          ...prev.sheet_data,
+          Investigator: {
+            ...prev.sheet_data?.Investigator,
+            Possessions: {
+              ...prev.sheet_data?.Investigator?.Possessions,
+              item: newItems,
+            },
+          },
+        },
+      };
+      apiClient.put('/characters/' + characterId, {
+        sheet_data: next.sheet_data,
+      }).catch(() => {});
+      return next;
+    });
+  };
+
   // ── Weapon attack handler ─────────────────────────────────────
   const handleWeaponAttack = (weapon, matchedSkill, mode) => {
     if (!socket || !inRoom) return;
@@ -1109,8 +1137,9 @@ export default function CampaignRoomPage() {
         {/* Left: sub-nav + character sheet OR Keeper player cards */}
         {(() => {
           const playerTabs = [
-            { id: 'main',     label: 'Sheet' },
-            { id: 'handouts', label: 'Handouts', badge: newHandoutCount },
+            { id: 'main',        label: 'Sheet' },
+            { id: 'possessions', label: 'Possessions' },
+            { id: 'handouts',    label: 'Handouts', badge: newHandoutCount },
           ];
           const keeperTabs = [
             { id: 'main',     label: 'Players' },
@@ -1289,6 +1318,44 @@ export default function CampaignRoomPage() {
                   />
                 ) : subTab === 'madness' && myRole === 'keeper' ? (
                   <BoutsOfMadnessPanel />
+                ) : subTab === 'possessions' ? (
+                  myCharFullData ? (
+                    <div style={{ padding: '12px' }}>
+                      <div style={{
+                        fontSize:      'calc(9px * var(--sheet-font-scale))',
+                        fontWeight:    '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color:         'var(--accent)',
+                        fontFamily:    'var(--font-sans)',
+                        padding:       '4px 8px',
+                        borderBottom:  '1px solid var(--border-main)',
+                        marginBottom:  '6px',
+                      }}>
+                        Possessions &amp; Equipment
+                      </div>
+                      <div style={{ padding: '0 4px' }}>
+                        <PossessionsList
+                          items={(() => {
+                            const raw = myCharFullData?.sheet_data?.Investigator?.Possessions?.item;
+                            return Array.isArray(raw) ? raw : raw ? [raw] : [];
+                          })()}
+                          onChange={(newItems) => handlePossessionsSave(myCharacter?.uuid, newItems)}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      fontSize:  '13px',
+                      color:     'var(--text-faint)',
+                      fontStyle: 'italic',
+                      textAlign: 'center',
+                      padding:   '24px 16px',
+                    }}>
+                      No investigator registered.<br/>
+                      Select one in the Players tab →
+                    </div>
+                  )
                 ) : subTab !== 'main' ? comingSoonPanel : myRole === 'keeper' ? (
                   keeperSheetModal ? (
                     <>
