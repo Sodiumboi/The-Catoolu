@@ -2,7 +2,7 @@ import { useState } from 'react';
 import apiClient from '../api/client';
 import {
   Backdrop, Field, ErrorMsg,
-  CancelBtn, SubmitBtn, inputStyle,
+  CancelBtn, SubmitBtn,
 } from './CreateCampaignModal';
 
 export default function JoinCampaignModal({ onClose, onSuccess }) {
@@ -31,24 +31,11 @@ export default function JoinCampaignModal({ onClose, onSuccess }) {
 
   return (
     <Backdrop onClose={onClose}>
-      <div style={{
-        background:   'var(--bg-card)',
-        border:       '1px solid var(--border-main)',
-        borderRadius: '16px',
-        boxShadow:    'var(--shadow-dropdown)',
-        padding:      '28px',
-        width:        '100%',
-        maxWidth:     '380px',
-      }}>
-        <h2 style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize:   '22px',
-          color:      'var(--text-primary)',
-          margin:     '0 0 4px',
-        }}>
+      <div className="bg-(--bg-card) border border-(--border-main) rounded-2xl shadow-(--shadow-dropdown) p-7 w-full max-w-[380px]">
+        <h2 className="font-serif text-[22px] text-(--text-primary) m-0 mb-1">
           Join Campaign
         </h2>
-        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 24px' }}>
+        <p className="text-[13px] text-(--text-muted) m-0 mb-6">
           Enter the invite code your Keeper shared with you.
         </p>
 
@@ -61,15 +48,7 @@ export default function JoinCampaignModal({ onClose, onSuccess }) {
             maxLength={10}
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleJoin()}
-            style={{
-              ...inputStyle,
-              textTransform: 'uppercase',
-              letterSpacing: '0.15em',
-              fontSize:      '18px',
-              fontWeight:    '600',
-              textAlign:     'center',
-              fontFamily:    'monospace',
-            }}
+            className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) outline-none box-border [transition:border-color_0.15s_ease] uppercase tracking-[0.15em] text-[18px] font-semibold text-center font-mono"
             onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
             onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
           />
@@ -77,7 +56,7 @@ export default function JoinCampaignModal({ onClose, onSuccess }) {
 
         {error && <ErrorMsg>{error}</ErrorMsg>}
 
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+        <div className="flex gap-2.5 justify-end">
           <CancelBtn onClick={onClose} />
           <SubmitBtn onClick={handleJoin} loading={loading} label="Join Campaign" />
         </div>

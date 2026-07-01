@@ -37,31 +37,17 @@ export default function InboxPage() {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <div style={{
-      minHeight:'100vh', background:'var(--bg-page)',
-      display:'flex', flexDirection:'column',
-      fontFamily:'var(--font-sans)',
-    }}>
+    <div className="min-h-screen bg-(--bg-page) flex flex-col font-sans">
       <NavBar activeTab="inbox" />
 
-      <main className="animate-fade-rise" style={{
-        maxWidth:'680px', margin:'0 auto',
-        padding:'32px 24px', flex:1, width:'100%',
-      }}>
+      <main className="animate-fade-rise max-w-[680px] mx-auto py-8 px-6 flex-1 w-full">
         {/* Header */}
-        <div style={{
-          display:'flex', alignItems:'flex-end',
-          justifyContent:'space-between', marginBottom:'24px',
-          flexWrap:'wrap', gap:'12px',
-        }}>
+        <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
           <div>
-            <h1 style={{
-              fontFamily:'var(--font-serif)', fontSize:'28px',
-              color:'var(--text-primary)', margin:'0 0 4px',
-            }}>
+            <h1 className="font-serif text-[28px] text-(--text-primary) m-0 mb-1">
               Notifications
             </h1>
-            <p style={{ fontSize:'13px', color:'var(--text-muted)', margin:0 }}>
+            <p className="text-[13px] text-(--text-muted) m-0">
               {loading ? 'Loading...' :
                notifications.length === 0 ? 'All caught up' :
                unreadCount > 0
@@ -70,30 +56,18 @@ export default function InboxPage() {
             </p>
           </div>
           {notifications.length > 0 && (
-            <div style={{ display:'flex', gap:'8px' }}>
+            <div className="flex gap-2">
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  style={{
-                    padding:'6px 14px', borderRadius:'8px',
-                    border:'1px solid var(--border-main)',
-                    background:'transparent', color:'var(--text-secondary)',
-                    fontFamily:'var(--font-sans)', fontSize:'12px',
-                    cursor:'pointer',
-                  }}
+                  className="py-1.5 px-3.5 rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-xs cursor-pointer"
                 >
                   Mark all read
                 </button>
               )}
               <button
                 onClick={handleClear}
-                style={{
-                  padding:'6px 14px', borderRadius:'8px',
-                  border:'1px solid var(--border-main)',
-                  background:'transparent', color:'var(--text-muted)',
-                  fontFamily:'var(--font-sans)', fontSize:'12px',
-                  cursor:'pointer',
-                }}
+                className="py-1.5 px-3.5 rounded-lg border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-xs cursor-pointer"
               >
                 Clear all
               </button>
@@ -103,30 +77,23 @@ export default function InboxPage() {
 
         {/* Loading */}
         {loading && (
-          <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+          <div className="flex flex-col gap-2">
             {[1,2,3].map(i => (
-              <div key={i} style={{
-                height:'72px', borderRadius:'12px',
-                background:'var(--bg-card)',
-                border:'1px solid var(--border-main)', opacity:0.5,
-              }} />
+              <div key={i} className="h-[72px] rounded-xl bg-(--bg-card) border border-(--border-main) opacity-50" />
             ))}
           </div>
         )}
 
         {/* Empty */}
         {!loading && notifications.length === 0 && (
-          <div style={{ textAlign:'center', padding:'80px 20px' }}>
-            <div style={{ marginBottom:'12px', opacity:0.3 }}>
-              <span className="icon" style={{ fontSize:'48px' }}>notifications</span>
+          <div className="text-center py-20 px-5">
+            <div className="mb-3 opacity-30">
+              <span className="icon text-5xl">notifications</span>
             </div>
-            <p style={{
-              fontFamily:'var(--font-serif)', fontSize:'18px',
-              color:'var(--text-primary)', margin:'0 0 8px',
-            }}>
+            <p className="font-serif text-lg text-(--text-primary) m-0 mb-2">
               All caught up
             </p>
-            <p style={{ fontSize:'13px', color:'var(--text-muted)', margin:0 }}>
+            <p className="text-[13px] text-(--text-muted) m-0">
               Messages and dice rolls from campaigns will appear here
               when you're away.
             </p>
@@ -135,16 +102,12 @@ export default function InboxPage() {
 
         {/* Notification list */}
         {!loading && notifications.length > 0 && (
-          <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+          <div className="flex flex-col gap-2">
 
             {/* Pinned invites section */}
             {notifications.some(n => n.is_pinned) && (
               <>
-                <div style={{
-                  fontSize:'10px', fontWeight:'600',
-                  textTransform:'uppercase', letterSpacing:'0.08em',
-                  color:'var(--accent)', marginBottom:'4px',
-                }}>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-(--accent) mb-1">
                   <span className="icon icon-sm">push_pin</span>{' '}Invites
                 </div>
                 {notifications
@@ -157,21 +120,14 @@ export default function InboxPage() {
                       onClick={() => navigate('/campaign')}
                     />
                   ))}
-                <div style={{
-                  borderTop:'1px solid var(--border-main)',
-                  margin:'8px 0',
-                }} />
+                <div className="border-t border-(--border-main) my-2" />
               </>
             )}
 
             {/* Regular notifications */}
             {notifications.some(n => !n.is_pinned) && (
               <>
-                <div style={{
-                  fontSize:'10px', fontWeight:'600',
-                  textTransform:'uppercase', letterSpacing:'0.08em',
-                  color:'var(--text-muted)', marginBottom:'4px',
-                }}>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-1">
                   Recent
                 </div>
                 {notifications
@@ -209,88 +165,49 @@ function NotifCard({ notif, onDismiss, onClick }) {
   return (
     <div
       onClick={onClick}
-      style={{
-        display:      'flex',
-        alignItems:   'flex-start',
-        gap:          '12px',
-        padding:      '12px 14px',
-        borderRadius: '12px',
-        background:   notif.is_read ? 'var(--bg-card)' : 'var(--accent-bg)',
-        border:       '1px solid ' + (notif.is_read
-          ? 'var(--border-main)' : 'var(--accent)') + '44',
-        cursor:       'pointer',
-        transition:   'all 0.15s ease',
-        position:     'relative',
-      }}
+      className={`flex items-start gap-3 py-3 px-3.5 rounded-xl cursor-pointer [transition:all_0.15s_ease] relative ${notif.is_read ? 'bg-(--bg-card) [border:1px_solid_var(--border-main)44]' : 'bg-(--accent-bg) [border:1px_solid_var(--accent)44]'}`}
       onMouseEnter={e => e.currentTarget.style.boxShadow = 'var(--shadow-card)'}
       onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
     >
       {/* Unread dot */}
       {!notif.is_read && (
-        <div style={{
-          position:'absolute', top:'12px', right:'40px',
-          width:'8px', height:'8px', borderRadius:'50%',
-          background:'var(--accent)',
-        }} />
+        <div className="absolute top-3 right-10 w-2 h-2 rounded-full bg-(--accent)" />
       )}
 
       {/* Avatar */}
-      <div style={{
-        width:'40px', height:'40px', borderRadius:'50%',
-        background:'var(--color-primary-light)',
-        display:'flex', alignItems:'center', justifyContent:'center',
-        flexShrink:0, overflow:'hidden',
-        border:'1px solid var(--border-main)',
-      }}>
+      <div className="w-10 h-10 rounded-full bg-(--color-primary-light) flex items-center justify-center shrink-0 overflow-hidden border border-(--border-main)">
         {notif.avatar_url ? (
           <img
             src={API_BASE + notif.avatar_url}
             alt={notif.sender_name}
-            style={{ width:'100%', height:'100%', objectFit:'cover' }}
+            className="w-full h-full object-cover"
           />
         ) : (
-          <span style={{
-            fontFamily:'var(--font-sans)', fontSize:'14px',
-            fontWeight:'600', color:'var(--color-primary-dark)',
-          }}>
+          <span className="font-sans text-sm font-semibold text-(--color-primary-dark)">
             {(notif.sender_name || '?').slice(0, 2).toUpperCase()}
           </span>
         )}
       </div>
 
       {/* Content */}
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{
-          display:'flex', justifyContent:'space-between',
-          marginBottom:'3px', gap:'8px',
-        }}>
-          <span style={{
-            fontFamily:'var(--font-sans)', fontSize:'13px',
-            fontWeight:'600', color:'var(--text-primary)',
-          }}>
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between mb-[3px] gap-2">
+          <span className="font-sans text-[13px] font-semibold text-(--text-primary)">
             {notif.sender_name}
           </span>
-          <span style={{ fontSize:'11px', color:'var(--text-faint)',
-                         flexShrink:0 }}>
+          <span className="text-[11px] text-(--text-faint) shrink-0">
             {time}
           </span>
         </div>
         {notif.campaign_name && (
-          <div style={{
-            fontSize:'11px', color:'var(--accent)',
-            marginBottom:'3px',
-          }}>
+          <div className="text-[11px] text-(--accent) mb-[3px]">
             {notif.type === 'roll'
               ? <span className="icon icon-sm">casino</span>
               : <span className="icon icon-sm">chat</span>
             }{' '}{notif.campaign_name}
           </div>
         )}
-        <p style={{
-          fontFamily:'var(--font-sans)', fontSize:'13px',
-          color:'var(--text-secondary)', margin:0,
-          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-        }}>
+        <p className="font-sans text-[13px] text-(--text-secondary) m-0 truncate">
           {notif.content}
         </p>
       </div>
@@ -298,11 +215,7 @@ function NotifCard({ notif, onDismiss, onClick }) {
       {/* Dismiss */}
       <button
         onClick={e => { e.stopPropagation(); onDismiss(); }}
-        style={{
-          background:'none', border:'none', cursor:'pointer',
-          color:'var(--text-faint)', fontSize:'14px',
-          padding:'0', lineHeight:1, flexShrink:0,
-        }}
+        className="bg-transparent border-none cursor-pointer text-(--text-faint) text-sm p-0 leading-none shrink-0"
       >
         <span className="icon icon-sm">close</span>
       </button>

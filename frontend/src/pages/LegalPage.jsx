@@ -6,18 +6,10 @@ import { content } from './legalContent';
 
 // ── Block renderers ───────────────────────────────────────────────────
 
-const pStyle = {
-  fontFamily: 'var(--font-sans)',
-  fontSize:   '0.95rem',
-  color:      'var(--text-secondary)',
-  lineHeight: 1.75,
-  margin:     '0 0 0.75rem',
-};
-
 const EmailLink = ({ address }) => (
   <a
     href={`mailto:${address}`}
-    style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}
+    className="text-(--accent) no-underline font-medium"
     onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
     onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}
   >
@@ -30,7 +22,7 @@ function Block({ block }) {
 
     case 'p':
       return (
-        <p style={pStyle}>
+        <p className="font-sans text-[0.95rem] text-(--text-secondary) leading-[1.75] m-0 mb-3">
           {block.text}
           {block.email && <EmailLink address={block.email} />}
         </p>
@@ -38,44 +30,27 @@ function Block({ block }) {
 
     case 'emphasis':
       return (
-        <p style={{ ...pStyle, fontWeight: 600, color: 'var(--text-primary)' }}>
+        <p className="font-sans text-[0.95rem] text-(--text-primary) leading-[1.75] m-0 mb-3 font-semibold">
           {block.text}
         </p>
       );
 
     case 'disclaimer':
       return (
-        <p style={{
-          ...pStyle,
-          color:        'var(--text-faint)',
-          fontStyle:    'italic',
-          fontSize:     '0.875rem',
-          padding:      '0.65rem 1rem',
-          background:   'var(--bg-section-hd)',
-          borderRadius: '6px',
-          border:       '1px solid var(--border-input)',
-          margin:       '0 0 0.75rem',
-        }}>
+        <p className="font-sans text-[0.875rem] text-(--text-faint) leading-[1.75] m-0 mb-3 italic py-[0.65rem] px-4 bg-(--bg-section-hd) rounded-md border border-(--border-input)">
           {block.text}
         </p>
       );
 
     case 'ul':
       return (
-        <ul style={{
-          fontFamily:  'var(--font-sans)',
-          fontSize:    '0.95rem',
-          color:       'var(--text-secondary)',
-          lineHeight:  1.75,
-          margin:      '0 0 0.75rem',
-          paddingLeft: '1.4rem',
-        }}>
+        <ul className="font-sans text-[0.95rem] text-(--text-secondary) leading-[1.75] m-0 mb-3 pl-[1.4rem]">
           {block.items.map((item, i) =>
             typeof item === 'string'
-              ? <li key={i} style={{ marginBottom: '0.3rem' }}>{item}</li>
+              ? <li key={i} className="mb-[0.3rem]">{item}</li>
               : (
-                <li key={i} style={{ marginBottom: '0.3rem' }}>
-                  <strong style={{ color: 'var(--text-primary)' }}>{item.label}</strong>
+                <li key={i} className="mb-[0.3rem]">
+                  <strong className="text-(--text-primary)">{item.label}</strong>
                   {' — '}{item.text}
                 </li>
               )
@@ -85,20 +60,13 @@ function Block({ block }) {
 
     case 'subgroup':
       return (
-        <div style={{ marginBottom: '0.85rem' }}>
-          <p style={{ ...pStyle, fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.3rem' }}>
+        <div className="mb-[0.85rem]">
+          <p className="font-sans text-[0.95rem] text-(--text-primary) leading-[1.75] m-0 mb-[0.3rem] font-semibold">
             {block.heading}
           </p>
-          <ul style={{
-            fontFamily:  'var(--font-sans)',
-            fontSize:    '0.95rem',
-            color:       'var(--text-secondary)',
-            lineHeight:  1.75,
-            margin:      '0',
-            paddingLeft: '1.4rem',
-          }}>
+          <ul className="font-sans text-[0.95rem] text-(--text-secondary) leading-[1.75] m-0 pl-[1.4rem]">
             {block.items.map((item, i) => (
-              <li key={i} style={{ marginBottom: '0.25rem' }}>{item}</li>
+              <li key={i} className="mb-1">{item}</li>
             ))}
           </ul>
         </div>
@@ -106,26 +74,12 @@ function Block({ block }) {
 
     case 'table':
       return (
-        <div style={{ overflowX: 'auto', margin: '0 0 0.75rem' }}>
-          <table style={{
-            width:           '100%',
-            borderCollapse:  'collapse',
-            fontFamily:      'var(--font-sans)',
-            fontSize:        '0.9rem',
-            color:           'var(--text-secondary)',
-          }}>
+        <div className="overflow-x-auto m-0 mb-3">
+          <table className="w-full border-collapse font-sans text-[0.9rem] text-(--text-secondary)">
             <thead>
               <tr>
                 {block.headers.map((h, i) => (
-                  <th key={i} style={{
-                    textAlign:   'left',
-                    padding:     '0.5rem 0.75rem',
-                    background:  'var(--bg-section-hd)',
-                    border:      '1px solid var(--border-input)',
-                    fontWeight:  600,
-                    color:       'var(--text-primary)',
-                    whiteSpace:  'nowrap',
-                  }}>
+                  <th key={i} className="text-left py-2 px-3 bg-(--bg-section-hd) border border-(--border-input) font-semibold text-(--text-primary) whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -135,12 +89,7 @@ function Block({ block }) {
               {block.rows.map((row, i) => (
                 <tr key={i}>
                   {row.map((cell, j) => (
-                    <td key={j} style={{
-                      padding:       '0.45rem 0.75rem',
-                      border:        '1px solid var(--border-input)',
-                      verticalAlign: 'top',
-                      background:    i % 2 === 1 ? 'var(--row-hover)' : 'transparent',
-                    }}>
+                    <td key={j} className={`py-[0.45rem] px-3 border border-(--border-input) align-top ${i % 2 === 1 ? 'bg-(--row-hover)' : 'bg-transparent'}`}>
                       {cell}
                     </td>
                   ))}
@@ -153,7 +102,7 @@ function Block({ block }) {
 
     case 'email':
       return (
-        <p style={{ ...pStyle, fontWeight: 500 }}>
+        <p className="font-sans text-[0.95rem] text-(--text-secondary) leading-[1.75] m-0 mb-3 font-medium">
           <EmailLink address={block.address} />
         </p>
       );
@@ -169,19 +118,7 @@ function DocTab({ label, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        padding:       '6px 16px',
-        borderRadius:  '20px',
-        border:        active ? 'none' : '1px solid var(--border-input)',
-        background:    active ? 'var(--color-primary)' : 'transparent',
-        color:         active ? '#fff' : 'var(--text-muted)',
-        fontFamily:    'var(--font-sans)',
-        fontSize:      '0.85rem',
-        fontWeight:    600,
-        cursor:        active ? 'default' : 'pointer',
-        transition:    'background 0.15s, color 0.15s',
-        whiteSpace:    'nowrap',
-      }}
+      className={`py-1.5 px-4 rounded-[20px] font-sans text-[0.85rem] font-semibold [transition:background_0.15s,color_0.15s] whitespace-nowrap ${active ? 'border-none bg-(--color-primary) text-white cursor-default' : 'border border-(--border-input) bg-transparent text-(--text-muted) cursor-pointer'}`}
     >
       {label}
     </button>
@@ -190,33 +127,12 @@ function DocTab({ label, active, onClick }) {
 
 function LangPill({ lang, setLang }) {
   return (
-    <div style={{
-      display:      'flex',
-      alignItems:   'center',
-      gap:          '2px',
-      background:   'var(--bg-section-hd)',
-      border:       '1px solid var(--border-input)',
-      borderRadius: '20px',
-      padding:      '2px',
-      flexShrink:   0,
-    }}>
+    <div className="flex items-center gap-[2px] bg-(--bg-section-hd) border border-(--border-input) rounded-[20px] p-[2px] shrink-0">
       {[{ id: 'en', label: 'EN' }, { id: 'th', label: 'ภาษาไทย' }].map(l => (
         <button
           key={l.id}
           onClick={() => setLang(l.id)}
-          style={{
-            padding:      '3px 12px',
-            borderRadius: '20px',
-            border:       'none',
-            background:   lang === l.id ? 'var(--color-primary)' : 'transparent',
-            color:        lang === l.id ? '#fff' : 'var(--text-muted)',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '0.75rem',
-            fontWeight:   600,
-            cursor:       lang === l.id ? 'default' : 'pointer',
-            transition:   'background 0.15s, color 0.15s',
-            whiteSpace:   'nowrap',
-          }}
+          className={`py-[3px] px-3 rounded-[20px] border-none font-sans text-xs font-semibold [transition:background_0.15s,color_0.15s] whitespace-nowrap ${lang === l.id ? 'bg-(--color-primary) text-white cursor-default' : 'bg-transparent text-(--text-muted) cursor-pointer'}`}
         >
           {l.label}
         </button>
@@ -235,30 +151,15 @@ export default function LegalPage() {
   const data = content[doc][lang];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
+    <div className="min-h-screen flex flex-col bg-(--bg-page)">
 
       <NavBar />
 
       {/* ── Sticky controls bar ── */}
-      <div style={{
-        position:     'sticky',
-        top:          '56px',
-        zIndex:       40,
-        background:   'var(--bg-page)',
-        borderBottom: '1px solid var(--border-main)',
-        padding:      '10px 24px',
-      }}>
-        <div style={{
-          maxWidth:       '760px',
-          margin:         '0 auto',
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'space-between',
-          gap:            '12px',
-          flexWrap:       'wrap',
-        }}>
+      <div className="sticky top-14 z-40 bg-(--bg-page) border-b border-(--border-main) py-2.5 px-6">
+        <div className="max-w-[760px] mx-auto flex items-center justify-between gap-3 flex-wrap">
           {/* Document tabs */}
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div className="flex gap-1.5">
             <DocTab
               label="Terms of Service"
               active={doc === 'tos'}
@@ -277,46 +178,22 @@ export default function LegalPage() {
       </div>
 
       {/* ── Document content ── */}
-      <main style={{
-        flex:       1,
-        maxWidth:   '760px',
-        width:      '100%',
-        margin:     '0 auto',
-        padding:    '2.5rem 1.5rem 4rem',
-        boxSizing:  'border-box',
-      }}>
+      <main className="flex-1 max-w-[760px] w-full mx-auto pt-10 px-6 pb-16 box-border">
 
         {/* Document header */}
-        <div style={{ marginBottom: '2.5rem' }}>
-          <h1 style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize:   '2rem',
-            color:      'var(--color-primary-dark)',
-            margin:     '0 0 0.4rem',
-          }}>
+        <div className="mb-10">
+          <h1 className="font-serif text-[2rem] text-(--color-primary-dark) m-0 mb-[0.4rem]">
             {data.title}
           </h1>
-          <p style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize:   '0.85rem',
-            color:      'var(--text-faint)',
-            margin:     0,
-          }}>
+          <p className="font-sans text-[0.85rem] text-(--text-faint) m-0">
             {lang === 'en' ? 'Last updated:' : 'อัปเดตล่าสุด:'} {data.updated}
           </p>
         </div>
 
         {/* Sections */}
         {data.sections.map(section => (
-          <section key={section.num} style={{ marginBottom: '2.25rem' }}>
-            <h2 style={{
-              fontFamily:    'var(--font-serif)',
-              fontSize:      '1.2rem',
-              color:         'var(--color-primary-dark)',
-              margin:        '0 0 0.65rem',
-              paddingBottom: '0.45rem',
-              borderBottom:  '1px solid var(--border-main)',
-            }}>
+          <section key={section.num} className="mb-9">
+            <h2 className="font-serif text-[1.2rem] text-(--color-primary-dark) m-0 mb-[0.65rem] pb-[0.45rem] border-b border-(--border-main)">
               {section.num}. {section.heading}
             </h2>
             {section.blocks.map((block, i) => (

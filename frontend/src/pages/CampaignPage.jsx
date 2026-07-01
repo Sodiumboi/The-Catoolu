@@ -67,41 +67,18 @@ export default function CampaignPage() {
   };
 
   return (
-    <div style={{
-      minHeight:     '100vh',
-      display:       'flex',
-      flexDirection: 'column',
-      fontFamily:    'var(--font-sans)',
-    }}>
+    <div className="min-h-screen flex flex-col font-sans">
       <NavBar activeTab="campaign" />
 
-      <main className="animate-fade-rise" style={{
-        maxWidth: '1200px',
-        margin:   '0 auto',
-        padding:  '32px 24px',
-        flex:     1,
-        width:    '100%',
-      }}>
+      <main className="animate-fade-rise max-w-[1200px] mx-auto py-8 px-6 flex-1 w-full">
 
         {/* Page header */}
-        <div style={{
-          display:        'flex',
-          alignItems:     'flex-end',
-          justifyContent: 'space-between',
-          marginBottom:   '28px',
-          flexWrap:       'wrap',
-          gap:            '12px',
-        }}>
+        <div className="flex items-end justify-between mb-7 flex-wrap gap-3">
           <div>
-            <h1 style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize:   '28px',
-              color:      'var(--text-primary)',
-              margin:     '0 0 4px',
-            }}>
+            <h1 className="font-serif text-[28px] text-(--text-primary) m-0 mb-1">
               Campaigns
             </h1>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+            <p className="text-[13px] text-(--text-muted) m-0">
               {loading ? 'Loading...' :
                campaigns.length === 0 ? 'No campaigns yet — join one with an invite code' :
                campaigns.length + ' campaign' + (campaigns.length !== 1 ? 's' : '')}
@@ -109,9 +86,9 @@ export default function CampaignPage() {
           </div>
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="flex items-center gap-2.5">
             {!loading && campaigns.length > 0 && (
-              <div style={{ width: 185, flexShrink: 0 }}>
+              <div className="w-[185px] shrink-0">
                 <CustomDropdown
                   value={sortBy}
                   onChange={handleSortChange}
@@ -129,17 +106,7 @@ export default function CampaignPage() {
             )}
             <button
               onClick={() => setModal('join')}
-              style={{
-                padding:      '8px 18px',
-                borderRadius: '8px',
-                border:       '1px solid var(--border-main)',
-                background:   'transparent',
-                color:        'var(--text-secondary)',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '13px',
-                cursor:       'pointer',
-                transition:   'all 0.15s ease',
-              }}
+              className="py-2 px-[18px] rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-[13px] cursor-pointer [transition:all_0.15s_ease]"
               onMouseEnter={e => {
                 e.currentTarget.style.borderColor = 'var(--accent)';
                 e.currentTarget.style.color       = 'var(--accent)';
@@ -156,15 +123,7 @@ export default function CampaignPage() {
 
         {/* Error */}
         {error && (
-          <div style={{
-            background:   'var(--danger-bg)',
-            border:       '1px solid var(--danger)',
-            borderRadius: '8px',
-            padding:      '12px 16px',
-            marginBottom: '20px',
-            fontSize:     '13px',
-            color:        'var(--danger)',
-          }}>
+          <div className="bg-(--danger-bg) border border-(--danger) rounded-lg py-3 px-4 mb-5 text-[13px] text-(--danger)">
             <span className="icon icon-sm">warning</span>{' '}{error}
           </div>
         )}
@@ -174,43 +133,28 @@ export default function CampaignPage() {
           <div className="flex items-center justify-center py-24">
             <div className="text-center">
               <img src={logo} alt="Loading"
-                   className="object-contain animate-pulse mx-auto mb-4"
-                   style={{ width: '56px', height: '56px' }} />
-              <p style={{ color: 'var(--text-muted)' }}>Loading campaigns...</p>
+                   className="object-contain animate-pulse mx-auto mb-4 w-14 h-14" />
+              <p className="text-(--text-muted)">Loading campaigns...</p>
             </div>
           </div>
         )}
 
         {/* Empty state */}
         {!loading && campaigns.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-            <div style={{ marginBottom: '16px', opacity: 0.3 }}>
-              <span className="icon" style={{ fontSize: '56px', color: 'var(--text-muted)' }}>swords</span>
+          <div className="text-center py-20 px-5">
+            <div className="mb-4 opacity-30">
+              <span className="icon text-[56px] text-(--text-muted)">swords</span>
             </div>
-            <h2 style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize:   '22px',
-              color:      'var(--text-primary)',
-              margin:     '0 0 8px',
-            }}>
+            <h2 className="font-serif text-[22px] text-(--text-primary) m-0 mb-2">
               No Investigations Yet
             </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '0 0 28px' }}>
+            <p className="text-sm text-(--text-muted) m-0 mb-7">
               Join a campaign with an invite code, or create one from the Keeper tab.
             </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div className="flex gap-3 justify-center">
               <button
                 onClick={() => setModal('join')}
-                style={{
-                  padding:      '10px 24px',
-                  borderRadius: '8px',
-                  border:       '1px solid var(--border-main)',
-                  background:   'transparent',
-                  color:        'var(--text-secondary)',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '14px',
-                  cursor:       'pointer',
-                }}
+                className="py-2.5 px-6 rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-sm cursor-pointer"
               >
                 <span className="icon icon-sm">key</span>{' '}Join with Code
               </button>
@@ -220,11 +164,7 @@ export default function CampaignPage() {
 
         {/* Campaign grid */}
         {!loading && campaigns.length > 0 && (
-          <div style={{
-            display:             'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap:                 '16px',
-          }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
             {sortedCampaigns.map(campaign => (
               <CampaignCard
                 key={campaign.id}
@@ -257,18 +197,7 @@ function CampaignCard({ campaign, onEnter }) {
 
   return (
     <div
-      style={{
-        background:   'var(--bg-card)',
-        border:       '1px solid var(--border-main)',
-        borderRadius: '12px',
-        padding:      '20px',
-        display:      'flex',
-        flexDirection:'column',
-        gap:          '12px',
-        boxShadow:    'var(--shadow-card)',
-        transition:   'box-shadow 0.15s ease, transform 0.15s ease',
-        cursor:       'pointer',
-      }}
+      className="bg-(--bg-card) border border-(--border-main) rounded-xl p-5 flex flex-col gap-3 shadow-(--shadow-card) [transition:box-shadow_0.15s_ease,transform_0.15s_ease] cursor-pointer"
       onClick={onEnter}
       onMouseEnter={e => {
         e.currentTarget.style.boxShadow = 'var(--shadow-dropdown)';
@@ -280,88 +209,42 @@ function CampaignCard({ campaign, onEnter }) {
       }}
     >
       {/* Role badge */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{
-          display:      'inline-flex',
-          alignItems:   'center',
-          gap:          '5px',
-          background:   isKeeper ? 'var(--accent-bg)'   : 'var(--bg-section-hd)',
-          color:        isKeeper ? 'var(--accent)'       : 'var(--text-muted)',
-          border:       '1px solid ' + (isKeeper ? 'var(--border-main)' : 'var(--border-main)'),
-          borderRadius: '20px',
-          fontSize:     '11px',
-          fontWeight:   '500',
-          padding:      '3px 10px',
-        }}>
+      <div className="flex items-center justify-between">
+        <span className={`inline-flex items-center gap-[5px] border border-(--border-main) rounded-[20px] text-[11px] font-medium py-[3px] px-2.5 ${isKeeper ? 'bg-(--accent-bg) text-(--accent)' : 'bg-(--bg-section-hd) text-(--text-muted)'}`}>
           {isKeeper
             ? <><span className="icon icon-sm">theater_comedy</span>{' '}Keeper</>
             : <><span className="icon icon-sm">swords</span>{' '}Player</>
           }
         </span>
-        <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
+        <span className="text-[11px] text-(--text-faint)">
           {campaign.member_count} member{campaign.member_count !== '1' ? 's' : ''}
         </span>
       </div>
 
       {/* Campaign name */}
       <div>
-        <h3 style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize:   '18px',
-          color:      'var(--text-primary)',
-          margin:     '0 0 4px',
-          lineHeight: '1.3',
-        }}>
+        <h3 className="font-serif text-lg text-(--text-primary) m-0 mb-1 leading-[1.3]">
           {campaign.name}
         </h3>
         {campaign.description && (
-          <p style={{
-            fontSize:   '13px',
-            color:      'var(--text-muted)',
-            margin:     0,
-            lineHeight: '1.5',
-            // Clamp to 2 lines
-            display:          '-webkit-box',
-            WebkitLineClamp:  2,
-            WebkitBoxOrient:  'vertical',
-            overflow:         'hidden',
-          }}>
+          <p className="text-[13px] text-(--text-muted) m-0 leading-normal line-clamp-2">
             {campaign.description}
           </p>
         )}
       </div>
 
       {/* Keeper name + enter button */}
-      <div style={{
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'space-between',
-        marginTop:      'auto',
-        paddingTop:     '8px',
-        borderTop:      '1px solid var(--border-main)',
-      }}>
-        <span style={{ fontSize: '12px', color: 'var(--text-faint)' }}>
+      <div className="flex items-center justify-between mt-auto pt-2 border-t border-(--border-main)">
+        <span className="text-xs text-(--text-faint)">
           Keeper: {campaign.keeper_name}
         </span>
-        <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+        <div className="flex items-center gap-2">
           {isKeeper && (
             <Tooltip content="Manage in Keeper tab">
             <button
               onClick={e => { e.stopPropagation(); navigate('/keeper', { state: { openCampaignUuid: campaign.uuid } }); }}
               aria-label="Manage in Keeper tab"
-              style={{
-                display:        'inline-flex',
-                alignItems:     'center',
-                justifyContent: 'center',
-                width:          '30px',
-                height:         '30px',
-                borderRadius:   '7px',
-                border:         '1px solid var(--border-main)',
-                background:     'transparent',
-                color:          'var(--accent)',
-                cursor:         'pointer',
-                transition:     'all 0.15s ease',
-              }}
+              className="inline-flex items-center justify-center w-[30px] h-[30px] rounded-[7px] border border-(--border-main) bg-transparent text-(--accent) cursor-pointer [transition:all_0.15s_ease]"
               onMouseEnter={e => {
                 e.currentTarget.style.background  = 'color-mix(in srgb, var(--accent) 12%, transparent)';
                 e.currentTarget.style.borderColor = 'var(--accent)';
@@ -377,18 +260,7 @@ function CampaignCard({ campaign, onEnter }) {
           )}
           <button
             onClick={e => { e.stopPropagation(); onEnter(); }}
-            style={{
-              padding:      '5px 14px',
-              borderRadius: '7px',
-              border:       '1px solid var(--color-primary)',
-              background:   'transparent',
-              color:        'var(--color-primary)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '12px',
-              fontWeight:   '500',
-              cursor:       'pointer',
-              transition:   'all 0.15s ease',
-            }}
+            className="py-[5px] px-3.5 rounded-[7px] border border-(--color-primary) bg-transparent text-(--color-primary) font-sans text-xs font-medium cursor-pointer [transition:all_0.15s_ease]"
             onMouseEnter={e => {
               e.currentTarget.style.background = 'var(--color-primary)';
               e.currentTarget.style.color      = '#ffffff';

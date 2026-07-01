@@ -44,14 +44,7 @@ const HOW_TO_SECTIONS = [
 function VideoBlock({ src }) {
   const [broken, setBroken] = useState(false);
   return (
-    <div style={{
-      width: '100%',
-      aspectRatio: '16 / 9',
-      borderRadius: '12px',
-      overflow: 'hidden',
-      background: 'var(--bg-section-hd)',
-      border: '1px solid var(--border-main)',
-    }}>
+    <div className="w-full aspect-video rounded-xl overflow-hidden bg-(--bg-section-hd) border border-(--border-main)">
       {!broken ? (
         <video
           src={src}
@@ -59,18 +52,13 @@ function VideoBlock({ src }) {
           loop
           muted
           playsInline
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          className="w-full h-full object-cover block"
           onError={() => setBroken(true)}
         />
       ) : (
-        <div style={{
-          width: '100%', height: '100%',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          gap: '0.75rem',
-        }}>
-          <span className="icon" style={{ fontSize: '42px', color: 'var(--text-faint)' }}>videocam</span>
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.8rem', color: 'var(--text-faint)', fontStyle: 'italic' }}>
+        <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+          <span className="icon text-[42px] text-(--text-faint)">videocam</span>
+          <span className="font-sans text-[0.8rem] text-(--text-faint) italic">
             Screen recording coming soon
           </span>
         </div>
@@ -106,61 +94,38 @@ export default function LandingPage() {
   }, [tab]);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
+    <div className="min-h-screen flex flex-col bg-(--bg-page)">
 
       {/* ── Hero header ── */}
-      <header style={{ textAlign: 'center', padding: '3.5rem 1.5rem 1.75rem' }}>
+      <header className="text-center pt-14 px-6 pb-7">
         <img
           src={logo}
           alt="The Catoolu"
-          style={{ width: '72px', height: '72px', objectFit: 'contain', marginBottom: '1rem', display: 'block', margin: '0 auto 1rem' }}
+          className="block w-[72px] h-[72px] object-contain mx-auto mt-0 mb-4"
         />
-        <h1 style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize: 'clamp(2rem, 5vw, 3rem)',
-          color: 'var(--color-primary-dark)',
-          margin: '0 0 0.4rem',
-          letterSpacing: '0.02em',
-        }}>
+        <h1 className="font-serif text-[clamp(2rem,5vw,3rem)] text-(--color-primary-dark) m-0 mb-[0.4rem] tracking-[0.02em]">
           The Catoolu
         </h1>
-        <p style={{ fontFamily: 'var(--font-sans)', fontSize: '1rem', color: 'var(--text-muted)', margin: 0 }}>
+        <p className="font-sans text-base text-(--text-muted) m-0">
           Call of Cthulhu Character Manager
         </p>
       </header>
 
       {/* ── Tab switcher — sliding pill, same mechanism as NavBar ── */}
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '0 1.5rem 2rem' }}>
+      <div className="flex justify-center pt-0 px-6 pb-8">
         {/* Outer track: just the border + padding — keeps pill math clean */}
-        <div style={{
-          border:       '1.5px solid var(--border-input)',
-          borderRadius: '24px',
-          padding:      '3px',
-        }}>
+        <div className="border-[1.5px] border-(--border-input) rounded-3xl p-[3px]">
         <div
           ref={containerRef}
-          style={{
-            display:    'flex',
-            alignItems: 'center',
-            gap:        '4px',
-            position:   'relative',
-          }}
+          className="flex items-center gap-1 relative"
         >
           {/* The pill that slides */}
           {pillBounds && (
-            <div style={{
-              position:      'absolute',
-              top:           0,
-              bottom:        0,
-              left:          pillBounds.left,
-              width:         pillBounds.width,
-              borderRadius:  '20px',
-              background:    'var(--accent-bg)',
-              border:        '1.5px solid var(--color-primary)',
-              zIndex:        0,
-              pointerEvents: 'none',
-              transition:    'left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            }} />
+            <div
+              className="absolute top-0 bottom-0 rounded-[20px] bg-(--accent-bg) border-[1.5px] border-(--color-primary) z-0 pointer-events-none [transition:left_0.3s_cubic-bezier(0.4,0,0.2,1),width_0.3s_cubic-bezier(0.4,0,0.2,1)]"
+              /* runtime geometry from getBoundingClientRect — stays inline */
+              style={{ left: pillBounds.left, width: pillBounds.width }}
+            />
           )}
 
           {LANDING_TABS.map(t => {
@@ -170,21 +135,7 @@ export default function LandingPage() {
                 key={t.id}
                 ref={el => { tabRefs.current[t.id] = el; }}
                 onClick={() => setTab(t.id)}
-                style={{
-                  padding:      '5px 20px',
-                  borderRadius: '20px',
-                  border:       '1.5px solid transparent',
-                  background:   'transparent',
-                  color:        active ? 'var(--color-primary)' : 'var(--text-secondary)',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '13px',
-                  fontWeight:   active ? 500 : 400,
-                  cursor:       active ? 'default' : 'pointer',
-                  whiteSpace:   'nowrap',
-                  transition:   'color 0.15s ease',
-                  position:     'relative',
-                  zIndex:       1,
-                }}
+                className={`py-[5px] px-5 rounded-[20px] border-[1.5px] border-transparent bg-transparent font-sans text-[13px] whitespace-nowrap [transition:color_0.15s_ease] relative z-[1] ${active ? 'text-(--color-primary) font-medium cursor-default' : 'text-(--text-secondary) font-normal cursor-pointer'}`}
               >
                 {t.label}
               </button>
@@ -195,40 +146,21 @@ export default function LandingPage() {
       </div>
 
       {/* ── Content ── */}
-      <main style={{ flex: 1, width: '100%', maxWidth: '900px', margin: '0 auto', padding: '0 1.5rem 4rem' }}>
+      <main className="flex-1 w-full max-w-[900px] mx-auto pt-0 px-6 pb-16">
 
         {tab === 'overview' && (
           <div className="animate-fade-rise">
-            <p style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: '1.05rem',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.7,
-              maxWidth: '620px',
-              margin: '0 auto 2rem',
-              textAlign: 'center',
-            }}>
+            <p className="font-sans text-[1.05rem] text-(--text-secondary) leading-[1.7] max-w-[620px] mx-auto mt-0 mb-8 text-center">
               The Catoolu is an online character manager for Call of Cthulhu tabletop RPG sessions.
               Create your investigator, join your Keeper's campaign, and roll dice — all in one place.
               Built for players and Keepers who want to focus on the horror, not the paperwork.
             </p>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
+            <div className="flex justify-center gap-3 flex-wrap mb-10">
               {user ? (
                 <button
                   onClick={() => navigate(homePath)}
-                  style={{
-                    padding: '0.7rem 1.8rem',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: 'var(--color-primary)',
-                    color: '#fff',
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: '0.95rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'background 0.15s',
-                  }}
+                  className="py-[0.7rem] px-[1.8rem] rounded-[10px] border-none bg-(--color-primary) text-white font-sans text-[0.95rem] font-semibold cursor-pointer [transition:background_0.15s]"
                   onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-primary)'; }}
                 >
@@ -238,18 +170,7 @@ export default function LandingPage() {
                 <>
                   <button
                     onClick={() => navigate('/register')}
-                    style={{
-                      padding: '0.7rem 1.8rem',
-                      borderRadius: '10px',
-                      border: 'none',
-                      background: 'var(--color-primary)',
-                      color: '#fff',
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: '0.95rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'background 0.15s',
-                    }}
+                    className="py-[0.7rem] px-[1.8rem] rounded-[10px] border-none bg-(--color-primary) text-white font-sans text-[0.95rem] font-semibold cursor-pointer [transition:background_0.15s]"
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-primary)'; }}
                   >
@@ -257,17 +178,7 @@ export default function LandingPage() {
                   </button>
                   <button
                     onClick={() => navigate('/login')}
-                    style={{
-                      padding: '0.7rem 1.8rem',
-                      borderRadius: '10px',
-                      border: '1px solid var(--border-input)',
-                      background: 'transparent',
-                      color: 'var(--text-secondary)',
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: '0.95rem',
-                      cursor: 'pointer',
-                      transition: 'border-color 0.15s, color 0.15s',
-                    }}
+                    className="py-[0.7rem] px-[1.8rem] rounded-[10px] border border-(--border-input) bg-transparent text-(--text-secondary) font-sans text-[0.95rem] cursor-pointer [transition:border-color_0.15s,color_0.15s]"
                     onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   >
@@ -282,38 +193,17 @@ export default function LandingPage() {
         )}
 
         {tab === 'howto' && (
-          <div className="animate-fade-rise" style={{ display: 'flex', flexDirection: 'column', gap: '3.5rem' }}>
+          <div className="animate-fade-rise flex flex-col gap-14">
             {HOW_TO_SECTIONS.map(s => (
               <section key={s.num}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <span style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    color: 'var(--accent)',
-                    display: 'block',
-                    marginBottom: '0.3rem',
-                  }}>
+                <div className="mb-4">
+                  <span className="font-sans text-[0.7rem] font-bold tracking-[0.1em] uppercase text-(--accent) block mb-[0.3rem]">
                     {s.num}
                   </span>
-                  <h2 style={{
-                    fontFamily: 'var(--font-serif)',
-                    fontSize: 'clamp(1.3rem, 3vw, 1.8rem)',
-                    color: 'var(--text-primary)',
-                    margin: '0 0 0.6rem',
-                  }}>
+                  <h2 className="font-serif text-[clamp(1.3rem,3vw,1.8rem)] text-(--text-primary) m-0 mb-[0.6rem]">
                     {s.label}
                   </h2>
-                  <p style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: '0.95rem',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.65,
-                    margin: 0,
-                    maxWidth: '560px',
-                  }}>
+                  <p className="font-sans text-[0.95rem] text-(--text-secondary) leading-[1.65] m-0 max-w-[560px]">
                     {s.description}
                   </p>
                 </div>

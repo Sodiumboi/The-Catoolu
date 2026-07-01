@@ -128,11 +128,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div style={{
-      minHeight:     '100vh',
-      display:       'flex',
-      flexDirection: 'column',
-    }}>
+    <div className="min-h-screen flex flex-col">
 
       {/* Hidden file input — triggered by "Import Another" card */}
       <input
@@ -140,7 +136,7 @@ export default function DashboardPage() {
         type="file"
         accept=".json"
         onChange={handleFileImport}
-        style={{ display: 'none' }}
+        className="hidden"
       />
 
       {/* ── Top Navigation Bar ── */}
@@ -150,40 +146,16 @@ export default function DashboardPage() {
       />
 
       {/* ── Main Content ── */}
-      <main className="animate-fade-rise" style={{
-        maxWidth: '1200px',
-        margin:   '0 auto',
-        padding:  '32px 24px',
-        flex:     1,
-        width:    '100%',
-      }}>
+      <main className="animate-fade-rise max-w-[1200px] mx-auto py-8 px-6 flex-1 w-full">
 
         {/* Page header + search */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{
-            display:        'flex',
-            alignItems:     'flex-end',
-            justifyContent: 'space-between',
-            flexWrap:       'wrap',
-            gap:            '12px',
-            marginBottom:   '16px',
-          }}>
+        <div className="mb-6">
+          <div className="flex items-end justify-between flex-wrap gap-3 mb-4">
             <div>
-              <h2 style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize:   '28px',
-                color:      'var(--text-primary)',
-                margin:     '0 0 4px',
-                lineHeight: '1.2',
-              }}>
+              <h2 className="font-serif text-[28px] text-(--text-primary) m-0 mb-1 leading-[1.2]">
                 Investigators
               </h2>
-              <p style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize:   '13px',
-                color:      'var(--text-muted)',
-                margin:     0,
-              }}>
+              <p className="font-sans text-[13px] text-(--text-muted) m-0">
                 {characters.length === 0
                   ? 'No investigators yet — import a JSON file to begin'
                   : `${characters.length} investigator${characters.length !== 1 ? 's' : ''} in the vault`}
@@ -192,14 +164,8 @@ export default function DashboardPage() {
 
             {/* Search input — only show when there are characters */}
             {characters.length > 0 && (
-              <div style={{ position: 'relative' }}>
-                <span style={{
-                  position:      'absolute',
-                  left:          '10px',
-                  top:           '50%',
-                  transform:     'translateY(-50%)',
-                  pointerEvents: 'none',
-                }}>
+              <div className="relative">
+                <span className="absolute left-2.5 top-1/2 [transform:translateY(-50%)] pointer-events-none">
                   <span className="icon icon-sm">search</span>
                 </span>
                 <input
@@ -207,36 +173,14 @@ export default function DashboardPage() {
                   placeholder="Search investigators..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  style={{
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '13px',
-                    padding:      '7px 12px 7px 32px',
-                    borderRadius: '8px',
-                    border:       '1px solid var(--border-input)',
-                    background:   'var(--bg-card)',
-                    color:        'var(--text-primary)',
-                    width:        '220px',
-                    outline:      'none',
-                    transition:   'border-color 0.15s ease',
-                  }}
+                  className="font-sans text-[13px] py-[7px] pr-3 pl-8 rounded-lg border border-(--border-input) bg-(--bg-card) text-(--text-primary) w-[220px] outline-none [transition:border-color_0.15s_ease]"
                   onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
                   onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
                 />
                 {search && (
                   <button
                     onClick={() => setSearch('')}
-                    style={{
-                      position:   'absolute',
-                      right:      '8px',
-                      top:        '50%',
-                      transform:  'translateY(-50%)',
-                      background: 'none',
-                      border:     'none',
-                      cursor:     'pointer',
-                      color:      'var(--text-muted)',
-                      padding:    '2px',
-                      lineHeight: 1,
-                    }}
+                    className="absolute right-2 top-1/2 [transform:translateY(-50%)] bg-transparent border-none cursor-pointer text-(--text-muted) p-0.5 leading-none"
                   >
                     <span className="icon icon-sm">close</span>
                   </button>
@@ -248,12 +192,11 @@ export default function DashboardPage() {
 
         {/* Success banner — shown after creating an investigator */}
         {createdBanner && (
-          <div className="mb-6 px-4 py-3 rounded text-sm flex items-center justify-between animate-fade-rise"
-               style={{ background: 'var(--accent-bg)', color: 'var(--color-primary-dark)', border: '1px solid var(--accent)' }}>
-            <span style={{ display:'inline-flex', alignItems:'center', gap:'6px' }}>
+          <div className="mb-6 px-4 py-3 rounded text-sm flex items-center justify-between animate-fade-rise bg-(--accent-bg) text-(--color-primary-dark) border border-(--accent)">
+            <span className="inline-flex items-center gap-1.5">
               <span className="icon icon-sm">check_circle</span>Your investigator is ready.
             </span>
-            <button onClick={() => setCreatedBanner(false)} style={{ color: 'var(--color-primary-dark)', opacity: 0.7 }}>
+            <button onClick={() => setCreatedBanner(false)} className="text-(--color-primary-dark) opacity-70">
               <span className="icon icon-sm">close</span>
             </button>
           </div>
@@ -261,10 +204,9 @@ export default function DashboardPage() {
 
         {/* Error banner */}
         {error && (
-          <div className="mb-6 px-4 py-3 rounded text-sm flex items-center justify-between"
-               style={{ background: 'var(--danger)22', color: 'var(--danger)', border: '1px solid var(--danger)' }}>
-            <span style={{ display:'inline-flex', alignItems:'center', gap:'4px' }}><span className="icon icon-sm">warning</span>{error}</span>
-            <button onClick={() => setError('')} style={{ color: 'var(--danger)', opacity: 0.7 }}><span className="icon icon-sm">close</span></button>
+          <div className="mb-6 px-4 py-3 rounded text-sm flex items-center justify-between [background:var(--danger)22] text-(--danger) border border-(--danger)">
+            <span className="inline-flex items-center gap-1"><span className="icon icon-sm">warning</span>{error}</span>
+            <button onClick={() => setError('')} className="text-(--danger) opacity-70"><span className="icon icon-sm">close</span></button>
           </div>
         )}
 
@@ -273,56 +215,38 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center py-24">
             <div className="text-center">
               <img src={logo} alt="Loading"
-                   className="object-contain animate-pulse mx-auto mb-4"
-                   style={{ width: '56px', height: '56px' }} />
-              <p style={{ color: 'var(--text-muted)' }}>Summoning investigators...</p>
+                   className="object-contain animate-pulse mx-auto mb-4 w-14 h-14" />
+              <p className="text-(--text-muted)">Summoning investigators...</p>
             </div>
           </div>
 
         /* Empty state */
         ) : characters.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-6 opacity-30"><span className="icon" style={{ fontSize:'56px' }}>history_edu</span></div>
-            <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+            <div className="mb-6 opacity-30"><span className="icon text-[56px]">history_edu</span></div>
+            <h3 className="text-lg font-medium mb-2 text-(--text-primary)">
               The vault is empty
             </h3>
-            <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-sm mb-6 text-(--text-muted)">
               Build one from scratch with the creation wizard, or import a Dhole's House JSON file
             </p>
             <button
               onClick={openCreateImport}
-              className="px-6 py-3 rounded font-medium transition-all duration-150"
-              style={{
-                background: 'var(--accent)',
-                color: 'var(--bg-input)',
-              }}>
+              className="px-6 py-3 rounded font-medium transition-all duration-150 bg-(--accent) text-(--bg-input)">
               <span className="icon icon-sm">add</span>{' '}Create or Import Investigator
             </button>
           </div>
 
         /* No search results */
         ) : filteredCharacters.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ marginBottom: '12px', opacity: 0.3 }}><span className="icon" style={{ fontSize:'40px' }}>search</span></div>
-            <p style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize:   '15px',
-              color:      'var(--text-muted)',
-              margin:     '0 0 8px',
-            }}>
+          <div className="text-center py-[60px] px-5">
+            <div className="mb-3 opacity-30"><span className="icon text-[40px]">search</span></div>
+            <p className="font-sans text-[15px] text-(--text-muted) m-0 mb-2">
               No investigators match "{search}"
             </p>
             <button
               onClick={() => setSearch('')}
-              style={{
-                fontFamily:     'var(--font-sans)',
-                fontSize:       '13px',
-                color:          'var(--accent)',
-                background:     'none',
-                border:         'none',
-                cursor:         'pointer',
-                textDecoration: 'underline',
-              }}
+              className="font-sans text-[13px] text-(--accent) bg-transparent border-none cursor-pointer underline"
             >
               Clear search
             </button>
@@ -343,8 +267,7 @@ export default function DashboardPage() {
             {/* Persistent "Create or Import" card */}
             <button
               onClick={openCreateImport}
-              className="p-5 border-2 border-dashed flex flex-col items-center justify-center gap-3 min-h-48 transition-all duration-200"
-              style={{ borderColor: 'var(--border-main)', color: 'var(--text-muted)', borderRadius: 'var(--radius-squircle)' }}
+              className="p-5 border-2 border-dashed flex flex-col items-center justify-center gap-3 min-h-48 transition-all duration-200 border-(--border-main) text-(--text-muted) rounded-(--radius-squircle)"
               onMouseEnter={e => {
                 e.currentTarget.style.borderColor = 'var(--border-focus)';
                 e.currentTarget.style.color = 'var(--accent)';

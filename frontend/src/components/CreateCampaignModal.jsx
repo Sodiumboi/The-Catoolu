@@ -29,24 +29,11 @@ export default function CreateCampaignModal({ onClose, onSuccess }) {
 
   return (
     <Backdrop onClose={onClose}>
-      <div style={{
-        background:   'var(--bg-card)',
-        border:       '1px solid var(--border-main)',
-        borderRadius: '16px',
-        boxShadow:    'var(--shadow-dropdown)',
-        padding:      '28px',
-        width:        '100%',
-        maxWidth:     '440px',
-      }}>
-        <h2 style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize:   '22px',
-          color:      'var(--text-primary)',
-          margin:     '0 0 4px',
-        }}>
+      <div className="bg-(--bg-card) border border-(--border-main) rounded-2xl shadow-(--shadow-dropdown) p-7 w-full max-w-[440px]">
+        <h2 className="font-serif text-[22px] text-(--text-primary) m-0 mb-1">
           Create Campaign
         </h2>
-        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 24px' }}>
+        <p className="text-[13px] text-(--text-muted) m-0 mb-6">
           You'll be the Keeper. Share the invite code with your players.
         </p>
 
@@ -59,7 +46,7 @@ export default function CreateCampaignModal({ onClose, onSuccess }) {
             maxLength={100}
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleCreate()}
-            style={inputStyle}
+            className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none box-border [transition:border-color_0.15s_ease]"
             onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
             onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
           />
@@ -71,7 +58,7 @@ export default function CreateCampaignModal({ onClose, onSuccess }) {
             onChange={e => setDescription(e.target.value)}
             placeholder="A globe-trotting horror campaign..."
             rows={3}
-            style={{ ...inputStyle, resize: 'vertical' }}
+            className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none box-border [transition:border-color_0.15s_ease] resize-y"
             onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
             onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
           />
@@ -79,7 +66,7 @@ export default function CreateCampaignModal({ onClose, onSuccess }) {
 
         {error && <ErrorMsg>{error}</ErrorMsg>}
 
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
+        <div className="flex gap-2.5 justify-end mt-2">
           <CancelBtn onClick={onClose} />
           <SubmitBtn onClick={handleCreate} loading={loading} label="Create Campaign" />
         </div>
@@ -92,17 +79,7 @@ export default function CreateCampaignModal({ onClose, onSuccess }) {
 export function Backdrop({ onClose, children }) {
   return (
     <div
-      style={{
-        position:       'fixed',
-        inset:          0,
-        background:     'rgba(0,0,0,0.5)',
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        zIndex:         200,
-        padding:        '24px',
-        backdropFilter: 'blur(4px)',
-      }}
+      className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-[200] p-6 backdrop-blur-[4px]"
       onClick={onClose}
     >
       <div onClick={e => e.stopPropagation()}>
@@ -114,16 +91,8 @@ export function Backdrop({ onClose, children }) {
 
 export function Field({ label, children }) {
   return (
-    <div style={{ marginBottom: '16px' }}>
-      <label style={{
-        display:       'block',
-        fontSize:      '11px',
-        fontWeight:    '500',
-        textTransform: 'uppercase',
-        letterSpacing: '0.07em',
-        color:         'var(--text-muted)',
-        marginBottom:  '6px',
-      }}>
+    <div className="mb-4">
+      <label className="block text-[11px] font-medium uppercase tracking-[0.07em] text-(--text-muted) mb-1.5">
         {label}
       </label>
       {children}
@@ -131,31 +100,9 @@ export function Field({ label, children }) {
   );
 }
 
-export const inputStyle = {
-  width:        '100%',
-  padding:      '9px 12px',
-  borderRadius: '8px',
-  border:       '1px solid var(--border-input)',
-  background:   'var(--bg-input)',
-  color:        'var(--text-primary)',
-  fontFamily:   'var(--font-sans)',
-  fontSize:     '14px',
-  outline:      'none',
-  boxSizing:    'border-box',
-  transition:   'border-color 0.15s ease',
-};
-
 export function ErrorMsg({ children }) {
   return (
-    <div style={{
-      background:   'var(--danger-bg)',
-      border:       '1px solid var(--danger)',
-      borderRadius: '8px',
-      padding:      '10px 14px',
-      marginBottom: '16px',
-      fontSize:     '13px',
-      color:        'var(--danger)',
-    }}>
+    <div className="bg-(--danger-bg) border border-(--danger) rounded-lg py-2.5 px-3.5 mb-4 text-[13px] text-(--danger)">
       <span className="icon icon-sm">warning</span>{' '}{children}
     </div>
   );
@@ -165,16 +112,7 @@ export function CancelBtn({ onClick }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        padding:      '9px 20px',
-        borderRadius: '8px',
-        border:       '1px solid var(--border-main)',
-        background:   'transparent',
-        color:        'var(--text-secondary)',
-        fontFamily:   'var(--font-sans)',
-        fontSize:     '13px',
-        cursor:       'pointer',
-      }}
+      className="py-[9px] px-5 rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-[13px] cursor-pointer"
     >
       Cancel
     </button>
@@ -186,18 +124,7 @@ export function SubmitBtn({ onClick, loading, label }) {
     <button
       onClick={onClick}
       disabled={loading}
-      style={{
-        padding:      '9px 20px',
-        borderRadius: '8px',
-        border:       'none',
-        background:   loading ? 'var(--text-muted)' : 'var(--color-primary)',
-        color:        '#ffffff',
-        fontFamily:   'var(--font-sans)',
-        fontSize:     '13px',
-        fontWeight:   '500',
-        cursor:       loading ? 'not-allowed' : 'pointer',
-        transition:   'background 0.15s ease',
-      }}
+      className={`py-[9px] px-5 rounded-lg border-none text-white font-sans text-[13px] font-medium [transition:background_0.15s_ease] ${loading ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
       onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
       onMouseLeave={e => { if (!loading) e.currentTarget.style.background = loading ? 'var(--text-muted)' : 'var(--color-primary)'; }}
     >

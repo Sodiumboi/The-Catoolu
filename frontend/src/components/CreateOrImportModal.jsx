@@ -8,7 +8,6 @@ import Tooltip from './ui/Tooltip';
 // Opens with a fade + rise, closes with a fade + fall, using the app's
 // spring curve. Closes on backdrop click or the ✕.
 
-const SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 const EXIT_MS = 200;
 
 function Option({ icon, title, subtitle, onClick, disabled = false }) {
@@ -16,17 +15,7 @@ function Option({ icon, title, subtitle, onClick, disabled = false }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      style={{
-        display: 'flex', alignItems: 'flex-start', gap: '14px',
-        width: '100%', textAlign: 'left',
-        padding: '16px 18px', borderRadius: '12px',
-        border: '1px solid var(--border-main)',
-        background: 'var(--bg-card)',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.45 : 1,
-        fontFamily: 'var(--font-sans)',
-        transition: 'border-color 0.12s ease, background 0.12s ease, transform 0.12s ease',
-      }}
+      className={`flex items-start gap-3.5 w-full text-left py-4 px-[18px] rounded-xl border border-(--border-main) bg-(--bg-card) font-sans [transition:border-color_0.12s_ease,background_0.12s_ease,transform_0.12s_ease] ${disabled ? 'cursor-not-allowed opacity-45' : 'cursor-pointer opacity-100'}`}
       onMouseEnter={disabled ? undefined : (e => {
         e.currentTarget.style.borderColor = 'var(--accent)';
         e.currentTarget.style.background = 'var(--accent-bg)';
@@ -36,12 +25,12 @@ function Option({ icon, title, subtitle, onClick, disabled = false }) {
         e.currentTarget.style.background = 'var(--bg-card)';
       })}
     >
-      <span className="icon" style={{ fontSize: '28px', color: 'var(--accent)', lineHeight: 1, flexShrink: 0 }}>{icon}</span>
+      <span className="icon text-[28px] text-(--accent) leading-none shrink-0">{icon}</span>
       <span>
-        <span style={{ display: 'block', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
+        <span className="block text-[15px] font-semibold text-(--text-primary)">
           {title}
         </span>
-        <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '3px', lineHeight: 1.5 }}>
+        <span className="block text-[12.5px] text-(--text-muted) mt-[3px] leading-[1.5]">
           {subtitle}
         </span>
       </span>
@@ -74,42 +63,21 @@ export default function CreateOrImportModal({ open, onClose, onCreate, onImport,
   return (
     <div
       onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 400,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '24px',
-        background: 'rgba(0,0,0,0.5)',
-        backdropFilter: 'blur(4px)',
-        opacity: visible ? 1 : 0,
-        transition: `opacity ${EXIT_MS}ms ease`,
-      }}
+      className={`fixed inset-0 z-[400] flex items-center justify-center p-6 bg-[rgba(0,0,0,0.5)] backdrop-blur-[4px] [transition:opacity_200ms_ease] ${visible ? 'opacity-100' : 'opacity-0'}`}
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: '460px',
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-main)',
-          borderRadius: '16px',
-          boxShadow: 'var(--shadow-dropdown)',
-          padding: '20px',
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'translateY(0) scale(1)' : 'translateY(16px) scale(0.98)',
-          transition: `opacity ${EXIT_MS}ms ease, transform 260ms ${SPRING}`,
-        }}
+        className={`w-full max-w-[460px] bg-(--bg-card) border border-(--border-main) rounded-2xl shadow-(--shadow-dropdown) p-5 [transition:opacity_200ms_ease,transform_260ms_cubic-bezier(0.34,_1.56,_0.64,_1)] ${visible ? 'opacity-100 [transform:translateY(0)_scale(1)]' : 'opacity-0 [transform:translateY(16px)_scale(0.98)]'}`}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <h3 style={{
-            fontFamily: 'var(--font-serif)', fontSize: '19px',
-            color: 'var(--text-primary)', margin: 0,
-          }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-serif text-[19px] text-(--text-primary) m-0">
             Add an Investigator
           </h3>
           <Tooltip content="Close">
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '2px', lineHeight: 1 }}
+            className="bg-transparent border-none cursor-pointer text-(--text-muted) p-0.5 leading-none"
           >
             <span className="icon icon-md">close</span>
           </button>
@@ -117,8 +85,8 @@ export default function CreateOrImportModal({ open, onClose, onCreate, onImport,
         </div>
 
         {/* Options */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
             <Option
               icon="person_add"
               title="Create New Investigator"
@@ -127,10 +95,7 @@ export default function CreateOrImportModal({ open, onClose, onCreate, onImport,
               disabled={!creationEnabled}
             />
             {!creationEnabled && (
-              <span style={{
-                fontSize: '11px', color: 'var(--text-muted)',
-                fontStyle: 'italic', paddingLeft: '4px',
-              }}>
+              <span className="text-[11px] text-(--text-muted) italic pl-1">
                 Character creation coming soon
               </span>
             )}
