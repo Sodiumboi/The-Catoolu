@@ -3,18 +3,11 @@ import { getSkillBase } from '../../utils/skillBases';
 
 // ── Shared sub-components ────────────────────────────────────────────────────
 function Btns({ atMin, atMax, onAdjust }) {
-  const s = (disabled) => ({
-    width: '32px', height: '28px', borderRadius: '5px',
-    border: '1px solid var(--border-input)',
-    background: disabled ? 'var(--bg-card)' : 'var(--bg-page)',
-    color: disabled ? 'var(--text-faint)' : 'var(--text-primary)',
-    fontFamily: 'var(--font-sans)', fontSize: '0.75rem', fontWeight: 600,
-    cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.4 : 1, flexShrink: 0,
-  });
+  const s = (disabled) => `w-8 h-7 rounded-[5px] border border-(--border-input) font-sans text-xs font-semibold shrink-0 ${disabled ? 'bg-(--bg-card) text-(--text-faint) cursor-not-allowed opacity-40' : 'bg-(--bg-page) text-(--text-primary) cursor-pointer opacity-100'}`;
   return (
-    <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
+    <div className="flex gap-0.5 shrink-0">
       {[-5, -1, 1, 5].map(d => (
-        <button key={d} style={s(d < 0 ? atMin : atMax)} onClick={() => onAdjust(d)}>
+        <button key={d} className={s(d < 0 ? atMin : atMax)} onClick={() => onAdjust(d)}>
           {d > 0 ? `+${d}` : d}
         </button>
       ))}
@@ -24,19 +17,19 @@ function Btns({ atMin, atMax, onAdjust }) {
 
 function Val({ total }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', minWidth: '50px', justifyContent: 'flex-end', flexShrink: 0 }}>
-      <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', fontWeight: 700, lineHeight: 1, color: 'var(--text-primary)' }}>
+    <div className="flex items-end gap-[3px] min-w-12.5 justify-end shrink-0">
+      <span className="font-serif text-[1.25rem] font-bold leading-none text-(--text-primary)">
         {total}
       </span>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', paddingBottom: '2px' }}>
-        <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', lineHeight: 1 }}>{Math.floor(total / 2)}</span>
-        <span style={{ fontSize: '0.6rem', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', lineHeight: 1 }}>{Math.floor(total / 5)}</span>
+      <div className="flex flex-col gap-px pb-0.5">
+        <span className="text-[0.6rem] text-(--text-muted) font-sans leading-none">{Math.floor(total / 2)}</span>
+        <span className="text-[0.6rem] text-(--text-faint) font-sans leading-none">{Math.floor(total / 5)}</span>
       </div>
     </div>
   );
 }
 
-const ROW = { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.75rem', borderTop: '1px solid var(--border-main)' };
+const ROW = "flex items-center gap-2 py-[0.35rem] px-3 border-t border-(--border-main)";
 
 // ── Simple named skill row ───────────────────────────────────────────────────
 function SimpleRow({ name, base, occAbove, personalAbove, cap, onChange, isOcc, readOnly }) {
@@ -45,21 +38,16 @@ function SimpleRow({ name, base, occAbove, personalAbove, cap, onChange, isOcc, 
   const adjust      = (d) => onChange(Math.max(0, Math.min(maxPersonal, personalAbove + d)));
 
   return (
-    <div style={{ ...ROW, background: isOcc ? 'var(--accent-bg)' : 'transparent', borderTop: '1px solid var(--border-main)' }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.83rem', color: 'var(--text-primary)', fontWeight: isOcc ? 500 : 400 }}>
+    <div className={`${ROW} ${isOcc ? 'bg-(--accent-bg)' : 'bg-transparent'}`}>
+      <div className="flex-1 min-w-0">
+        <span className={`font-sans text-[0.83rem] text-(--text-primary) ${isOcc ? 'font-medium' : 'font-normal'}`}>
           {name}
         </span>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.68rem', color: 'var(--text-faint)', marginLeft: '0.3rem' }}>
+        <span className="font-sans text-[0.68rem] text-(--text-faint) ml-[0.3rem]">
           ({base}%)
         </span>
         {isOcc && (
-          <span style={{
-            marginLeft: '0.4rem', fontSize: '0.63rem', fontFamily: 'var(--font-sans)', fontWeight: 700,
-            textTransform: 'uppercase', letterSpacing: '0.04em',
-            color: 'var(--color-primary-dark)', background: 'var(--color-primary-light)',
-            padding: '0.05rem 0.3rem', borderRadius: '9999px',
-          }}>{occAbove > 0 ? `occ +${occAbove}` : 'occ'}</span>
+          <span className="ml-[0.4rem] text-[0.63rem] font-sans font-bold uppercase tracking-[0.04em] text-(--color-primary-dark) bg-(--color-primary-light) py-[0.05rem] px-[0.3rem] rounded-full">{occAbove > 0 ? `occ +${occAbove}` : 'occ'}</span>
         )}
       </div>
       {!readOnly && (
@@ -78,21 +66,16 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
   const headerBase = isOwn ? 'EDU' : getSkillBase(group, edu);
 
   return (
-    <div style={{
-      margin: '0.3rem 0',
-      border: '1px solid var(--border-main)',
-      borderRadius: '8px',
-      overflow: 'hidden',
-    }}>
+    <div className="my-[0.3rem] border border-(--border-main) rounded-lg overflow-hidden">
       {/* Header: "Group (base%) ─────" */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.3rem 0.75rem', background: 'transparent' }}>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+      <div className="flex items-center gap-[0.4rem] py-[0.3rem] px-3 bg-transparent">
+        <span className="font-sans text-[0.8rem] font-bold text-(--text-primary) whitespace-nowrap">
           {group}
         </span>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.68rem', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
+        <span className="font-sans text-[0.68rem] text-(--text-faint) whitespace-nowrap">
           ({typeof headerBase === 'number' ? `${headerBase}%` : headerBase})
         </span>
-        <div style={{ flex: 1, height: '1px', background: 'var(--border-main)' }} />
+        <div className="flex-1 h-px bg-(--border-main)" />
       </div>
 
       {/* Occ skills inside this group (fixed name, can still receive personal pts) */}
@@ -107,20 +90,15 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
         const adjust      = (d) => setPersonalSkillValue(skill, Math.max(0, Math.min(maxPersonal, personalAbove + d)));
 
         return (
-          <div key={skill} style={{ ...ROW, background: 'var(--accent-bg)' }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.83rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+          <div key={skill} className={`${ROW} bg-(--accent-bg)`}>
+            <div className="flex-1 min-w-0">
+              <span className="font-sans text-[0.83rem] text-(--text-primary) font-medium">
                 {specialty}
               </span>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.68rem', color: 'var(--text-faint)', marginLeft: '0.3rem' }}>
+              <span className="font-sans text-[0.68rem] text-(--text-faint) ml-[0.3rem]">
                 ({base}%)
               </span>
-              <span style={{
-                marginLeft: '0.4rem', fontSize: '0.63rem', fontFamily: 'var(--font-sans)', fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.04em',
-                color: 'var(--color-primary-dark)', background: 'var(--color-primary-light)',
-                padding: '0.05rem 0.3rem', borderRadius: '9999px',
-              }}>{occAbove > 0 ? `occ +${occAbove}` : 'occ'}</span>
+              <span className="ml-[0.4rem] text-[0.63rem] font-sans font-bold uppercase tracking-[0.04em] text-(--color-primary-dark) bg-(--color-primary-light) py-[0.05rem] px-[0.3rem] rounded-full">{occAbove > 0 ? `occ +${occAbove}` : 'occ'}</span>
             </div>
             <Btns atMin={personalAbove <= 0} atMax={personalAbove >= maxPersonal} onAdjust={adjust} />
             <Val total={total} />
@@ -137,21 +115,16 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
         const adjust    = (d) => setPersonalSlot(group, si, { name: slot.name, above: Math.max(0, Math.min(maxAbove, slot.above + d)) });
 
         return (
-          <div key={si} style={ROW}>
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '2px' }}>
+          <div key={si} className={ROW}>
+            <div className="flex-1 min-w-0 flex items-center gap-0.5">
               <input
                 type="text"
                 value={slot.name}
                 onChange={e => setPersonalSlot(group, si, { name: e.target.value })}
                 placeholder={isMisc ? 'Custom skill…' : (defaultName ?? 'Specialty…')}
-                style={{
-                  fontFamily: 'var(--font-sans)', fontSize: '0.83rem',
-                  color: 'var(--text-primary)', background: 'transparent',
-                  border: 'none', borderBottom: '1px dashed var(--border-input)',
-                  outline: 'none', width: isMisc ? '180px' : '120px', padding: '0 2px',
-                }}
+                className={`font-sans text-[0.83rem] text-(--text-primary) bg-transparent border-b border-dashed border-(--border-input) outline-none px-0.5 py-0 ${isMisc ? 'w-45' : 'w-30'}`}
               />
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.68rem', color: 'var(--text-faint)', marginLeft: '0.3rem' }}>
+              <span className="font-sans text-[0.68rem] text-(--text-faint) ml-[0.3rem]">
                 ({base}%)
               </span>
             </div>
@@ -238,41 +211,33 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>
+      <h2 className="font-serif text-(--text-primary) text-[1.5rem] mb-1">
         Personal Interest Skills
       </h2>
-      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+      <p className="font-sans text-[0.88rem] text-(--text-muted) mb-6">
         Spend your free-time skill points. Type any specialty into grouped skills.
-        Occupation skills (<span style={{ color: 'var(--color-primary-dark)', fontWeight: 600 }}>occ</span>) can still receive additional personal points up to the cap.
+        Occupation skills (<span className="text-(--color-primary-dark) font-semibold">occ</span>) can still receive additional personal points up to the cap.
       </p>
 
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-main)', borderRadius: '10px', overflow: 'hidden', paddingBottom: '0.4rem' }}>
+      <div className="bg-(--bg-card) border border-(--border-main) rounded-[10px] overflow-hidden pb-[0.4rem]">
 
         {/* Sticky tracker */}
-        <div style={{
-          display: 'flex', gap: '1.5rem', alignItems: 'center',
-          padding: '0.75rem 1rem', background: 'var(--bg-page)',
-          borderBottom: '1px solid var(--border-main)',
-          flexWrap: 'wrap', position: 'sticky', top: 0, zIndex: 1,
-        }}>
+        <div className="flex gap-6 items-center py-3 px-4 bg-(--bg-page) border-b border-(--border-main) flex-wrap sticky top-0 z-1">
           {[
             { label: 'Interest Pts', value: totalPts },
             { label: 'Used',         value: used },
             { label: 'Balance',      value: balance },
           ].map(({ label, value }) => (
-            <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
-              <span style={{
-                fontSize: '1.3rem', fontWeight: 700, fontFamily: 'var(--font-serif)',
-                color: label === 'Balance' && balance < 0 ? 'var(--danger)' : 'var(--text-primary)',
-              }}>{value}</span>
+            <div key={label} className="flex flex-col items-center">
+              <span className="text-[0.68rem] font-sans text-(--text-muted) uppercase tracking-wider">{label}</span>
+              <span className={`text-[1.3rem] font-bold font-serif ${label === 'Balance' && balance < 0 ? 'text-(--danger)' : 'text-(--text-primary)'}`}>{value}</span>
             </div>
           ))}
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.76rem', color: 'var(--text-faint)', margin: 0, flex: 1 }}>
+          <p className="font-sans text-[0.76rem] text-(--text-faint) m-0 flex-1">
             INT × 2 = {totalPts} pts. Unspent points are fine.
           </p>
           {balance < 0 && (
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: 'var(--danger)', fontWeight: 600 }}>
+            <span className="font-sans text-[0.78rem] text-(--danger) font-semibold">
               Overspent — reduce some skills.
             </span>
           )}

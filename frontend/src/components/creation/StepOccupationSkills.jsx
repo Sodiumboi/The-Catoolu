@@ -11,54 +11,29 @@ function SkillRow({ name, base, aboveBase, cap, onChange, isSpecialty, baseLabel
     onChange(next);
   };
 
-  const btnStyle = (disabled) => ({
-    width: '36px',
-    height: '32px',
-    borderRadius: '6px',
-    border: '1px solid var(--border-input)',
-    background: disabled ? 'var(--bg-card)' : 'var(--bg-page)',
-    color: disabled ? 'var(--text-faint)' : 'var(--text-primary)',
-    fontFamily: 'var(--font-sans)',
-    fontSize: '0.8rem',
-    fontWeight: 600,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.45 : 1,
-    flexShrink: 0,
-  });
+  const btnClass = (disabled) => `w-9 h-8 rounded-md border border-(--border-input) font-sans text-[0.8rem] font-semibold shrink-0 ${disabled ? 'bg-(--bg-card) text-(--text-faint) cursor-not-allowed opacity-45' : 'bg-(--bg-page) text-(--text-primary) cursor-pointer opacity-100'}`;
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.6rem',
-      padding: '0.45rem 0.75rem',
-      borderBottom: '1px solid var(--border-main)',
-      background: isSpecialty ? 'var(--accent-bg)' : 'transparent',
-    }}>
+    <div className={`flex items-center gap-[0.6rem] py-[0.45rem] px-3 border-b border-(--border-main) ${isSpecialty ? 'bg-(--accent-bg)' : 'bg-transparent'}`}>
       {/* Name + base */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: '0.88rem',
-          color: 'var(--text-primary)',
-          fontWeight: isSpecialty ? 600 : 400,
-        }}>
+      <div className="flex-1 min-w-0">
+        <span className={`font-sans text-[0.88rem] text-(--text-primary) ${isSpecialty ? 'font-semibold' : 'font-normal'}`}>
           {name}
         </span>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.73rem', color: 'var(--text-faint)', marginLeft: '0.3rem' }}>
+        <span className="font-sans text-[0.73rem] text-(--text-faint) ml-[0.3rem]">
           {baseLabel ?? `(${base}%)`}
         </span>
         {isSpecialty && (
-          <span style={{ marginLeft: '0.4rem', fontSize: '0.68rem', color: 'var(--color-primary)', fontFamily: 'var(--font-sans)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>specialty</span>
+          <span className="ml-[0.4rem] text-[0.68rem] text-(--color-primary) font-sans font-bold uppercase tracking-[0.04em]">specialty</span>
         )}
       </div>
 
       {/* Buttons */}
-      <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+      <div className="flex gap-[3px] shrink-0">
         {[-5, -1, 1, 5].map(d => (
           <button
             key={d}
-            style={btnStyle(d < 0 ? aboveBase <= 0 : aboveBase >= maxAbove)}
+            className={btnClass(d < 0 ? aboveBase <= 0 : aboveBase >= maxAbove)}
             onClick={() => adjust(d)}
           >
             {d > 0 ? `+${d}` : d}
@@ -67,19 +42,13 @@ function SkillRow({ name, base, aboveBase, cap, onChange, isSpecialty, baseLabel
       </div>
 
       {/* Value + half/fifth */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', minWidth: '60px', justifyContent: 'flex-end', flexShrink: 0 }}>
-        <span style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize: '1.4rem',
-          fontWeight: 700,
-          lineHeight: 1,
-          color: aboveBase > 0 ? 'var(--color-primary-dark)' : 'var(--text-primary)',
-        }}>
+      <div className="flex items-end gap-1 min-w-15 justify-end shrink-0">
+        <span className={`font-serif text-[1.4rem] font-bold leading-none ${aboveBase > 0 ? 'text-(--color-primary-dark)' : 'text-(--text-primary)'}`}>
           {total}
         </span>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', paddingBottom: '2px' }}>
-          <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', lineHeight: 1 }}>{half}</span>
-          <span style={{ fontSize: '0.65rem', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', lineHeight: 1 }}>{fifth}</span>
+        <div className="flex flex-col gap-px pb-0.5">
+          <span className="text-[0.65rem] text-(--text-muted) font-sans leading-none">{half}</span>
+          <span className="text-[0.65rem] text-(--text-faint) font-sans leading-none">{fifth}</span>
         </div>
       </div>
     </div>
@@ -93,7 +62,7 @@ export default function StepOccupationSkills({
 }) {
   const { selectedOccupation: occ, specialtyChoices, occupationSkills, stats, skillsCap } = state;
 
-  if (!occ) return <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>No occupation selected.</p>;
+  if (!occ) return <p className="font-sans text-(--text-muted)">No occupation selected.</p>;
 
   const totalPts = occ.skillPointsCalc(stats);
   const edu      = stats.EDU;
@@ -121,26 +90,20 @@ export default function StepOccupationSkills({
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>
+      <h2 className="font-serif text-(--text-primary) text-[1.5rem] mb-1">
         Occupation Skills
       </h2>
-      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+      <p className="font-sans text-[0.88rem] text-(--text-muted) mb-6">
         Allocate your <strong>{occ.name}</strong> skill points. Specialty picks are added to the list.
       </p>
 
       {/* ── A) Specialty Picker ── */}
       {occ.specialtyChoices.length > 0 && (
-        <div style={{
-          background: 'var(--bg-page)',
-          border: '1px solid var(--border-main)',
-          borderRadius: '10px',
-          padding: '1.1rem 1.25rem',
-          marginBottom: '1.25rem',
-        }}>
-          <h3 style={{ fontFamily: 'var(--font-sans)', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: '0.9rem' }}>
+        <div className="bg-(--bg-page) border border-(--border-main) rounded-[10px] py-[1.1rem] px-5 mb-5">
+          <h3 className="font-sans text-[0.8rem] font-bold uppercase tracking-[0.06em] text-(--text-muted) mb-[0.9rem]">
             Personal Specialty Skills
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+          <div className="flex flex-col gap-[0.9rem]">
             {occ.specialtyChoices.map((group, gi) => {
               const currentSel = Array.isArray(specialtyChoices[gi])
                 ? specialtyChoices[gi]
@@ -148,15 +111,15 @@ export default function StepOccupationSkills({
               const atMax = currentSel.length >= group.pick;
               return (
                 <div key={gi}>
-                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                  <p className="font-sans text-[0.82rem] text-(--text-secondary) mb-[0.4rem]">
                     Pick {group.pick} — <em>{group.label}</em>
                     {group.pick > 1 && (
-                      <span style={{ marginLeft: '0.5rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                      <span className="ml-2 text-(--text-muted) font-normal">
                         ({currentSel.length} of {group.pick} selected)
                       </span>
                     )}:
                   </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  <div className="flex flex-wrap gap-[0.4rem]">
                     {group.from.map(skill => {
                       const selected = currentSel.includes(skill);
                       const unselectable = !selected && atMax;
@@ -170,19 +133,7 @@ export default function StepOccupationSkills({
                               setSpecialtyChoice(gi, [...currentSel, skill]);
                             }
                           }}
-                          style={{
-                            padding: '0.3rem 0.85rem',
-                            borderRadius: '9999px',
-                            border: `2px solid ${selected ? 'var(--color-primary)' : 'var(--border-input)'}`,
-                            background: selected ? 'var(--color-primary)' : 'var(--bg-card)',
-                            color: selected ? '#fff' : unselectable ? 'var(--text-faint)' : 'var(--text-secondary)',
-                            fontFamily: 'var(--font-sans)',
-                            fontSize: '0.82rem',
-                            fontWeight: selected ? 600 : 400,
-                            cursor: unselectable ? 'not-allowed' : 'pointer',
-                            opacity: unselectable ? 0.5 : 1,
-                            transition: 'all 0.12s',
-                          }}
+                          className={`py-[0.3rem] px-[0.85rem] rounded-full border-2 font-sans text-[0.82rem] [transition:all_0.12s] ${selected ? 'border-(--color-primary) bg-(--color-primary) text-white font-semibold cursor-pointer opacity-100' : unselectable ? 'border-(--border-input) bg-(--bg-card) text-(--text-faint) font-normal cursor-not-allowed opacity-50' : 'border-(--border-input) bg-(--bg-card) text-(--text-secondary) font-normal cursor-pointer opacity-100'}`}
                         >
                           {skill}
                         </button>
@@ -194,7 +145,7 @@ export default function StepOccupationSkills({
             })}
           </div>
           {!allSpecialtiesPicked && (
-            <p style={{ marginTop: '0.75rem', fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: 'var(--warning)' }}>
+            <p className="mt-3 font-sans text-[0.78rem] text-(--warning)">
               Make all specialty selections above — they'll appear in the skill list below.
             </p>
           )}
@@ -202,41 +153,25 @@ export default function StepOccupationSkills({
       )}
 
       {/* ── B) Point Allocation ── */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-main)', borderRadius: '10px', overflow: 'hidden' }}>
+      <div className="bg-(--bg-card) border border-(--border-main) rounded-[10px] overflow-hidden">
 
         {/* Sticky tracker */}
-        <div style={{
-          display: 'flex',
-          gap: '1.5rem',
-          alignItems: 'center',
-          padding: '0.75rem 1rem',
-          background: 'var(--bg-page)',
-          borderBottom: '1px solid var(--border-main)',
-          flexWrap: 'wrap',
-          position: 'sticky',
-          top: 0,
-          zIndex: 1,
-        }}>
+        <div className="flex gap-6 items-center py-3 px-4 bg-(--bg-page) border-b border-(--border-main) flex-wrap sticky top-0 z-1">
           {[
             { label: 'Occupation Pts', value: totalPts },
             { label: 'Allocated',      value: spent },
             { label: 'Balance',        value: balance },
           ].map(({ label, value }) => (
-            <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
-              <span style={{
-                fontSize: '1.3rem', fontWeight: 700, fontFamily: 'var(--font-serif)',
-                color: label === 'Balance'
-                  ? balance < 0 ? 'var(--danger)' : balance === 0 ? 'var(--success)' : 'var(--text-primary)'
-                  : 'var(--text-primary)',
-              }}>{value}</span>
+            <div key={label} className="flex flex-col items-center">
+              <span className="text-[0.68rem] font-sans text-(--text-muted) uppercase tracking-wider">{label}</span>
+              <span className={`text-[1.3rem] font-bold font-serif ${label === 'Balance' ? (balance < 0 ? 'text-(--danger)' : balance === 0 ? 'text-(--success)' : 'text-(--text-primary)') : 'text-(--text-primary)'}`}>{value}</span>
             </div>
           ))}
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.76rem', color: 'var(--text-faint)', margin: 0, flex: 1 }}>
+          <p className="font-sans text-[0.76rem] text-(--text-faint) m-0 flex-1">
             Skills cap at {skillsCap}%. Half / fifth shown beside each value.
           </p>
           {balance < 0 && (
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: 'var(--danger)', fontWeight: 600 }}>
+            <span className="font-sans text-[0.78rem] text-(--danger) font-semibold">
               Overspent — reduce skills to continue.
             </span>
           )}
@@ -277,25 +212,19 @@ export default function StepOccupationSkills({
         const cr = occ.creditRating.min + crAbove;
         const { cash, assets, spendingLimit } = occ.cashAndAssets(cr);
         return (
-          <div style={{
-            marginTop: '1.25rem',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-main)',
-            borderRadius: '10px',
-            padding: '1rem 1.25rem',
-          }}>
-            <div style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+          <div className="mt-5 bg-(--bg-card) border border-(--border-main) rounded-[10px] py-4 px-5">
+            <div className="font-sans text-[0.75rem] font-bold uppercase tracking-[0.06em] text-(--text-muted) mb-3">
               Cash & Assets — at Credit Rating {cr}
             </div>
-            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+            <div className="flex gap-6 flex-wrap">
               {[
                 { label: 'Cash',           value: `$${cash.toLocaleString()}` },
                 { label: 'Assets',         value: `$${assets.toLocaleString()}` },
                 { label: 'Spending Level', value: `$${spendingLimit.toLocaleString()}` },
               ].map(({ label, value }) => (
-                <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
-                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</span>
+                <div key={label} className="flex flex-col gap-[0.2rem]">
+                  <span className="font-sans text-[0.7rem] text-(--text-faint) uppercase tracking-[0.04em]">{label}</span>
+                  <span className="font-serif text-[1.25rem] font-bold text-(--text-primary)">{value}</span>
                 </div>
               ))}
             </div>

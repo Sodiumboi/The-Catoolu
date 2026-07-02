@@ -20,24 +20,8 @@ function StatBox({ label, value, min, onChange }) {
   const half  = calcHalf(value);
   const fifth = calcFifth(value);
 
-  const btnBase = {
-    width: '32px',
-    height: '32px',
-    borderRadius: '6px',
-    border: '1px solid var(--border-input)',
-    background: 'var(--bg-page)',
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-sans)',
-    fontSize: '0.8rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    userSelect: 'none',
-    transition: 'background 0.1s',
-    flexShrink: 0,
-  };
+  /* background is toggled imperatively on hover — stays inline */
+  const btnClass = "w-8 h-8 rounded-md border border-(--border-input) text-(--text-primary) font-sans text-[0.8rem] font-semibold cursor-pointer flex items-center justify-center select-none [transition:background_0.1s] shrink-0";
 
   function adjust(delta) {
     const next = Math.min(STAT_MAX, Math.max(min, value + delta));
@@ -45,49 +29,38 @@ function StatBox({ label, value, min, onChange }) {
   }
 
   return (
-    <div style={{
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border-main)',
-      borderRadius: '10px',
-      padding: '0.75rem',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '0.4rem',
-      minWidth: '90px',
-    }}>
-      <span style={{
-        fontFamily: 'var(--font-sans)',
-        fontSize: '0.72rem',
-        fontWeight: 700,
-        color: 'var(--text-muted)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-      }}>
+    <div className="bg-(--bg-card) border border-(--border-main) rounded-[10px] p-3 flex flex-col items-center gap-[0.4rem] min-w-22.5">
+      <span className="font-sans text-[0.72rem] font-bold text-(--text-muted) uppercase tracking-[0.06em]">
         {label}
       </span>
 
       {/* Main value + sub-values */}
-      <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end' }}>
-        <span style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize: '2rem',
-          lineHeight: 1,
-          color: 'var(--text-primary)',
-          fontWeight: 700,
-        }}>
+      <div className="flex gap-1 items-end">
+        <span className="font-serif text-[2rem] leading-none text-(--text-primary) font-bold">
           {value}
         </span>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', paddingBottom: '2px' }}>
-          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', lineHeight: 1 }}>{half}</span>
-          <span style={{ fontSize: '0.68rem', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', lineHeight: 1 }}>{fifth}</span>
+        <div className="flex flex-col gap-0.5 pb-0.5">
+          <span className="text-[0.68rem] text-(--text-muted) font-sans leading-none">{half}</span>
+          <span className="text-[0.68rem] text-(--text-faint) font-sans leading-none">{fifth}</span>
         </div>
       </div>
 
       {/* Buttons */}
-      <div style={{ display: 'flex', gap: '4px' }}>
-        <button style={btnBase} onClick={() => adjust(-5)} onMouseEnter={e => e.currentTarget.style.background='var(--row-hover)'} onMouseLeave={e => e.currentTarget.style.background='var(--bg-page)'}>-5</button>
-        <button style={btnBase} onClick={() => adjust(+5)} onMouseEnter={e => e.currentTarget.style.background='var(--row-hover)'} onMouseLeave={e => e.currentTarget.style.background='var(--bg-page)'}>+5</button>
+      <div className="flex gap-1">
+        <button
+          className={btnClass}
+          style={{ background: 'var(--bg-page)' }}
+          onClick={() => adjust(-5)}
+          onMouseEnter={e => e.currentTarget.style.background='var(--row-hover)'}
+          onMouseLeave={e => e.currentTarget.style.background='var(--bg-page)'}
+        >-5</button>
+        <button
+          className={btnClass}
+          style={{ background: 'var(--bg-page)' }}
+          onClick={() => adjust(+5)}
+          onMouseEnter={e => e.currentTarget.style.background='var(--row-hover)'}
+          onMouseLeave={e => e.currentTarget.style.background='var(--bg-page)'}
+        >+5</button>
       </div>
     </div>
   );
@@ -95,15 +68,9 @@ function StatBox({ label, value, min, onChange }) {
 
 function DerivedRow({ label, value }) {
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '0.35rem 0',
-      borderBottom: '1px solid var(--border-main)',
-    }}>
-      <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{label}</span>
-      <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>{value}</span>
+    <div className="flex justify-between items-center py-[0.35rem] border-b border-(--border-main)">
+      <span className="font-sans text-[0.82rem] text-(--text-secondary)">{label}</span>
+      <span className="font-sans text-[0.9rem] font-semibold text-(--text-primary)">{value}</span>
     </div>
   );
 }
@@ -126,73 +93,48 @@ export default function StepCharacteristics({ state, setStat }) {
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>
+      <h2 className="font-serif text-(--text-primary) text-[1.5rem] mb-1">
         Characteristics
       </h2>
-      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+      <p className="font-sans text-[0.88rem] text-(--text-muted) mb-6">
         Total pool is <strong>{POOL} points</strong>. Minimums use 195 — leaving <strong>265 free points</strong> to distribute. Each stat caps at {STAT_MAX}. INT, SIZ, and EDU have a minimum of 40; all others 15.
       </p>
 
-      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <div className="flex gap-8 flex-wrap items-start">
 
         {/* ── Left: stat boxes + point pool ── */}
-        <div style={{ flex: '1', minWidth: '300px' }}>
+        <div className="flex-1 min-w-75">
 
           {/* Point pool tracker */}
-          <div style={{
-            display: 'flex',
-            gap: '1rem',
-            marginBottom: '1.25rem',
-            padding: '0.75rem 1rem',
-            background: 'var(--bg-page)',
-            borderRadius: '8px',
-            border: '1px solid var(--border-main)',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '60px' }}>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pool</span>
-              <span style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'var(--font-serif)', color: 'var(--text-primary)' }}>{POOL}</span>
+          <div className="flex gap-4 mb-5 py-3 px-4 bg-(--bg-page) rounded-lg border border-(--border-main) items-center flex-wrap">
+            <div className="flex flex-col items-center min-w-15">
+              <span className="text-[0.7rem] text-(--text-muted) font-sans uppercase tracking-wider">Pool</span>
+              <span className="text-[1.3rem] font-bold font-serif text-(--text-primary)">{POOL}</span>
             </div>
-            <div style={{ fontSize: '1rem', color: 'var(--text-faint)' }}>−</div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '60px' }}>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Used</span>
-              <span style={{ fontSize: '1.3rem', fontWeight: 700, fontFamily: 'var(--font-serif)', color: 'var(--text-primary)' }}>{used}</span>
+            <div className="text-base text-(--text-faint)">−</div>
+            <div className="flex flex-col items-center min-w-15">
+              <span className="text-[0.7rem] text-(--text-muted) font-sans uppercase tracking-wider">Used</span>
+              <span className="text-[1.3rem] font-bold font-serif text-(--text-primary)">{used}</span>
             </div>
-            <div style={{ fontSize: '1rem', color: 'var(--text-faint)' }}>=</div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '60px' }}>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Balance</span>
-              <span style={{
-                fontSize: '1.3rem',
-                fontWeight: 700,
-                fontFamily: 'var(--font-serif)',
-                color: balance < 0 ? 'var(--danger)' : balance === 0 ? 'var(--success)' : 'var(--text-primary)',
-              }}>
+            <div className="text-base text-(--text-faint)">=</div>
+            <div className="flex flex-col items-center min-w-15">
+              <span className="text-[0.7rem] text-(--text-muted) font-sans uppercase tracking-wider">Balance</span>
+              <span className={`text-[1.3rem] font-bold font-serif ${balance < 0 ? 'text-(--danger)' : balance === 0 ? 'text-(--success)' : 'text-(--text-primary)'}`}>
                 {balance}
               </span>
             </div>
             <button
               onClick={resetAll}
-              style={{
-                marginLeft: 'auto',
-                padding: '0.35rem 0.8rem',
-                borderRadius: '6px',
-                border: '1px solid var(--border-input)',
-                background: 'transparent',
-                color: 'var(--text-muted)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: '0.78rem',
-                cursor: 'pointer',
-              }}
+              className="ml-auto py-[0.35rem] px-[0.8rem] rounded-md border border-(--border-input) bg-transparent text-(--text-muted) font-sans text-[0.78rem] cursor-pointer"
             >
               Reset
             </button>
           </div>
 
           {/* Stat rows */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+          <div className="flex flex-col gap-[0.6rem]">
             {STAT_ROWS.map((row, ri) => (
-              <div key={ri} style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+              <div key={ri} className="flex gap-[0.6rem] flex-wrap">
                 {row.map(stat => (
                   <StatBox
                     key={stat}
@@ -207,41 +149,28 @@ export default function StepCharacteristics({ state, setStat }) {
           </div>
 
           {balance < 0 && (
-            <p style={{ marginTop: '0.75rem', color: 'var(--danger)', fontFamily: 'var(--font-sans)', fontSize: '0.82rem' }}>
+            <p className="mt-3 text-(--danger) font-sans text-[0.82rem]">
               Overspent by {Math.abs(balance)} pts — reduce some stats before continuing.
             </p>
           )}
           {balance > 0 && (
-            <p style={{ marginTop: '0.75rem', color: 'var(--warning)', fontFamily: 'var(--font-sans)', fontSize: '0.82rem' }}>
+            <p className="mt-3 text-(--warning) font-sans text-[0.82rem]">
               You have <strong>{balance} unspent points</strong>. You can continue, but unused points are lost.
             </p>
           )}
           {balance === 0 && used > 195 && (
-            <p style={{ marginTop: '0.75rem', color: 'var(--success)', fontFamily: 'var(--font-sans)', fontSize: '0.82rem' }}>
+            <p className="mt-3 text-(--success) font-sans text-[0.82rem]">
               All points allocated.
             </p>
           )}
         </div>
 
         {/* ── Right: derived stats ── */}
-        <div style={{ minWidth: '200px', maxWidth: '240px' }}>
-          <h3 style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            color: 'var(--text-muted)',
-            marginBottom: '0.75rem',
-          }}>
+        <div className="min-w-50 max-w-60">
+          <h3 className="font-sans text-[0.78rem] font-bold uppercase tracking-[0.06em] text-(--text-muted) mb-3">
             Derived Stats
           </h3>
-          <div style={{
-            background: 'var(--bg-page)',
-            border: '1px solid var(--border-main)',
-            borderRadius: '8px',
-            padding: '0.5rem 0.75rem',
-          }}>
+          <div className="bg-(--bg-page) border border-(--border-main) rounded-lg py-2 px-3">
             <DerivedRow label="Move Rate"       value={move} />
             <DerivedRow label="Hit Points"      value={hp} />
             <DerivedRow label="Magic Points"    value={mp} />
@@ -251,13 +180,7 @@ export default function StepCharacteristics({ state, setStat }) {
             <DerivedRow label="Dodge"           value={dodge} />
             <DerivedRow label="Interest Pts"    value={stats.INT * 2} />
           </div>
-          <p style={{
-            marginTop: '0.6rem',
-            fontFamily: 'var(--font-sans)',
-            fontSize: '0.73rem',
-            color: 'var(--text-faint)',
-            lineHeight: 1.4,
-          }}>
+          <p className="mt-[0.6rem] font-sans text-[0.73rem] text-(--text-faint) leading-[1.4]">
             Half and fifth values shown below each stat (used for pushed rolls).
           </p>
         </div>

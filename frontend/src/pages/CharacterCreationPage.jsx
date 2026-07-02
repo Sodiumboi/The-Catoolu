@@ -101,62 +101,30 @@ export default function CharacterCreationPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg-page)',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
+    <div className="min-h-screen bg-(--bg-page) flex flex-col">
       <NavBar />
 
-      <main style={{
-        flex: 1,
-        maxWidth: '860px',
-        width: '100%',
-        margin: '0 auto',
-        padding: '2rem 1.5rem',
-      }}>
-        <h1 style={{
-          fontFamily: 'var(--font-serif)',
-          color: 'var(--text-primary)',
-          fontSize: '1.9rem',
-          marginBottom: '1.5rem',
-        }}>
+      <main className="flex-1 max-w-[860px] w-full mx-auto py-8 px-6">
+        <h1 className="font-serif text-(--text-primary) text-[1.9rem] mb-6">
           Create Investigator
         </h1>
 
         {/* Resume banner — shown when a saved draft was restored on mount */}
         {resuming && (
-          <div className="animate-fade-rise" style={{
-            display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap',
-            background: 'var(--accent-bg)',
-            border: '1px solid var(--accent)',
-            borderRadius: '10px',
-            padding: '0.9rem 1.1rem',
-            marginBottom: '1.5rem',
-          }}>
-            <span style={{ flex: 1, minWidth: '240px', fontFamily: 'var(--font-sans)', fontSize: '0.9rem', color: 'var(--color-primary-dark)' }}>
+          <div className="animate-fade-rise flex items-center gap-4 flex-wrap bg-(--accent-bg) border border-(--accent) rounded-[10px] py-[0.9rem] px-[1.1rem] mb-6">
+            <span className="flex-1 min-w-[240px] font-sans text-[0.9rem] text-(--color-primary-dark)">
               <strong>Welcome back!</strong> You have an unfinished investigator. Continue where you left off or start fresh.
             </span>
-            <div style={{ display: 'flex', gap: '0.6rem' }}>
+            <div className="flex gap-[0.6rem]">
               <button
                 onClick={dismissResume}
-                style={{
-                  padding: '0.5rem 1.1rem', borderRadius: '7px', border: 'none',
-                  background: 'var(--color-primary)', color: '#fff',
-                  fontFamily: 'var(--font-sans)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
-                }}
+                className="py-2 px-[1.1rem] rounded-[7px] border-none bg-(--color-primary) text-white font-sans text-[0.85rem] font-semibold cursor-pointer"
               >
                 Continue
               </button>
               <button
                 onClick={startFresh}
-                style={{
-                  padding: '0.5rem 1.1rem', borderRadius: '7px',
-                  border: '1px solid var(--border-input)', background: 'transparent',
-                  color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)',
-                  fontSize: '0.85rem', cursor: 'pointer',
-                }}
+                className="py-2 px-[1.1rem] rounded-[7px] border border-(--border-input) bg-transparent text-(--text-secondary) font-sans text-[0.85rem] cursor-pointer"
               >
                 Start Fresh
               </button>
@@ -166,48 +134,26 @@ export default function CharacterCreationPage() {
 
         <CreationStepIndicator currentStep={currentStep} goToStep={goToStep} labels={STEP_LABELS} />
 
-        <div style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-main)',
-          borderRadius: '10px',
-          padding: '2rem',
-          boxShadow: 'var(--shadow-card)',
-          marginBottom: '1.5rem',
-        }}>
+        <div className="bg-(--bg-card) border border-(--border-main) rounded-[10px] p-8 shadow-(--shadow-card) mb-6">
           {renderStep()}
         </div>
 
         {/* Navigation buttons */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '1rem',
-        }}>
+        <div className="flex justify-between items-center gap-4">
           <button
             onClick={prevStep}
             disabled={currentStep === 1 || saving}
-            style={{
-              padding: '0.6rem 1.4rem',
-              borderRadius: '7px',
-              border: '1px solid var(--border-input)',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              cursor: currentStep === 1 || saving ? 'not-allowed' : 'pointer',
-              opacity: currentStep === 1 || saving ? 0.4 : 1,
-              fontFamily: 'var(--font-sans)',
-              fontSize: '0.9rem',
-            }}
+            className={`py-[0.6rem] px-[1.4rem] rounded-[7px] border border-(--border-input) bg-transparent text-(--text-secondary) font-sans text-[0.9rem] ${currentStep === 1 || saving ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
           >
             ← Back
           </button>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[0.78rem] text-(--text-faint) font-sans">
               Step {currentStep} of 8
             </span>
             {saveError && (
-              <span style={{ fontSize: '0.78rem', color: 'var(--danger)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>
+              <span className="text-[0.78rem] text-(--danger) font-sans font-semibold">
                 {saveError}
               </span>
             )}
@@ -217,18 +163,7 @@ export default function CharacterCreationPage() {
             <button
               onClick={handleNext}
               disabled={!canProceed()}
-              style={{
-                padding: '0.6rem 1.4rem',
-                borderRadius: '7px',
-                border: 'none',
-                background: canProceed() ? 'var(--color-primary)' : 'var(--border-main)',
-                color: canProceed() ? '#fff' : 'var(--text-muted)',
-                cursor: canProceed() ? 'pointer' : 'not-allowed',
-                fontFamily: 'var(--font-sans)',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                transition: 'background 0.15s',
-              }}
+              className={`py-[0.6rem] px-[1.4rem] rounded-[7px] border-none font-sans text-[0.9rem] font-semibold [transition:background_0.15s] ${canProceed() ? 'bg-(--color-primary) text-white cursor-pointer' : 'bg-(--border-main) text-(--text-muted) cursor-not-allowed'}`}
             >
               Next →
             </button>
@@ -236,17 +171,7 @@ export default function CharacterCreationPage() {
             <button
               onClick={handleCreate}
               disabled={saving}
-              style={{
-                padding: '0.6rem 1.4rem',
-                borderRadius: '7px',
-                border: 'none',
-                background: saving ? 'var(--border-main)' : 'var(--color-primary)',
-                color: saving ? 'var(--text-muted)' : '#fff',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                fontFamily: 'var(--font-sans)',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-              }}
+              className={`py-[0.6rem] px-[1.4rem] rounded-[7px] border-none font-sans text-[0.9rem] font-semibold ${saving ? 'bg-(--border-main) text-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) text-white cursor-pointer'}`}
             >
               {saving ? 'Saving…' : 'Create Investigator ✓'}
             </button>

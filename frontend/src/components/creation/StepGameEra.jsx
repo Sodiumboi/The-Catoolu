@@ -15,82 +15,29 @@ const CAPS = [
 export default function StepGameEra({ state, setField }) {
   const { gameEra, skillsCap } = state;
 
-  const sectionStyle = {
-    marginBottom: '2rem',
-  };
-
-  const sectionTitleStyle = {
-    fontFamily: 'var(--font-serif)',
-    fontSize: '1.15rem',
-    color: 'var(--text-primary)',
-    marginBottom: '0.25rem',
-  };
-
-  const sectionSubStyle = {
-    fontFamily: 'var(--font-sans)',
-    fontSize: '0.83rem',
-    color: 'var(--text-muted)',
-    marginBottom: '1rem',
-  };
+  const sectionClass = "mb-8";
+  const sectionTitleClass = "font-serif text-[1.15rem] text-(--text-primary) mb-1";
+  const sectionSubClass = "font-sans text-[0.83rem] text-(--text-muted) mb-4";
 
   function RadioCard({ id, label, hint, selected, onClick }) {
     return (
       <div
         onClick={onClick}
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '0.75rem',
-          padding: '0.7rem 1rem',
-          borderRadius: '8px',
-          border: `2px solid ${selected ? 'var(--color-primary)' : 'var(--border-main)'}`,
-          background: selected ? 'var(--color-primary-light)' : 'var(--bg-page)',
-          cursor: 'pointer',
-          transition: 'border-color 0.15s, background 0.15s',
-          userSelect: 'none',
-        }}
+        className={`flex items-start gap-3 py-[0.7rem] px-4 rounded-lg cursor-pointer [transition:border-color_0.15s,background_0.15s] select-none border-2 ${selected ? 'border-(--color-primary) bg-(--color-primary-light)' : 'border-(--border-main) bg-(--bg-page)'}`}
       >
         {/* Radio dot */}
-        <div style={{
-          width: '16px',
-          height: '16px',
-          borderRadius: '50%',
-          border: `2px solid ${selected ? 'var(--color-primary)' : 'var(--border-input)'}`,
-          background: selected ? 'var(--color-primary)' : 'transparent',
-          flexShrink: 0,
-          marginTop: '2px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.15s',
-        }}>
+        <div className={`w-4 h-4 rounded-full flex-shrink-0 mt-0.5 flex items-center justify-center [transition:all_0.15s] border-2 ${selected ? 'border-(--color-primary) bg-(--color-primary)' : 'border-(--border-input) bg-transparent'}`}>
           {selected && (
-            <div style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: '#fff',
-            }} />
+            <div className="w-1.5 h-1.5 rounded-full bg-white" />
           )}
         </div>
 
         <div>
-          <div style={{
-            fontFamily: 'var(--font-sans)',
-            fontWeight: selected ? 600 : 400,
-            fontSize: '0.92rem',
-            color: selected ? 'var(--color-primary-dark)' : 'var(--text-primary)',
-            marginBottom: '0.1rem',
-          }}>
+          <div className={`font-sans text-[0.92rem] mb-[0.1rem] ${selected ? 'font-semibold text-(--color-primary-dark)' : 'font-normal text-(--text-primary)'}`}>
             {label}
           </div>
           {hint && (
-            <div style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: '0.77rem',
-              color: 'var(--text-muted)',
-              lineHeight: 1.4,
-            }}>
+            <div className="font-sans text-[0.77rem] text-(--text-muted) leading-[1.4]">
               {hint}
             </div>
           )}
@@ -101,20 +48,20 @@ export default function StepGameEra({ state, setField }) {
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>
+      <h2 className="font-serif text-(--text-primary) text-[1.5rem] mb-1">
         Game Era & Skills Cap
       </h2>
-      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>
+      <p className="font-sans text-[0.88rem] text-(--text-muted) mb-8">
         These choices shape the world and how skilled your investigator can become.
       </p>
 
-      <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <div className="flex gap-12 flex-wrap items-start">
 
         {/* ── Game Era ── */}
-        <div style={{ ...sectionStyle, flex: '1', minWidth: '260px' }}>
-          <h3 style={sectionTitleStyle}>Game Era</h3>
-          <p style={sectionSubStyle}>When does your campaign take place?</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className={`${sectionClass} flex-1 min-w-65`}>
+          <h3 className={sectionTitleClass}>Game Era</h3>
+          <p className={sectionSubClass}>When does your campaign take place?</p>
+          <div className="flex flex-col gap-2">
             {ERAS.map(era => (
               <RadioCard
                 key={era.id}
@@ -129,10 +76,10 @@ export default function StepGameEra({ state, setField }) {
         </div>
 
         {/* ── Skills Cap ── */}
-        <div style={{ ...sectionStyle, minWidth: '220px' }}>
-          <h3 style={sectionTitleStyle}>Skills Cap</h3>
-          <p style={sectionSubStyle}>Maximum value any skill can reach.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className={`${sectionClass} min-w-55`}>
+          <h3 className={sectionTitleClass}>Skills Cap</h3>
+          <p className={sectionSubClass}>Maximum value any skill can reach.</p>
+          <div className="flex flex-col gap-2">
             {CAPS.map(cap => (
               <RadioCard
                 key={cap.value}

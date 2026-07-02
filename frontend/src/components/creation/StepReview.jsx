@@ -14,18 +14,8 @@ const STAT_ORDER = ['STR', 'DEX', 'INT', 'CON', 'APP', 'POW', 'SIZ', 'EDU'];
 
 function Section({ title, children }) {
   return (
-    <div style={{ marginBottom: '1.5rem' }}>
-      <div style={{
-        fontFamily: 'var(--font-sans)',
-        fontSize: '0.7rem',
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        letterSpacing: '0.07em',
-        color: 'var(--text-muted)',
-        marginBottom: '0.65rem',
-        paddingBottom: '0.35rem',
-        borderBottom: '1px solid var(--border-main)',
-      }}>
+    <div className="mb-6">
+      <div className="font-sans text-[0.7rem] font-bold uppercase tracking-[0.07em] text-(--text-muted) mb-[0.65rem] pb-[0.35rem] border-b border-(--border-main)">
         {title}
       </div>
       {children}
@@ -105,40 +95,34 @@ export default function StepReview({ state }) {
     return             { db: '+1D6',   build:  2 };
   })();
 
-  const cardStyle = {
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border-main)',
-    borderRadius: '10px',
-    padding: '1.25rem 1.5rem',
-    marginBottom: '1.25rem',
-  };
+  const cardClass = "bg-(--bg-card) border border-(--border-main) rounded-[10px] py-5 px-6 mb-5";
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>
+      <h2 className="font-serif text-(--text-primary) text-[1.5rem] mb-1">
         Review & Create
       </h2>
-      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+      <p className="font-sans text-[0.88rem] text-(--text-muted) mb-6">
         Final check before your investigator enters the world. Everything looks good? Hit Create.
       </p>
 
       {/* Personal details */}
-      <div style={{ ...cardStyle, display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+      <div className={`${cardClass} flex gap-5 items-start`}>
         {portrait && (
           <img
             src={`data:image/jpeg;base64,${portrait}`}
             alt="Portrait"
-            style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border-main)', flexShrink: 0 }}
+            className="w-20 h-25 object-cover rounded-md border border-(--border-main) shrink-0"
           />
         )}
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1, marginBottom: '0.3rem' }}>
+        <div className="flex-1">
+          <div className="font-serif text-[1.6rem] font-bold text-(--text-primary) leading-[1.1] mb-[0.3rem]">
             {name || '—'}
           </div>
-          <div style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', color: 'var(--color-primary-dark)', fontWeight: 600, marginBottom: '0.6rem' }}>
+          <div className="font-sans text-[0.9rem] text-(--color-primary-dark) font-semibold mb-[0.6rem]">
             {occ?.name ?? 'No Occupation'}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem 1.5rem' }}>
+          <div className="flex flex-wrap gap-x-6 gap-y-[0.6rem]">
             {[
               { label: 'Age',        value: age },
               { label: 'Era',        value: ERA_LABELS[gameEra] ?? gameEra },
@@ -147,8 +131,8 @@ export default function StepReview({ state }) {
               { label: 'Birthplace', value: birthplace || '—' },
             ].map(({ label, value }) => (
               <div key={label}>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.68rem', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>{label}</span>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', color: 'var(--text-primary)' }}>{value}</span>
+                <span className="font-sans text-[0.68rem] text-(--text-faint) uppercase tracking-[0.04em] block">{label}</span>
+                <span className="font-sans text-[0.88rem] text-(--text-primary)">{value}</span>
               </div>
             ))}
           </div>
@@ -156,20 +140,20 @@ export default function StepReview({ state }) {
       </div>
 
       {/* Characteristics + derived */}
-      <div style={cardStyle}>
+      <div className={cardClass}>
         <Section title="Characteristics">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
+          <div className="grid grid-cols-4 gap-2">
             {STAT_ORDER.map(stat => (
-              <div key={stat} style={{ textAlign: 'center', padding: '0.5rem 0.25rem', background: 'var(--bg-page)', borderRadius: '8px', border: '1px solid var(--border-main)' }}>
-                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>{stat}</div>
-                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>{stats[stat]}</div>
-                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', color: 'var(--text-faint)' }}>{Math.floor(stats[stat] / 2)} / {Math.floor(stats[stat] / 5)}</div>
+              <div key={stat} className="text-center py-2 px-1 bg-(--bg-page) rounded-lg border border-(--border-main)">
+                <div className="font-sans text-[0.65rem] font-bold uppercase tracking-wider text-(--text-muted)">{stat}</div>
+                <div className="font-serif text-[1.4rem] font-bold text-(--text-primary) leading-[1.1]">{stats[stat]}</div>
+                <div className="font-sans text-[0.6rem] text-(--text-faint)">{Math.floor(stats[stat] / 2)} / {Math.floor(stats[stat] / 5)}</div>
               </div>
             ))}
           </div>
         </Section>
         <Section title="Derived Stats">
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem 1.5rem' }}>
+          <div className="flex flex-wrap gap-x-6 gap-y-[0.6rem]">
             {[
               { label: 'HP',           value: hp },
               { label: 'MP',           value: mp },
@@ -180,8 +164,8 @@ export default function StepReview({ state }) {
               { label: 'Dodge',        value: Math.floor(stats.DEX / 2) },
             ].map(({ label, value }) => (
               <div key={label}>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.68rem', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>{label}</span>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</span>
+                <span className="font-sans text-[0.68rem] text-(--text-faint) uppercase tracking-[0.04em] block">{label}</span>
+                <span className="font-serif text-[1.15rem] font-bold text-(--text-primary)">{value}</span>
               </div>
             ))}
           </div>
@@ -190,9 +174,9 @@ export default function StepReview({ state }) {
 
       {/* Credit Rating + Cash */}
       {occ && cashAssets && (
-        <div style={cardStyle}>
+        <div className={cardClass}>
           <Section title="Credit Rating & Finances">
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem 1.5rem' }}>
+            <div className="flex flex-wrap gap-x-6 gap-y-[0.6rem]">
               {[
                 { label: 'Credit Rating', value: cr },
                 { label: 'Cash',          value: `$${cashAssets.cash.toLocaleString()}` },
@@ -200,8 +184,8 @@ export default function StepReview({ state }) {
                 { label: 'Spending Lvl', value: `$${cashAssets.spendingLimit.toLocaleString()}` },
               ].map(({ label, value }) => (
                 <div key={label}>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.68rem', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>{label}</span>
-                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</span>
+                  <span className="font-sans text-[0.68rem] text-(--text-faint) uppercase tracking-[0.04em] block">{label}</span>
+                  <span className="font-serif text-[1.15rem] font-bold text-(--text-primary)">{value}</span>
                 </div>
               ))}
             </div>
@@ -210,24 +194,20 @@ export default function StepReview({ state }) {
       )}
 
       {/* Skills */}
-      <div style={cardStyle}>
+      <div className={cardClass}>
         {/* Occupation skills — always shown */}
         {occSkillRows.length > 0 && (
           <Section title={`Occupation Skills (${occSkillRows.length})`}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '0.35rem' }}>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-[0.35rem]">
               {occSkillRows.map(({ skill, base, occAbove, personalAbove, total }) => (
-                <div key={skill} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '0.3rem 0.6rem', borderRadius: '6px',
-                  background: 'var(--accent-bg)', border: '1px solid var(--border-main)',
-                }}>
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: 'var(--text-primary)', fontWeight: 500 }}>{skill}</span>
+                <div key={skill} className="flex justify-between items-center py-[0.3rem] px-[0.6rem] rounded-md bg-(--accent-bg) border border-(--border-main)">
+                  <div className="min-w-0">
+                    <span className="font-sans text-[0.78rem] text-(--text-primary) font-medium">{skill}</span>
                     {personalAbove > 0 && (
-                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.62rem', color: 'var(--text-faint)', marginLeft: '0.25rem' }}>+{personalAbove} personal</span>
+                      <span className="font-sans text-[0.62rem] text-(--text-faint) ml-1">+{personalAbove} personal</span>
                     )}
                   </div>
-                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', fontWeight: 700, color: 'var(--color-primary-dark)', flexShrink: 0, marginLeft: '0.4rem' }}>{total}</span>
+                  <span className="font-serif text-base font-bold text-(--color-primary-dark) shrink-0 ml-[0.4rem]">{total}</span>
                 </div>
               ))}
             </div>
@@ -237,15 +217,11 @@ export default function StepReview({ state }) {
         {/* Personal skills */}
         {(personalSimpleRows.length > 0 || slotRows.length > 0) && (
           <Section title={`Personal Interest Skills (${personalSimpleRows.length + slotRows.length})`}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '0.35rem' }}>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-[0.35rem]">
               {[...personalSimpleRows, ...slotRows].map(({ skill, base, total }) => (
-                <div key={skill} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '0.3rem 0.6rem', borderRadius: '6px',
-                  background: 'var(--bg-page)', border: '1px solid var(--border-main)',
-                }}>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: 'var(--text-primary)' }}>{skill}</span>
-                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0, marginLeft: '0.4rem' }}>{total}</span>
+                <div key={skill} className="flex justify-between items-center py-[0.3rem] px-[0.6rem] rounded-md bg-(--bg-page) border border-(--border-main)">
+                  <span className="font-sans text-[0.78rem] text-(--text-primary)">{skill}</span>
+                  <span className="font-serif text-base font-bold text-(--text-primary) shrink-0 ml-[0.4rem]">{total}</span>
                 </div>
               ))}
             </div>
@@ -253,7 +229,7 @@ export default function StepReview({ state }) {
         )}
 
         {occSkillRows.length === 0 && personalSimpleRows.length === 0 && slotRows.length === 0 && (
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.85rem', color: 'var(--text-faint)', margin: 0 }}>
+          <p className="font-sans text-[0.85rem] text-(--text-faint) m-0">
             No skills allocated yet.
           </p>
         )}

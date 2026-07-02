@@ -26,76 +26,56 @@ export default function StepAgeUpdates({ state, initStep4, useEduRoll, applyAgeD
     setRollResult(null);
   }
 
-  const sectionStyle = {
-    background: 'var(--bg-page)',
-    border: '1px solid var(--border-main)',
-    borderRadius: '10px',
-    padding: '1.25rem 1.5rem',
-    marginBottom: '1.25rem',
-  };
+  const sectionClass = "bg-(--bg-page) border border-(--border-main) rounded-[10px] py-5 px-6 mb-5";
 
-  const sectionTitle = {
-    fontFamily: 'var(--font-serif)',
-    fontSize: '1.1rem',
-    color: 'var(--color-primary-dark)',
-    marginBottom: '0.75rem',
-  };
+  const sectionTitleClass = "font-serif text-[1.1rem] text-(--color-primary-dark) mb-3";
 
-  const btn = (disabled, variant = 'default') => ({
-    padding: variant === 'primary' ? '0.45rem 1.1rem' : '0.3rem 0.7rem',
-    borderRadius: '7px',
-    border: variant === 'primary' ? 'none' : '1px solid var(--border-input)',
-    background: disabled
-      ? 'var(--bg-card)'
-      : variant === 'primary'
-        ? 'var(--color-primary)'
-        : 'var(--bg-page)',
-    color: disabled ? 'var(--text-faint)' : variant === 'primary' ? '#fff' : 'var(--text-primary)',
-    fontFamily: 'var(--font-sans)',
-    fontSize: '0.88rem',
-    fontWeight: 600,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.5 : 1,
-    transition: 'background 0.12s',
-  });
+  const btn = (disabled, variant = 'default') => {
+    const padding = variant === 'primary' ? 'py-[0.45rem] px-[1.1rem]' : 'py-[0.3rem] px-[0.7rem]';
+    const border  = variant === 'primary' ? 'border-none' : 'border border-(--border-input)';
+    const bg      = disabled ? 'bg-(--bg-card)' : variant === 'primary' ? 'bg-(--color-primary)' : 'bg-(--bg-page)';
+    const color   = disabled ? 'text-(--text-faint)' : variant === 'primary' ? 'text-white' : 'text-(--text-primary)';
+    const cursor  = disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100';
+    return `${padding} rounded-[7px] ${border} ${bg} ${color} font-sans text-[0.88rem] font-semibold ${cursor} [transition:background_0.12s]`;
+  };
 
   return (
     <div>
-      <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1.5rem', marginBottom: '0.25rem' }}>
+      <h2 className="font-serif text-(--text-primary) text-[1.5rem] mb-1">
         Age Updates
       </h2>
-      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+      <p className="font-sans text-[0.88rem] text-(--text-muted) mb-6">
         Age {age} — applying CoC 7e age rules. Any EDU changes carry forward to Step 6.
       </p>
 
       {/* ── EDU Improvement ── */}
-      <div style={sectionStyle}>
-        <h3 style={sectionTitle}>EDU Improvement Rolls</h3>
+      <div className={sectionClass}>
+        <h3 className={sectionTitleClass}>EDU Improvement Rolls</h3>
 
         {/* Young investigator — auto penalty, no rolls */}
         {eduPenalty > 0 && (
-          <div style={{ padding: '0.6rem 0.9rem', background: 'var(--danger-bg)', border: '1px solid var(--danger)', borderRadius: '7px', fontFamily: 'var(--font-sans)', fontSize: '0.85rem', color: 'var(--danger)', marginBottom: '0.5rem' }}>
+          <div className="py-[0.6rem] px-[0.9rem] bg-(--danger-bg) border border-(--danger) rounded-[7px] font-sans text-[0.85rem] text-(--danger) mb-2">
             Age 15–19: EDU automatically reduced by {eduPenalty}. No improvement rolls available.
           </div>
         )}
 
         {eduRolls === 0 && eduPenalty === 0 && (
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          <p className="font-sans text-[0.85rem] text-(--text-muted)">
             No EDU improvement rolls for this age range.
           </p>
         )}
 
         {eduRolls > 0 && (
           <div>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+            <p className="font-sans text-[0.85rem] text-(--text-secondary) mb-4">
               <strong>Education</strong> improvement rolls based on age. EDU Improvement Rolls = {eduRolls}.
             </p>
 
             {/* Roll history */}
             {eduRollsUsed > 0 && (
-              <div style={{ marginBottom: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <div className="mb-3 flex flex-col gap-[0.3rem]">
                 {/* We can't store history in hook state easily, so just show summary */}
-                <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                <p className="font-sans text-[0.82rem] text-(--text-muted)">
                   Rolls used: {eduRollsUsed} / {eduRolls} — Current EDU: <strong>{stats.EDU}</strong>
                 </p>
               </div>
@@ -103,14 +83,14 @@ export default function StepAgeUpdates({ state, initStep4, useEduRoll, applyAgeD
 
             {/* Current roll */}
             {rollsRemaining > 0 && !rollResult && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-sans text-[0.88rem] text-(--text-secondary)">
                   Roll #{eduRollsUsed + 1}: Target (1d100) over EDU of {stats.EDU}
                 </span>
-                <button style={btn(false, 'primary')} onClick={doRoll}>
+                <button className={btn(false, 'primary')} onClick={doRoll}>
                   Roll 1d100
                 </button>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: 'var(--text-faint)' }}>
+                <span className="font-sans text-[0.78rem] text-(--text-faint)">
                   (unused rolls can be skipped)
                 </span>
               </div>
@@ -118,31 +98,31 @@ export default function StepAgeUpdates({ state, initStep4, useEduRoll, applyAgeD
 
             {/* Roll result */}
             {rollResult && (
-              <div style={{ padding: '0.75rem 1rem', background: 'var(--bg-card)', border: `1px solid ${rollResult.passed ? 'var(--color-primary-mid)' : 'var(--border-main)'}`, borderRadius: '8px', marginBottom: '0.75rem' }}>
-                <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', marginBottom: rollResult.passed ? '0.75rem' : '0', color: 'var(--text-primary)' }}>
+              <div className={`py-3 px-4 bg-(--bg-card) rounded-lg mb-3 border ${rollResult.passed ? 'border-(--color-primary-mid)' : 'border-(--border-main)'}`}>
+                <p className={`font-sans text-[0.88rem] text-(--text-primary) ${rollResult.passed ? 'mb-3' : 'mb-0'}`}>
                   <strong>Roll #{eduRollsUsed + 1}:</strong> Target (1d100 = {rollResult.d100}) over EDU of {rollResult.eduAtRoll} —{' '}
-                  <strong style={{ color: rollResult.passed ? 'var(--success)' : 'var(--danger)' }}>
+                  <strong className={rollResult.passed ? 'text-(--success)' : 'text-(--danger)'}>
                     {rollResult.passed ? 'PASS' : 'FAIL'}
                   </strong>
                   {!rollResult.passed && `, EDU = ${stats.EDU}.`}
                 </p>
 
                 {rollResult.passed && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="font-sans text-[0.85rem] text-(--text-secondary)">
                       Points to add (1–10):
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <button style={btn(rollPoints <= 1)} onClick={() => setRollPoints(p => Math.max(1, p - 1))}>−1</button>
-                      <span style={{ minWidth: '2rem', textAlign: 'center', fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 700 }}>{rollPoints}</span>
-                      <button style={btn(rollPoints >= 10)} onClick={() => setRollPoints(p => Math.min(10, p + 1))}>+1</button>
+                    <div className="flex items-center gap-[0.4rem]">
+                      <button className={btn(rollPoints <= 1)} onClick={() => setRollPoints(p => Math.max(1, p - 1))}>−1</button>
+                      <span className="min-w-8 text-center font-serif text-[1.2rem] font-bold">{rollPoints}</span>
+                      <button className={btn(rollPoints >= 10)} onClick={() => setRollPoints(p => Math.min(10, p + 1))}>+1</button>
                     </div>
-                    <button style={btn(false, 'primary')} onClick={commitRoll}>Apply</button>
+                    <button className={btn(false, 'primary')} onClick={commitRoll}>Apply</button>
                   </div>
                 )}
 
                 {!rollResult.passed && (
-                  <button style={btn(false, 'primary')} onClick={commitRoll}>Next Roll</button>
+                  <button className={btn(false, 'primary')} onClick={commitRoll}>Next Roll</button>
                 )}
               </div>
             )}
@@ -151,14 +131,14 @@ export default function StepAgeUpdates({ state, initStep4, useEduRoll, applyAgeD
             {rollsRemaining > 0 && !rollResult && (
               <button
                 onClick={() => useEduRoll(0)}
-                style={{ ...btn(false), marginTop: '0.4rem', fontSize: '0.78rem', color: 'var(--text-faint)' }}
+                className={`${btn(false)} mt-[0.4rem] text-[0.78rem] text-(--text-faint)`}
               >
                 Skip this roll
               </button>
             )}
 
             {rollsRemaining === 0 && (
-              <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+              <p className="font-sans text-[0.85rem] text-(--text-muted) mt-1">
                 All rolls complete. EDU is now <strong>{stats.EDU}</strong>.
               </p>
             )}
@@ -167,46 +147,41 @@ export default function StepAgeUpdates({ state, initStep4, useEduRoll, applyAgeD
       </div>
 
       {/* ── Characteristic Deductions ── */}
-      <div style={sectionStyle}>
-        <h3 style={sectionTitle}>Characteristic Deductions</h3>
+      <div className={sectionClass}>
+        <h3 className={sectionTitleClass}>Characteristic Deductions</h3>
 
         {deductionTotal === 0 ? (
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+          <p className="font-sans text-[0.88rem] text-(--text-muted)">
             No characteristic deductions for age {age}. You're in your prime.
           </p>
         ) : (
           <div>
-            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.25rem', padding: '0.75rem 1rem', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border-main)', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div className="flex gap-6 mb-5 py-3 px-4 bg-(--bg-card) rounded-lg border border-(--border-main) flex-wrap items-center">
               {[
                 { label: 'To Deduct', value: deductionTotal },
                 { label: 'Deducted',  value: ageDeductionSpent },
                 { label: 'Remaining', value: deductRemaining },
               ].map(({ label, value }) => (
-                <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '70px' }}>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
-                  <span style={{
-                    fontSize: '1.4rem', fontWeight: 700, fontFamily: 'var(--font-serif)',
-                    color: label === 'Remaining'
-                      ? deductRemaining > 0 ? 'var(--danger)' : 'var(--success)'
-                      : 'var(--text-primary)',
-                  }}>{value}</span>
+                <div key={label} className="flex flex-col items-center min-w-17.5">
+                  <span className="text-[0.7rem] text-(--text-muted) font-sans uppercase tracking-wider">{label}</span>
+                  <span className={`text-[1.4rem] font-bold font-serif ${label === 'Remaining' ? (deductRemaining > 0 ? 'text-(--danger)' : 'text-(--success)') : 'text-(--text-primary)'}`}>{value}</span>
                 </div>
               ))}
-              <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: 'var(--text-faint)', margin: '0', flex: 1, minWidth: '160px' }}>
+              <p className="font-sans text-[0.78rem] text-(--text-faint) m-0 flex-1 min-w-40">
                 Distribute {deductionTotal} pts across eligible stats. Cannot go below 1.
               </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="flex flex-col gap-2">
               {eligibleStats.map(stat => (
-                <div key={stat} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.55rem 0.9rem', background: 'var(--bg-card)', borderRadius: '8px', border: '1px solid var(--border-main)' }}>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-secondary)', width: '2.5rem', textTransform: 'uppercase' }}>{stat}</span>
-                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', minWidth: '3rem' }}>{stats[stat]}</span>
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <div key={stat} className="flex items-center gap-4 py-[0.55rem] px-[0.9rem] bg-(--bg-card) rounded-lg border border-(--border-main)">
+                  <span className="font-sans font-bold text-[0.88rem] text-(--text-secondary) w-10 uppercase">{stat}</span>
+                  <span className="font-serif text-[1.6rem] font-bold text-(--text-primary) min-w-12">{stats[stat]}</span>
+                  <div className="flex gap-[0.4rem]">
                     {[5, 1].map(amt => {
                       const disabled = deductRemaining <= 0 || stats[stat] <= 1;
                       return (
-                        <button key={amt} disabled={disabled} onClick={() => applyAgeDeduction(stat, amt)} style={btn(disabled)}>
+                        <button key={amt} disabled={disabled} onClick={() => applyAgeDeduction(stat, amt)} className={btn(disabled)}>
                           −{amt}
                         </button>
                       );
@@ -217,7 +192,7 @@ export default function StepAgeUpdates({ state, initStep4, useEduRoll, applyAgeD
             </div>
 
             {deductRemaining === 0 && (
-              <p style={{ marginTop: '0.75rem', color: 'var(--success)', fontFamily: 'var(--font-sans)', fontSize: '0.82rem' }}>
+              <p className="mt-3 text-(--success) font-sans text-[0.82rem]">
                 All deductions applied.
               </p>
             )}
