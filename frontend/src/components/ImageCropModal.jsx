@@ -74,55 +74,22 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
 
   return createPortal(
     <div
-      style={{
-        position:       'fixed',
-        inset:          0,
-        background:     'rgba(0,0,0,0.6)',
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        zIndex:         400,
-        padding:        '24px',
-        backdropFilter: 'blur(4px)',
-      }}
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-400 p-6 backdrop-blur-xs"
       onClick={onClose}
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{
-          background:   'var(--bg-card)',
-          border:       '1px solid var(--border-main)',
-          borderRadius: '16px',
-          padding:      '24px',
-          maxWidth:     '480px',
-          width:        '100%',
-          boxShadow:    'var(--shadow-dropdown)',
-        }}
+        className="bg-(--bg-card) border border-(--border-main) rounded-2xl p-6 max-w-120 w-full shadow-(--shadow-dropdown)"
       >
-        <h2 style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize:   '20px',
-          color:      'var(--text-primary)',
-          margin:     '0 0 6px',
-        }}>
+        <h2 className="font-serif text-xl text-(--text-primary) mt-0 mb-1.5">
           Crop Profile Picture
         </h2>
-        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 16px' }}>
+        <p className="text-[13px] text-(--text-muted) mt-0 mb-4">
           Drag to reposition · Drag edges to resize
         </p>
 
         {/* Crop area */}
-        <div style={{
-          display:         'flex',
-          justifyContent:  'center',
-          marginBottom:    '20px',
-          background:      'var(--bg-section-hd)',
-          borderRadius:    '10px',
-          padding:         '12px',
-          maxHeight:       '360px',
-          overflowY:       'auto',
-          overscrollBehavior: 'contain',
-        }}>
+        <div className="flex justify-center mb-5 bg-(--bg-section-hd) rounded-[10px] p-3 max-h-90 overflow-y-auto overscroll-contain">
           <ReactCrop
             crop={crop}
             onChange={c => setCrop(c)}
@@ -135,63 +102,36 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
               src={imageSrc}
               alt="Crop preview"
               onLoad={onImageLoad}
-              style={{ maxWidth: '100%', maxHeight: '320px' }}
+              className="max-w-full max-h-80"
             />
           </ReactCrop>
         </div>
 
         {/* Preview */}
-        <div style={{
-          display:       'flex',
-          alignItems:    'center',
-          gap:           '12px',
-          marginBottom:  '20px',
-          padding:       '12px',
-          background:    'var(--bg-section-hd)',
-          borderRadius:  '8px',
-        }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+        <div className="flex items-center gap-3 mb-5 p-3 bg-(--bg-section-hd) rounded-lg">
+          <span className="text-xs text-(--text-muted)">
             Preview:
           </span>
           <CropPreview imgRef={imgRef} crop={completedCrop} size={56} displaySize={imgDisplaySize} />
           <CropPreview imgRef={imgRef} crop={completedCrop} size={36} displaySize={imgDisplaySize} />
           <CropPreview imgRef={imgRef} crop={completedCrop} size={24} displaySize={imgDisplaySize} />
-          <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>
+          <span className="text-[11px] text-(--text-faint)">
             Saved at up to 800px
           </span>
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+        <div className="flex gap-2.5 justify-end">
           <button
             onClick={onClose}
-            style={{
-              padding:      '9px 20px',
-              borderRadius: '8px',
-              border:       '1px solid var(--border-main)',
-              background:   'transparent',
-              color:        'var(--text-secondary)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '13px',
-              cursor:       'pointer',
-            }}
+            className="py-2.25 px-5 rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-[13px] cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving || !completedCrop}
-            style={{
-              padding:      '9px 20px',
-              borderRadius: '8px',
-              border:       'none',
-              background:   saving ? 'var(--text-muted)' : 'var(--color-primary)',
-              color:        '#ffffff',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '13px',
-              fontWeight:   '500',
-              cursor:       saving ? 'not-allowed' : 'pointer',
-            }}
+            className={`py-2.25 px-5 rounded-lg border-none text-white font-sans text-[13px] font-medium ${saving ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
           >
             {saving ? 'Saving...' : 'Save Photo'}
           </button>
@@ -229,26 +169,16 @@ function CropPreview({ imgRef, crop, size, displaySize }) {
   }, [crop, size, displaySize]);
 
   if (!crop || !displaySize) {
+    // width/height stay inline — `size` is a per-call-site numeric prop (56/36/24)
     return (
-      <div style={{
-        width: size, height: size,
-        borderRadius: '50%',
-        background:   'var(--border-main)',
-        flexShrink:   0,
-      }} />
+      <div className="rounded-full bg-(--border-main) shrink-0" style={{ width: size, height: size }} />
     );
   }
 
   return (
-    <div style={{
-      width:        size,
-      height:       size,
-      borderRadius: '50%',
-      overflow:     'hidden',
-      flexShrink:   0,
-      border:       '2px solid var(--border-main)',
-    }}>
-      <canvas ref={canvasRef} style={{ display: 'block', width: size, height: size }} />
+    // width/height stay inline — `size` is a per-call-site numeric prop (56/36/24)
+    <div className="rounded-full overflow-hidden shrink-0 border-2 border-(--border-main)" style={{ width: size, height: size }}>
+      <canvas ref={canvasRef} className="block" style={{ width: size, height: size }} />
     </div>
   );
 }

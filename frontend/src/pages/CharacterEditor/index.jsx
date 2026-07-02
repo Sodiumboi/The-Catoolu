@@ -173,10 +173,32 @@ export default function CharacterEditorPage() {
         {/* Left */}
         <div className="flex items-center gap-3">
           <button onClick={() => guardedNavigate('/dashboard')}
-                  style={{ fontSize: '13px', padding: '5px 12px', borderRadius: '7px', border: '1px solid var(--border-main)', background: 'transparent', color: 'var(--accent)', cursor: 'pointer' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            ← Dashboard
+                  style={{
+                    display:      'inline-flex',
+                    alignItems:   'center',
+                    gap:          '5px',
+                    padding:      '4px 12px',
+                    borderRadius: '999px',
+                    border:       '1px solid var(--border-main)',
+                    background:   'transparent',
+                    color:        'var(--text-muted)',
+                    fontFamily:   'var(--font-sans)',
+                    fontSize:     '12px',
+                    fontWeight:   500,
+                    cursor:       'pointer',
+                    transition:   'all 0.15s ease',
+                    whiteSpace:   'nowrap',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = 'var(--accent)';
+                    e.currentTarget.style.color = 'var(--accent)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = 'var(--border-main)';
+                    e.currentTarget.style.color = 'var(--text-muted)';
+                  }}>
+            <span className="icon icon-sm">arrow_back</span>
+            Dashboard
           </button>
           <div>
             <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', color: 'var(--text-primary)', margin: 0 }}>
@@ -196,23 +218,44 @@ export default function CharacterEditorPage() {
           <button
             onClick={handleNotesButton}
             style={{
-              display:    'flex', alignItems: 'center', gap: '4px',
-              padding:    '6px 12px', borderRadius: '8px', fontSize: '13px',
-              border:     notesState !== 'closed' ? '1px solid var(--accent)' : '1px solid var(--border-main)',
-              background: notesState !== 'closed' ? 'var(--accent-bg)' : 'transparent',
-              color:      notesState !== 'closed' ? 'var(--accent)' : 'var(--text-muted)',
-              cursor:     'pointer', transition: 'all 0.15s',
+              display:      'flex',
+              alignItems:   'center',
+              gap:          '5px',
+              padding:      '4px 12px',
+              borderRadius: '999px',
+              border:       notesState !== 'closed' ? '1px solid var(--accent)' : '1px solid var(--border-main)',
+              background:   notesState !== 'closed' ? 'var(--accent-bg)' : 'transparent',
+              color:        notesState !== 'closed' ? 'var(--accent)' : 'var(--text-muted)',
+              fontFamily:   'var(--font-sans)',
+              fontSize:     '12px',
+              fontWeight:   500,
+              cursor:       'pointer',
+              transition:   'all 0.15s ease',
+              whiteSpace:   'nowrap',
+            }}
+            onMouseEnter={e => {
+              if (notesState === 'closed') {
+                e.currentTarget.style.borderColor = 'var(--accent)';
+                e.currentTarget.style.color = 'var(--accent)';
+              }
+            }}
+            onMouseLeave={e => {
+              if (notesState === 'closed') {
+                e.currentTarget.style.borderColor = 'var(--border-main)';
+                e.currentTarget.style.color = 'var(--text-muted)';
+              }
             }}
           >
-            <span className="icon icon-sm">description</span>
             Notes
+            <span className="icon icon-sm">open_in_new</span>
           </button>
           </Tooltip>
           <button onClick={handleExport}
-                  style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '13px', border: '1px solid var(--success)', background: 'transparent', color: 'var(--success)', cursor: 'pointer' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', border: '1px solid var(--success)', background: 'transparent', color: 'var(--success)', cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            ↓ Export JSON
+            <span className="icon icon-sm">download</span>
+            Export JSON
           </button>
           <button onClick={handleSave} disabled={saving}
                   style={{

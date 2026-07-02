@@ -4,6 +4,55 @@
 
 export const WHATS_NEW = [
   {
+    version: '1.6e',
+    codename: 'Nakamaru',
+    date: 'June 2026',
+    sections: [
+      {
+        heading: 'Room Connection Persistence',
+        items: [
+          'The active room is now remembered across browser refreshes — no more dropping connections silently',
+          'The NavBar pill reappears immediately on load and the socket re-subscribes in the background automatically',
+        ],
+      },
+      {
+        heading: 'Disconnect & Quit',
+        items: [
+          'The "Leave Table" label is gone, replaced with a unified "Disconnect from Room" action',
+          'Disconnecting from inside the room returns you to the campaign list; disconnecting from the NavBar pill stays on the current page',
+          'Disconnect button in the icon strip now has a confirmation dialog to prevent accidental clicks',
+          'NavBar pill exits with a proper pop-out animation that mirrors how it entered',
+          'New "Quit Campaign" button in the Players panel for permanent exits, completely hidden from the Keeper',
+        ],
+      },
+      {
+        heading: 'Notes Window',
+        items: [
+          'Notes window now behaves like an OS program window, minimising to a movable pill',
+          'Clicking the pill restores the window, expanding outward from wherever the pill currently is',
+          'Window and pill positions are saved and persist across page refreshes',
+          'Window is now clamped to the viewport so it can never open partially off-screen',
+        ],
+      },
+      {
+        heading: 'Campaign Room',
+        items: [
+          'Players can now view and edit possessions mid-session via a new Possessions tab in the room sub-nav',
+          'Keeper side panel now updates automatically in real-time as players edit their sheets (skills, HP/MP/Sanity, items, etc.)',
+          'Possessions changes save immediately and flow to the Keeper\'s live view automatically',
+        ],
+      },
+      {
+        heading: 'UI Polish',
+        items: [
+          'All native browser tooltips replaced with custom, theme-aware portal tooltips featuring a 300ms hover delay',
+          'Character editor toolbar updated with proper Material Symbol icons instead of text arrows',
+          'Active profile picture is now protected from accidental deletion in the File Manager (marked with a lock icon)',
+        ],
+      },
+    ],
+  },
+  {
     version: '1.6d',
     codename: 'Icewind Dale',
     date: 'June 2026',

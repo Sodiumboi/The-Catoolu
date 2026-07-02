@@ -73,23 +73,11 @@ const CONTENT = {
 // ── Components ───────────────────────────────────────────────────────
 function Section({ title, children }) {
   return (
-    <section style={{ marginBottom: '2.5rem' }}>
-      <h2 style={{
-        fontFamily:    'var(--font-serif)',
-        fontSize:      '1.35rem',
-        color:         'var(--color-primary-dark)',
-        margin:        '0 0 0.75rem',
-        paddingBottom: '0.5rem',
-        borderBottom:  '1px solid var(--border-main)',
-      }}>
+    <section className="mb-10">
+      <h2 className="font-serif text-[1.35rem] text-(--color-primary-dark) mt-0 mb-3 pb-2 border-b border-(--border-main)">
         {title}
       </h2>
-      <div style={{
-        fontFamily: 'var(--font-sans)',
-        fontSize:   '0.95rem',
-        color:      'var(--text-secondary)',
-        lineHeight: 1.7,
-      }}>
+      <div className="font-sans text-[0.95rem] text-(--text-secondary) leading-[1.7]">
         {children}
       </div>
     </section>
@@ -98,18 +86,7 @@ function Section({ title, children }) {
 
 function Tag({ children }) {
   return (
-    <span style={{
-      display:      'inline-block',
-      padding:      '3px 10px',
-      borderRadius: '6px',
-      border:       '1px solid var(--border-input)',
-      background:   'var(--bg-section-hd)',
-      fontFamily:   'var(--font-sans)',
-      fontSize:     '0.8rem',
-      color:        'var(--text-muted)',
-      marginRight:  '6px',
-      marginBottom: '6px',
-    }}>
+    <span className="inline-block py-0.75 px-2.5 rounded-md border border-(--border-input) bg-(--bg-section-hd) font-sans text-[0.8rem] text-(--text-muted) mr-1.5 mb-1.5">
       {children}
     </span>
   );
@@ -117,59 +94,23 @@ function Tag({ children }) {
 
 function TeamCard({ name, role, badge, avatar }) {
   return (
-    <div style={{
-      background:    'var(--bg-card)',
-      border:        '1px solid var(--border-main)',
-      borderRadius:  '12px',
-      boxShadow:     'var(--shadow-card)',
-      padding:       '1.5rem 1rem 1.25rem',
-      display:       'flex',
-      flexDirection: 'column',
-      alignItems:    'center',
-      gap:           '0.55rem',
-      textAlign:     'center',
-    }}>
-      <div style={{
-        width:          '72px',
-        height:         '72px',
-        borderRadius:   '10px',
-        background:     'var(--bg-section-hd)',
-        border:         '1px solid var(--border-input)',
-        overflow:       'hidden',
-        flexShrink:     0,
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        fontSize:       '1.6rem',
-        color:          'var(--text-faint)',
-      }}>
+    <div className="bg-(--bg-card) border border-(--border-main) rounded-xl shadow-(--shadow-card) pt-6 px-4 pb-5 flex flex-col items-center gap-[0.55rem] text-center">
+      <div className="w-18 h-18 rounded-[10px] bg-(--bg-section-hd) border border-(--border-input) overflow-hidden shrink-0 flex items-center justify-center text-[1.6rem] text-(--text-faint)">
         {avatar
-          ? <img src={avatar} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={avatar} alt={name} className="w-full h-full object-cover" />
           : '?'
         }
       </div>
       <div>
-        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 600 }}>
+        <div className="font-serif text-base text-(--text-primary) font-semibold">
           {name}
         </div>
-        <div style={{ fontFamily: 'var(--font-sans)', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+        <div className="font-sans text-[0.8rem] text-(--text-muted) mt-0.5">
           {role}
         </div>
       </div>
       {badge && (
-        <span style={{
-          display:       'inline-block',
-          padding:       '2px 12px',
-          borderRadius:  '6px',
-          background:    'var(--accent-bg)',
-          border:        '1px solid var(--color-primary-mid)',
-          fontFamily:    'var(--font-sans)',
-          fontSize:      '0.72rem',
-          fontWeight:    600,
-          color:         'var(--color-primary)',
-          letterSpacing: '0.05em',
-          textTransform: 'uppercase',
-        }}>
+        <span className="inline-block py-0.5 px-3 rounded-md bg-(--accent-bg) border border-(--color-primary-mid) font-sans text-[0.72rem] font-semibold text-(--color-primary) tracking-wider uppercase">
           {badge}
         </span>
       )}
@@ -180,7 +121,7 @@ function TeamCard({ name, role, badge, avatar }) {
 
 function GitHubIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0, display: 'block' }}>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="shrink-0 block">
       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
     </svg>
   );
@@ -188,33 +129,12 @@ function GitHubIcon() {
 
 function LangSwitcher({ lang, setLang }) {
   return (
-    <div style={{
-      display:      'flex',
-      alignItems:   'center',
-      gap:          '2px',
-      background:   'var(--bg-section-hd)',
-      border:       '1px solid var(--border-input)',
-      borderRadius: '20px',
-      padding:      '2px',
-    }}>
+    <div className="flex items-center gap-0.5 bg-(--bg-section-hd) border border-(--border-input) rounded-full p-0.5">
       {['en', 'th'].map(l => (
         <button
           key={l}
           onClick={() => setLang(l)}
-          style={{
-            padding:      '3px 12px',
-            borderRadius: '20px',
-            border:       'none',
-            background:   lang === l ? 'var(--color-primary)' : 'transparent',
-            color:        lang === l ? '#fff' : 'var(--text-muted)',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '0.72rem',
-            fontWeight:   600,
-            letterSpacing:'0.05em',
-            textTransform:'uppercase',
-            cursor:       lang === l ? 'default' : 'pointer',
-            transition:   'background 0.15s, color 0.15s',
-          }}
+          className={`py-0.75 px-3 rounded-full border-none font-sans text-[0.72rem] font-semibold tracking-wider uppercase [transition:background_0.15s,color_0.15s] ${lang === l ? 'bg-(--color-primary) text-white cursor-default' : 'bg-transparent text-(--text-muted) cursor-pointer'}`}
         >
           {l}
         </button>
@@ -229,58 +149,27 @@ export default function AboutPage() {
   const t = CONTENT[lang];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
+    <div className="min-h-screen flex flex-col bg-(--bg-page)">
 
       <NavBar />
 
       {/* ── Page header ── */}
-      <header style={{ padding: '2rem 1.5rem 0', maxWidth: '720px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
-          <img src={logo} alt="The Catoolu" style={{ width: '52px', height: '52px', objectFit: 'contain', flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <h1 style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize:   '1.8rem',
-              color:      'var(--color-primary-dark)',
-              margin:     '0 0 0.35rem',
-            }}>
+      <header className="pt-8 px-6 max-w-180 w-full mx-auto box-border">
+        <div className="flex items-center gap-4 mb-10">
+          <img src={logo} alt="The Catoolu" className="w-13 h-13 object-contain shrink-0" />
+          <div className="flex-1">
+            <h1 className="font-serif text-[1.8rem] text-(--color-primary-dark) mt-0 mb-[0.35rem]">
               The Catoolu
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <span style={{
-                display:      'inline-block',
-                padding:      '2px 10px',
-                borderRadius: '20px',
-                background:   'var(--accent-bg)',
-                border:       '1px solid var(--color-primary)',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '0.75rem',
-                fontWeight:   600,
-                color:        'var(--color-primary)',
-                letterSpacing:'0.04em',
-              }}>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-block py-0.5 px-2.5 rounded-full bg-(--accent-bg) border border-(--color-primary) font-sans text-xs font-semibold text-(--color-primary) tracking-[0.04em]">
                 {VERSION}
               </span>
               <a
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  display:        'inline-flex',
-                  alignItems:     'center',
-                  gap:            '5px',
-                  padding:        '2px 10px',
-                  borderRadius:   '20px',
-                  background:     'var(--bg-section-hd)',
-                  border:         '1px solid var(--border-input)',
-                  fontFamily:     'var(--font-sans)',
-                  fontSize:       '0.75rem',
-                  fontWeight:     600,
-                  color:          'var(--text-muted)',
-                  textDecoration: 'none',
-                  letterSpacing:  '0.02em',
-                  transition:     'border-color 0.15s, color 0.15s',
-                }}
+                className="inline-flex items-center gap-1.25 py-0.5 px-2.5 rounded-full bg-(--bg-section-hd) border border-(--border-input) font-sans text-xs font-semibold text-(--text-muted) no-underline tracking-[0.02em] [transition:border-color_0.15s,color_0.15s]"
                 onMouseEnter={e => {
                   e.currentTarget.style.color       = 'var(--accent)';
                   e.currentTarget.style.borderColor = 'var(--color-primary)';
@@ -300,22 +189,24 @@ export default function AboutPage() {
       </header>
 
       {/* ── The Team — wider than the text column ── */}
-      <div style={{ width: '100%', maxWidth: '960px', margin: '0 auto', padding: '0 1.5rem 2.5rem', boxSizing: 'border-box' }}>
+      <div className="w-full max-w-240 mx-auto px-6 pb-10 box-border">
         <section>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-main)' }}>
+          <div className="flex items-center gap-[0.45rem] mb-4 pb-2 border-b border-(--border-main)">
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
               <circle cx="6.5" cy="6.5" r="5.5" stroke="var(--text-faint)" strokeWidth="1.5" />
             </svg>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.35rem', color: 'var(--color-primary-dark)', margin: 0 }}>
+            <h2 className="font-serif text-[1.35rem] text-(--color-primary-dark) m-0">
               {t.teamTitle}
             </h2>
           </div>
+          {/* gridTemplateColumns stays inline — TEAM_MEMBERS.length is a runtime
+              value Tailwind's static scanner can't resolve into a class name */}
           {TEAM_MEMBERS.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${TEAM_MEMBERS.length}, 1fr)`, gap: '0.75rem' }}>
+            <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${TEAM_MEMBERS.length}, 1fr)` }}>
               {TEAM_MEMBERS.map(m => <TeamCard key={m.name} {...m} />)}
             </div>
           ) : (
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', color: 'var(--text-faint)', fontStyle: 'italic', margin: 0 }}>
+            <p className="font-sans text-[0.9rem] text-(--text-faint) italic m-0">
               {t.teamEmpty}
             </p>
           )}
@@ -323,57 +214,39 @@ export default function AboutPage() {
       </div>
 
       {/* ── Rest of content ── */}
-      <main style={{ flex: 1, maxWidth: '720px', width: '100%', margin: '0 auto', padding: '0 1.5rem 4rem', boxSizing: 'border-box' }}>
+      <main className="flex-1 max-w-180 w-full mx-auto px-6 pb-16 box-border">
 
         <Section title={t.whatTitle}>
-          <p style={{ margin: '0 0 0.75rem' }}>{t.what1}</p>
-          <p style={{ margin: 0 }}>{t.what2}</p>
+          <p className="mt-0 mb-3">{t.what1}</p>
+          <p className="m-0">{t.what2}</p>
         </Section>
 
         <Section title={t.whyTitle}>
-          <p style={{ margin: '0 0 0.75rem' }}>{t.why1}</p>
-          <p style={{ margin: '0 0 0.75rem' }}>{t.why2}</p>
-          <p style={{ margin: 0 }}>{t.why3}</p>
+          <p className="mt-0 mb-3">{t.why1}</p>
+          <p className="mt-0 mb-3">{t.why2}</p>
+          <p className="m-0">{t.why3}</p>
         </Section>
 
         <Section title={t.whoTitle}>
-          <p style={{ margin: '0 0 0.75rem' }}>{t.who1}</p>
-          <p style={{ margin: '0 0 0.75rem' }}>{t.who2}</p>
-          <p style={{ margin: '0 0 0.75rem' }}>{t.who6}</p>
-          <p style={{ margin: '0 0 0.75rem' }}>{t.who3}</p>
-          <p style={{ margin: '0 0 0.75rem' }}>{t.who4}</p>
+          <p className="mt-0 mb-3">{t.who1}</p>
+          <p className="mt-0 mb-3">{t.who2}</p>
+          <p className="mt-0 mb-3">{t.who6}</p>
+          <p className="mt-0 mb-3">{t.who3}</p>
+          <p className="mt-0 mb-3">{t.who4}</p>
           {/* ── Monument statement for the artists ── */}
-          <div style={{
-            margin:       '1.75rem 0 0',
-            padding:      '1.25rem 0.5rem 1.5rem',
-            borderTop:    '1px solid var(--border-main)',
-            borderBottom: '1px solid var(--border-main)',
-            textAlign:    'center',
-          }}>
-            <div style={{
-              fontSize:      '0.7rem',
-              letterSpacing: '0.35em',
-              color:         'var(--text-faint)',
-              marginBottom:  '0.9rem',
-            }}>
+          <div className="mt-7 mx-0 mb-0 pt-5 px-2 pb-6 border-t border-b border-(--border-main) text-center">
+            <div className="text-[0.7rem] tracking-[0.35em] text-(--text-faint) mb-[0.9rem]">
               ✦
             </div>
-            <p style={{
-              margin:     0,
-              fontStyle:  'italic',
-              fontFamily: 'var(--font-sans)',
-              fontSize:   '0.9rem',
-              color:      'var(--text-muted)',
-              lineHeight: 1.9,
-            }}>
+            <p className="m-0 italic font-sans text-[0.9rem] text-(--text-muted) leading-[1.9]">
               {t.who5}
             </p>
           </div>
         </Section>
 
         <Section title={t.stackTitle}>
-          <p style={{ margin: '0 0 1rem' }}>{t.stackIntro}</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          <p className="mt-0 mb-4">{t.stackIntro}</p>
+          <div className="flex flex-wrap gap-1">
             <Tag>React + Vite</Tag>
             <Tag>Express</Tag>
             <Tag>PostgreSQL</Tag>
@@ -386,12 +259,12 @@ export default function AboutPage() {
         </Section>
 
         <Section title={t.contactTitle}>
-          <p style={{ margin: 0 }}>
+          <p className="m-0">
             {t.contact}{' '}
             Reach out at{' '}
             <a
               href="mailto:whydontyoumarry@gmail.com"
-              style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}
+              className="text-(--accent) no-underline font-medium"
               onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
               onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}
             >
@@ -399,13 +272,13 @@ export default function AboutPage() {
             </a>
             {'. '}{t.contactPost}
           </p>
-          <p style={{ margin: 0 }}>
+          <p className="m-0">
             {t.contactGitHub}{' '}
             <a
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}
+              className="text-(--accent) no-underline font-medium"
               onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
               onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}
             >
@@ -415,14 +288,14 @@ export default function AboutPage() {
         </Section>
 
         <Section title={t.creditsTitle}>
-          <p style={{ margin: '0 0 0.6rem' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Call of Cthulhu</strong>{' '}{t.credits1}
+          <p className="mt-0 mb-[0.6rem]">
+            <strong className="text-(--text-primary)">Call of Cthulhu</strong>{' '}{t.credits1}
           </p>
-          <p style={{ margin: '0 0 0.6rem' }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Dhole's House</strong>{' '}{t.credits2}
+          <p className="mt-0 mb-[0.6rem]">
+            <strong className="text-(--text-primary)">Dhole's House</strong>{' '}{t.credits2}
           </p>
-          <p style={{ margin: 0 }}>
-            <strong style={{ color: 'var(--text-primary)' }}>Claude</strong>{' '}{t.credits3}
+          <p className="m-0">
+            <strong className="text-(--text-primary)">Claude</strong>{' '}{t.credits3}
           </p>
         </Section>
 

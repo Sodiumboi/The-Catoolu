@@ -9,18 +9,7 @@ function Tab({ label, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        padding:      '7px 18px',
-        borderRadius: '8px',
-        border:       'none',
-        cursor:       'pointer',
-        fontFamily:   'var(--font-sans)',
-        fontSize:     '13px',
-        fontWeight:   500,
-        background:   active ? 'var(--color-primary)' : 'transparent',
-        color:        active ? '#fff' : 'var(--text-secondary)',
-        transition:   'background 0.15s, color 0.15s',
-      }}
+      className={`py-1.75 px-4.5 rounded-lg border-none cursor-pointer font-sans text-[13px] font-medium [transition:background_0.15s,color_0.15s] ${active ? 'bg-(--color-primary) text-white' : 'bg-transparent text-(--text-secondary)'}`}
     >
       {label}
     </button>
@@ -30,28 +19,10 @@ function Tab({ label, active, onClick }) {
 // ── Stat card ──────────────────────────────────────────────────
 function StatCard({ label, value, accent }) {
   return (
-    <div style={{
-      background:   'var(--bg-card)',
-      border:       '1px solid var(--border-main)',
-      borderRadius: '12px',
-      padding:      '20px 24px',
-      minWidth:     '140px',
-      flex:         1,
-    }}>
-      <div style={{
-        fontFamily: 'var(--font-serif)',
-        fontSize:   '32px',
-        color:      accent || 'var(--color-primary)',
-        lineHeight: 1,
-      }}>{value ?? '—'}</div>
-      <div style={{
-        marginTop:  '6px',
-        fontSize:   '12px',
-        color:      'var(--text-faint)',
-        fontFamily: 'var(--font-sans)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-      }}>{label}</div>
+    <div className="bg-(--bg-card) border border-(--border-main) rounded-xl py-5 px-6 min-w-35 flex-1">
+      {/* accent is a per-call-site CSS-color prop — stays inline, not a fixed set of classes */}
+      <div className="font-serif text-[32px] leading-none" style={{ color: accent || 'var(--color-primary)' }}>{value ?? '—'}</div>
+      <div className="mt-1.5 text-xs text-(--text-faint) font-sans uppercase tracking-[0.06em]">{label}</div>
     </div>
   );
 }
@@ -83,122 +54,61 @@ function BugRow({ bug, onStatusChange, onDelete }) {
   });
 
   return (
-    <div style={{
-      border:       '1px solid var(--border-main)',
-      borderRadius: '10px',
-      background:   'var(--bg-card)',
-      overflow:     'hidden',
-      marginBottom: '8px',
-    }}>
+    <div className="border border-(--border-main) rounded-[10px] bg-(--bg-card) overflow-hidden mb-2">
       {/* Header row */}
       <button
         onClick={() => setExpanded(e => !e)}
-        style={{
-          width:      '100%',
-          display:    'flex',
-          alignItems: 'center',
-          gap:        '12px',
-          padding:    '12px 16px',
-          background: 'transparent',
-          border:     'none',
-          cursor:     'pointer',
-          textAlign:  'left',
-        }}
+        className="w-full flex items-center gap-3 py-3 px-4 bg-transparent border-none cursor-pointer text-left"
       >
-        <span style={{
-          fontSize:     '11px',
-          padding:      '2px 8px',
-          borderRadius: '20px',
-          fontFamily:   'var(--font-sans)',
-          fontWeight:   500,
-          background:   bug.status === 'resolved' ? 'var(--accent-bg)' : 'rgba(239,159,39,0.15)',
-          color:        bug.status === 'resolved' ? 'var(--color-primary)' : '#b36d00',
-          whiteSpace:   'nowrap',
-        }}>{bug.status}</span>
+        {/* status badge — 'open' color is a bespoke literal pair, not backed by any token */}
+        <span
+          className="text-[11px] py-0.5 px-2 rounded-full font-sans font-medium whitespace-nowrap"
+          style={bug.status === 'resolved'
+            ? { background: 'var(--accent-bg)', color: 'var(--color-primary)' }
+            : { background: 'rgba(239,159,39,0.15)', color: '#b36d00' }}
+        >{bug.status}</span>
 
-        <span style={{
-          flex:       1,
-          fontFamily: 'var(--font-sans)',
-          fontSize:   '14px',
-          color:      'var(--text-primary)',
-          fontWeight: 500,
-        }}>{bug.title}</span>
+        <span className="flex-1 font-sans text-sm text-(--text-primary) font-medium">{bug.title}</span>
 
-        <span style={{ fontSize: '12px', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
+        <span className="text-xs text-(--text-faint) whitespace-nowrap">
           {bug.username || 'deleted'} · {date}
         </span>
 
-        <span className="icon icon-sm" style={{ color: 'var(--text-faint)' }}>
+        <span className="icon icon-sm text-(--text-faint)">
           {expanded ? 'expand_less' : 'expand_more'}
         </span>
       </button>
 
       {/* Expanded detail */}
       {expanded && (
-        <div style={{
-          borderTop: '1px solid var(--border-main)',
-          padding:   '16px',
-        }}>
-          <p style={{
-            margin:     '0 0 12px',
-            fontFamily: 'var(--font-sans)',
-            fontSize:   '14px',
-            color:      'var(--text-secondary)',
-            lineHeight: 1.6,
-            whiteSpace: 'pre-wrap',
-          }}>{bug.description}</p>
+        <div className="border-t border-(--border-main) p-4">
+          <p className="mt-0 mb-3 font-sans text-sm text-(--text-secondary) leading-[1.6] whitespace-pre-wrap">{bug.description}</p>
 
           {bug.image_url && (
             <img
               src={bug.image_url}
               alt="screenshot"
-              style={{
-                maxWidth:     '100%',
-                maxHeight:    '320px',
-                borderRadius: '8px',
-                border:       '1px solid var(--border-main)',
-                display:      'block',
-                marginBottom: '12px',
-              }}
+              className="max-w-full max-h-80 rounded-lg border border-(--border-main) block mb-3"
             />
           )}
 
-          <div style={{ fontSize: '11px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', marginBottom: '14px' }}>
+          <div className="text-[11px] text-(--text-faint) font-sans mb-3.5">
             {bug.page_url && <div>Page: <code>{bug.page_url}</code></div>}
-            {bug.user_agent && <div style={{ marginTop: '2px', wordBreak: 'break-all' }}>UA: {bug.user_agent}</div>}
+            {bug.user_agent && <div className="mt-0.5 break-all">UA: {bug.user_agent}</div>}
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="flex gap-2">
             {bug.status === 'open' && (
               <button
                 disabled={loading}
                 onClick={markResolved}
-                style={{
-                  padding:      '6px 16px',
-                  background:   'var(--color-primary)',
-                  color:        '#fff',
-                  border:       'none',
-                  borderRadius: '7px',
-                  cursor:       loading ? 'not-allowed' : 'pointer',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '12px',
-                  fontWeight:   500,
-                }}
+                className={`py-1.5 px-4 bg-(--color-primary) text-white border-none rounded-[7px] font-sans text-xs font-medium ${loading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >Mark Resolved</button>
             )}
             <button
               disabled={loading}
               onClick={handleDelete}
-              style={{
-                padding:      '6px 16px',
-                background:   'transparent',
-                color:        'var(--danger)',
-                border:       '1px solid var(--danger)',
-                borderRadius: '7px',
-                cursor:       loading ? 'not-allowed' : 'pointer',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '12px',
-              }}
+              className={`py-1.5 px-4 bg-transparent text-(--danger) border border-(--danger) rounded-[7px] font-sans text-xs ${loading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >Delete</button>
           </div>
         </div>
@@ -252,106 +162,64 @@ function TeamAssets() {
   }
 
   return (
-    <div style={{ maxWidth: '440px' }}>
-      <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: '18px', color: 'var(--text-primary)' }}>
+    <div className="max-w-110">
+      <h2 className="mt-0 mb-1.5 font-serif text-lg text-(--text-primary)">
         Team Asset Upload
       </h2>
-      <p style={{ margin: '0 0 20px', fontSize: '13px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', lineHeight: 1.5 }}>
+      <p className="mt-0 mb-5 text-[13px] text-(--text-faint) font-sans leading-[1.5]">
         Upload a team member avatar to R2. Copy the URL and paste it into the <code>avatar</code> field of <code>TEAM_MEMBERS</code> in <code>AboutPage.jsx</code>.
       </p>
 
       {/* Drop zone / picker */}
       <div
         onClick={() => fileRef.current.click()}
-        style={{
-          border:        '2px dashed var(--border-input)',
-          borderRadius:  '10px',
-          padding:       '24px',
-          textAlign:     'center',
-          cursor:        'pointer',
-          background:    'var(--bg-card)',
-          marginBottom:  '14px',
-          transition:    'border-color 0.15s',
-        }}
+        className="border-2 border-dashed border-(--border-input) rounded-[10px] p-6 text-center cursor-pointer bg-(--bg-card) mb-3.5 [transition:border-color_0.15s]"
         onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
         onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-input)'}
       >
         {preview ? (
-          <img src={preview} alt="preview" style={{ maxHeight: '120px', maxWidth: '100%', borderRadius: '8px', objectFit: 'contain' }} />
+          <img src={preview} alt="preview" className="max-h-30 max-w-full rounded-lg object-contain" />
         ) : (
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-faint)' }}>
+          <span className="font-sans text-[13px] text-(--text-faint)">
             Click to choose an image (JPG, PNG, WEBP · max 4 MB)
           </span>
         )}
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onPick} style={{ display: 'none' }} />
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onPick} className="hidden" />
       </div>
 
       {file && (
-        <p style={{ margin: '0 0 14px', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
+        <p className="mt-0 mb-3.5 text-xs text-(--text-muted) font-sans">
           {file.name} · {(file.size / 1024).toFixed(0)} KB
         </p>
       )}
 
       {error && (
-        <p style={{ margin: '0 0 12px', fontSize: '13px', color: 'var(--danger)', fontFamily: 'var(--font-sans)' }}>{error}</p>
+        <p className="mt-0 mb-3 text-[13px] text-(--danger) font-sans">{error}</p>
       )}
 
       <button
         onClick={upload}
         disabled={!file || uploading}
-        style={{
-          padding:      '8px 20px',
-          background:   (!file || uploading) ? 'var(--border-main)' : 'var(--color-primary)',
-          color:        (!file || uploading) ? 'var(--text-faint)' : '#fff',
-          border:       'none',
-          borderRadius: '8px',
-          cursor:       (!file || uploading) ? 'not-allowed' : 'pointer',
-          fontFamily:   'var(--font-sans)',
-          fontSize:     '13px',
-          fontWeight:   500,
-          marginBottom: url ? '16px' : 0,
-        }}
+        className={`py-2 px-5 border-none rounded-lg font-sans text-[13px] font-medium ${(!file || uploading) ? 'bg-(--border-main) text-(--text-faint) cursor-not-allowed' : 'bg-(--color-primary) text-white cursor-pointer'} ${url ? 'mb-4' : 'mb-0'}`}
       >
         {uploading ? 'Uploading…' : 'Upload to R2'}
       </button>
 
       {url && (
         <div>
-          <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', marginBottom: '6px' }}>
+          <label className="block text-[11px] font-semibold uppercase tracking-[0.07em] text-(--text-faint) font-sans mb-1.5">
             Public URL
           </label>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div className="flex gap-2 items-center">
             <input
               readOnly
               value={url}
-              style={{
-                flex:         1,
-                padding:      '8px 10px',
-                background:   'var(--bg-input)',
-                border:       '1.5px solid var(--border-input)',
-                borderRadius: '7px',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '12px',
-                color:        'var(--text-primary)',
-                outline:      'none',
-              }}
+              className="flex-1 py-2 px-2.5 bg-(--bg-input) border-[1.5px] border-(--border-input) rounded-[7px] font-sans text-xs text-(--text-primary) outline-none! focus:border-(--border-focus) input-focus-glow"
               onClick={e => e.target.select()}
             />
             <button
               onClick={copy}
-              style={{
-                padding:      '8px 14px',
-                background:   copied ? 'var(--accent-bg)' : 'var(--bg-card)',
-                border:       '1.5px solid var(--border-input)',
-                borderRadius: '7px',
-                cursor:       'pointer',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '12px',
-                fontWeight:   500,
-                color:        copied ? 'var(--color-primary)' : 'var(--text-secondary)',
-                whiteSpace:   'nowrap',
-                transition:   'all 0.15s',
-              }}
+              className={`py-2 px-3.5 border-[1.5px] border-(--border-input) rounded-[7px] cursor-pointer font-sans text-xs font-medium whitespace-nowrap [transition:all_0.15s] ${copied ? 'bg-(--accent-bg) text-(--color-primary)' : 'bg-(--bg-card) text-(--text-secondary)'}`}
             >
               {copied ? 'Copied!' : 'Copy'}
             </button>
@@ -409,35 +277,21 @@ export default function AdminPage() {
   if (!user?.is_admin) return null;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-page)' }}>
+    <div className="min-h-screen bg-(--bg-page)">
       <NavBar />
 
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: '32px 24px' }}>
+      <div className="max-w-215 mx-auto py-8 px-6">
 
         {/* Page header */}
-        <div style={{ marginBottom: '28px' }}>
-          <h1 style={{
-            margin:     0,
-            fontFamily: 'var(--font-serif)',
-            fontSize:   '26px',
-            color:      'var(--text-primary)',
-          }}>Admin Dashboard</h1>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-faint)' }}>
+        <div className="mb-7">
+          <h1 className="m-0 font-serif text-[26px] text-(--text-primary)">Admin Dashboard</h1>
+          <p className="mt-1 mr-0 mb-0 text-[13px] text-(--text-faint)">
             Internal tools — visible to admins only.
           </p>
         </div>
 
         {/* Tabs */}
-        <div style={{
-          display:      'flex',
-          gap:          '4px',
-          background:   'var(--bg-card)',
-          border:       '1px solid var(--border-main)',
-          borderRadius: '10px',
-          padding:      '4px',
-          marginBottom: '24px',
-          width:        'fit-content',
-        }}>
+        <div className="flex gap-1 bg-(--bg-card) border border-(--border-main) rounded-[10px] p-1 mb-6 w-fit">
           <Tab label="Bug Reports" active={tab === 'bugs'}        onClick={() => setTab('bugs')} />
           <Tab label="Maintenance" active={tab === 'maintenance'} onClick={() => setTab('maintenance')} />
           <Tab label="Stats"       active={tab === 'stats'}       onClick={() => setTab('stats')} />
@@ -445,23 +299,23 @@ export default function AdminPage() {
         </div>
 
         {loading ? (
-          <p style={{ color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>Loading…</p>
+          <p className="text-(--text-faint) font-sans">Loading…</p>
         ) : (
           <>
             {/* ── Bug Reports tab ─────────────────────────── */}
             {tab === 'bugs' && (
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                  <h2 style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <div className="flex items-center gap-2.5 mb-4">
+                  <h2 className="m-0 font-sans text-sm font-semibold text-(--text-secondary) uppercase tracking-[0.08em]">
                     Bug Reports
                   </h2>
-                  <span style={{ fontSize: '12px', color: 'var(--text-faint)' }}>
+                  <span className="text-xs text-(--text-faint)">
                     {bugs.filter(b => b.status === 'open').length} open · {bugs.filter(b => b.status === 'resolved').length} resolved
                   </span>
                 </div>
 
                 {bugs.length === 0 ? (
-                  <p style={{ color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', fontSize: '14px' }}>
+                  <p className="text-(--text-faint) font-sans text-sm">
                     No bug reports yet.
                   </p>
                 ) : (
@@ -481,84 +335,37 @@ export default function AdminPage() {
 
             {/* ── Maintenance tab ─────────────────────────── */}
             {tab === 'maintenance' && (
-              <div style={{
-                background:   'var(--bg-card)',
-                border:       '1px solid var(--border-main)',
-                borderRadius: '12px',
-                padding:      '28px',
-                maxWidth:     '440px',
-              }}>
-                <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: '18px', color: 'var(--text-primary)' }}>
+              <div className="bg-(--bg-card) border border-(--border-main) rounded-xl p-7 max-w-110">
+                <h2 className="mt-0 mb-1.5 font-serif text-lg text-(--text-primary)">
                   Maintenance Mode
                 </h2>
-                <p style={{ margin: '0 0 20px', fontSize: '13px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', lineHeight: 1.5 }}>
+                <p className="mt-0 mb-5 text-[13px] text-(--text-faint) font-sans leading-[1.5]">
                   When enabled, all connected users see a warning pill in the NavBar and new visitors see a maintenance page.
                 </p>
 
                 {/* Message field */}
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px', fontFamily: 'var(--font-sans)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <label className="block text-xs font-medium text-(--text-secondary) mb-1.5 font-sans uppercase tracking-[0.06em]">
                   Warning message
                 </label>
                 <textarea
                   value={maintMessage}
                   onChange={e => setMaintMessage(e.target.value)}
                   rows={3}
-                  style={{
-                    width:        '100%',
-                    padding:      '9px 12px',
-                    background:   'var(--bg-input)',
-                    border:       '1.5px solid var(--border-input)',
-                    borderRadius: '8px',
-                    color:        'var(--text-primary)',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '13px',
-                    resize:       'vertical',
-                    marginBottom: '20px',
-                    boxSizing:    'border-box',
-                    outline:      'none',
-                  }}
+                  className="w-full py-2.25 px-3 bg-(--bg-input) border-[1.5px] border-(--border-input) rounded-lg text-(--text-primary) font-sans text-[13px] resize-y mb-5 box-border outline-none! focus:border-(--border-focus) input-focus-glow"
                 />
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div className="flex items-center gap-4">
                   {/* Toggle — inner span must not capture pointer events */}
                   <button
                     type="button"
                     onClick={toggleMaintenance}
                     disabled={toggling}
-                    style={{
-                      width:         '52px',
-                      height:        '28px',
-                      borderRadius:  '14px',
-                      border:        'none',
-                      cursor:        toggling ? 'not-allowed' : 'pointer',
-                      background:    maintenance ? 'var(--color-primary)' : 'var(--border-main)',
-                      position:      'relative',
-                      transition:    'background 0.2s',
-                      flexShrink:    0,
-                      padding:       0,
-                      outline:       'none',
-                    }}
+                    className={`w-13 h-7 rounded-full border-none relative [transition:background_0.2s] shrink-0 p-0 outline-none! ${toggling ? 'cursor-not-allowed' : 'cursor-pointer'} ${maintenance ? 'bg-(--color-primary)' : 'bg-(--border-main)'}`}
                   >
-                    <span style={{
-                      position:      'absolute',
-                      top:           '3px',
-                      left:          maintenance ? '27px' : '3px',
-                      width:         '22px',
-                      height:        '22px',
-                      borderRadius:  '50%',
-                      background:    '#fff',
-                      transition:    'left 0.2s',
-                      boxShadow:     '0 1px 4px rgba(0,0,0,0.2)',
-                      pointerEvents: 'none',
-                    }} />
+                    <span className={`absolute top-0.75 w-5.5 h-5.5 rounded-full bg-white [transition:left_0.2s] shadow-[0_1px_4px_rgba(0,0,0,0.2)] pointer-events-none ${maintenance ? 'left-6.75' : 'left-0.75'}`} />
                   </button>
 
-                  <span style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize:   '14px',
-                    fontWeight: 500,
-                    color:      maintenance ? 'var(--color-primary)' : 'var(--text-secondary)',
-                  }}>
+                  <span className={`font-sans text-sm font-medium ${maintenance ? 'text-(--color-primary)' : 'text-(--text-secondary)'}`}>
                     {maintenance ? 'Maintenance ON' : 'Maintenance OFF'}
                   </span>
                 </div>
@@ -571,12 +378,12 @@ export default function AdminPage() {
             {/* ── Stats tab ───────────────────────────────── */}
             {tab === 'stats' && (
               <div>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                <div className="flex gap-3 flex-wrap mb-3">
                   <StatCard label="Users"      value={stats?.total_users} />
                   <StatCard label="Characters" value={stats?.total_characters} />
                   <StatCard label="Campaigns"  value={stats?.total_campaigns} />
                 </div>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <div className="flex gap-3 flex-wrap">
                   <StatCard label="Open Bugs"     value={stats?.bugs_open}     accent="var(--danger)" />
                   <StatCard label="Resolved Bugs" value={stats?.bugs_resolved} accent="var(--color-primary)" />
                 </div>

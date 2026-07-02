@@ -3,19 +3,13 @@ import { content } from '../pages/legalContent';
 
 // ── Block renderer (same logic as LegalPage) ──────────────
 
-const pStyle = {
-  fontFamily: 'var(--font-sans)',
-  fontSize:   '0.9rem',
-  color:      'var(--text-secondary)',
-  lineHeight: 1.75,
-  margin:     '0 0 0.7rem',
-};
+const pClass = "font-sans text-[0.9rem] text-(--text-secondary) leading-[1.75] mt-0 mb-[0.7rem]";
 
 function EmailLink({ address }) {
   return (
     <a
       href={`mailto:${address}`}
-      style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}
+      className="text-(--accent) no-underline font-medium"
       onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
       onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}
     >
@@ -28,53 +22,48 @@ function Block({ block }) {
   switch (block.type) {
     case 'p':
       return (
-        <p style={pStyle}>
+        <p className={pClass}>
           {block.text}
           {block.email && <EmailLink address={block.email} />}
         </p>
       );
     case 'emphasis':
-      return <p style={{ ...pStyle, fontWeight: 600, color: 'var(--text-primary)' }}>{block.text}</p>;
+      return <p className={`${pClass} font-semibold text-(--text-primary)`}>{block.text}</p>;
     case 'disclaimer':
       return (
-        <p style={{
-          ...pStyle,
-          color: 'var(--text-faint)', fontStyle: 'italic', fontSize: '0.85rem',
-          padding: '0.6rem 0.85rem', background: 'var(--bg-section-hd)',
-          borderRadius: '6px', border: '1px solid var(--border-input)', margin: '0 0 0.7rem',
-        }}>
+        <p className={`${pClass} text-(--text-faint) italic text-[0.85rem] py-[0.6rem] px-[0.85rem] bg-(--bg-section-hd) rounded-md border border-(--border-input)`}>
           {block.text}
         </p>
       );
     case 'ul':
       return (
-        <ul style={{ ...pStyle, paddingLeft: '1.35rem', margin: '0 0 0.7rem' }}>
+        <ul className={`${pClass} pl-[1.35rem]`}>
           {block.items.map((item, i) =>
             typeof item === 'string'
-              ? <li key={i} style={{ marginBottom: '0.28rem' }}>{item}</li>
-              : <li key={i} style={{ marginBottom: '0.28rem' }}>
-                  <strong style={{ color: 'var(--text-primary)' }}>{item.label}</strong>{' — '}{item.text}
+              ? <li key={i} className="mb-[0.28rem]">{item}</li>
+              : <li key={i} className="mb-[0.28rem]">
+                  <strong className="text-(--text-primary)">{item.label}</strong>{' — '}{item.text}
                 </li>
           )}
         </ul>
       );
     case 'subgroup':
       return (
-        <div style={{ marginBottom: '0.8rem' }}>
-          <p style={{ ...pStyle, fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{block.heading}</p>
-          <ul style={{ ...pStyle, paddingLeft: '1.35rem', margin: 0 }}>
-            {block.items.map((item, i) => <li key={i} style={{ marginBottom: '0.22rem' }}>{item}</li>)}
+        <div className="mb-[0.8rem]">
+          <p className={`${pClass} font-semibold text-(--text-primary) mb-1`}>{block.heading}</p>
+          <ul className={`${pClass} pl-[1.35rem] m-0`}>
+            {block.items.map((item, i) => <li key={i} className="mb-[0.22rem]">{item}</li>)}
           </ul>
         </div>
       );
     case 'table':
       return (
-        <div style={{ overflowX: 'auto', margin: '0 0 0.7rem' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-sans)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+        <div className="overflow-x-auto mt-0 mb-[0.7rem]">
+          <table className="w-full border-collapse font-sans text-[0.85rem] text-(--text-secondary)">
             <thead>
               <tr>
                 {block.headers.map((h, i) => (
-                  <th key={i} style={{ textAlign: 'left', padding: '0.4rem 0.65rem', background: 'var(--bg-section-hd)', border: '1px solid var(--border-input)', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={i} className="text-left py-[0.4rem] px-[0.65rem] bg-(--bg-section-hd) border border-(--border-input) font-semibold text-(--text-primary) whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -82,7 +71,7 @@ function Block({ block }) {
               {block.rows.map((row, i) => (
                 <tr key={i}>
                   {row.map((cell, j) => (
-                    <td key={j} style={{ padding: '0.4rem 0.65rem', border: '1px solid var(--border-input)', verticalAlign: 'top', background: i % 2 === 1 ? 'var(--row-hover)' : 'transparent' }}>{cell}</td>
+                    <td key={j} className={`py-[0.4rem] px-[0.65rem] border border-(--border-input) align-top ${i % 2 === 1 ? 'bg-(--row-hover)' : 'bg-transparent'}`}>{cell}</td>
                   ))}
                 </tr>
               ))}
@@ -91,7 +80,7 @@ function Block({ block }) {
         </div>
       );
     case 'email':
-      return <p style={{ ...pStyle, fontWeight: 500 }}><EmailLink address={block.address} /></p>;
+      return <p className={`${pClass} font-medium`}><EmailLink address={block.address} /></p>;
     default:
       return null;
   }
@@ -122,43 +111,17 @@ export default function LegalModal({ initialDoc = 'tos', onClose }) {
   return (
     <div
       onClick={onClose}
-      style={{
-        position:        'fixed',
-        inset:           0,
-        zIndex:          200,
-        background:      'rgba(0,0,0,0.45)',
-        display:         'flex',
-        alignItems:      'center',
-        justifyContent:  'center',
-        padding:         '20px 16px',
-        backdropFilter:  'blur(2px)',
-      }}
+      className="fixed inset-0 z-[200] bg-black/45 flex items-center justify-center py-5 px-4 backdrop-blur-[2px]"
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{
-          background:   'var(--bg-card)',
-          border:       '1px solid var(--border-main)',
-          borderRadius: '16px',
-          boxShadow:    'var(--shadow-dropdown)',
-          width:        '100%',
-          maxWidth:     '620px',
-          maxHeight:    '82vh',
-          display:      'flex',
-          flexDirection:'column',
-          overflow:     'hidden',
-        }}
+        className="bg-(--bg-card) border border-(--border-main) rounded-2xl shadow-(--shadow-dropdown) w-full max-w-[620px] max-h-[82vh] flex flex-col overflow-hidden"
       >
         {/* ── Sticky header ── */}
-        <div style={{
-          padding:      '14px 18px 12px',
-          borderBottom: '1px solid var(--border-main)',
-          background:   'var(--bg-card)',
-          flexShrink:   0,
-        }}>
+        <div className="pt-3.5 px-4.5 pb-3 border-b border-(--border-main) bg-(--bg-card) shrink-0">
           {/* Top row: tabs + close */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <div style={{ display: 'flex', gap: '5px', flex: 1 }}>
+          <div className="flex items-center gap-2 mb-2.5">
+            <div className="flex gap-1.25 flex-1">
               {[
                 { id: 'tos',     label: 'Terms of Service' },
                 { id: 'privacy', label: 'Privacy Policy'   },
@@ -166,19 +129,7 @@ export default function LegalModal({ initialDoc = 'tos', onClose }) {
                 <button
                   key={tab.id}
                   onClick={() => setDoc(tab.id)}
-                  style={{
-                    padding:      '5px 13px',
-                    borderRadius: '20px',
-                    border:       doc === tab.id ? 'none' : '1px solid var(--border-input)',
-                    background:   doc === tab.id ? 'var(--color-primary)' : 'transparent',
-                    color:        doc === tab.id ? '#fff' : 'var(--text-muted)',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '0.8rem',
-                    fontWeight:   600,
-                    cursor:       doc === tab.id ? 'default' : 'pointer',
-                    transition:   'background 0.15s, color 0.15s',
-                    whiteSpace:   'nowrap',
-                  }}
+                  className={`py-1.25 px-3.25 rounded-full font-sans text-[0.8rem] font-semibold whitespace-nowrap [transition:background_0.15s,color_0.15s] ${doc === tab.id ? 'border-none bg-(--color-primary) text-white cursor-default' : 'border border-(--border-input) bg-transparent text-(--text-muted) cursor-pointer'}`}
                 >
                   {tab.label}
                 </button>
@@ -188,23 +139,7 @@ export default function LegalModal({ initialDoc = 'tos', onClose }) {
             {/* Close button */}
             <button
               onClick={onClose}
-              style={{
-                width:        '28px',
-                height:       '28px',
-                borderRadius: '50%',
-                border:       '1px solid var(--border-input)',
-                background:   'transparent',
-                color:        'var(--text-muted)',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '16px',
-                lineHeight:   1,
-                cursor:       'pointer',
-                display:      'flex',
-                alignItems:   'center',
-                justifyContent:'center',
-                flexShrink:   0,
-                transition:   'background 0.15s, color 0.15s',
-              }}
+              className="w-7 h-7 rounded-full border border-(--border-input) bg-transparent text-(--text-muted) font-sans text-base leading-none cursor-pointer flex items-center justify-center shrink-0 [transition:background_0.15s,color_0.15s]"
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-section-hd)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
@@ -213,57 +148,33 @@ export default function LegalModal({ initialDoc = 'tos', onClose }) {
           </div>
 
           {/* Language switcher */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '2px',
-              background: 'var(--bg-section-hd)', border: '1px solid var(--border-input)',
-              borderRadius: '20px', padding: '2px',
-            }}>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-0.5 bg-(--bg-section-hd) border border-(--border-input) rounded-full p-0.5">
               {[{ id: 'en', label: 'EN' }, { id: 'th', label: 'ภาษาไทย' }].map(l => (
                 <button
                   key={l.id}
                   onClick={() => setLang(l.id)}
-                  style={{
-                    padding: '2px 11px', borderRadius: '20px', border: 'none',
-                    background: lang === l.id ? 'var(--color-primary)' : 'transparent',
-                    color:      lang === l.id ? '#fff' : 'var(--text-muted)',
-                    fontFamily: 'var(--font-sans)', fontSize: '0.72rem', fontWeight: 600,
-                    cursor:     lang === l.id ? 'default' : 'pointer',
-                    transition: 'background 0.15s, color 0.15s',
-                    whiteSpace: 'nowrap',
-                  }}
+                  className={`py-0.5 px-2.75 rounded-full border-none font-sans text-[0.72rem] font-semibold whitespace-nowrap [transition:background_0.15s,color_0.15s] ${lang === l.id ? 'bg-(--color-primary) text-white cursor-default' : 'bg-transparent text-(--text-muted) cursor-pointer'}`}
                 >
                   {l.label}
                 </button>
               ))}
             </div>
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.72rem', color: 'var(--text-faint)' }}>
+            <span className="font-sans text-[0.72rem] text-(--text-faint)">
               {lang === 'en' ? 'Last updated:' : 'อัปเดตล่าสุด:'} {data.updated}
             </span>
           </div>
         </div>
 
         {/* ── Scrollable content ── */}
-        <div style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '20px 22px 28px', flex: 1 }}>
-          <h2 style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize:   '1.4rem',
-            color:      'var(--color-primary-dark)',
-            margin:     '0 0 1.5rem',
-          }}>
+        <div className="overflow-y-auto overscroll-contain pt-5 px-5.5 pb-7 flex-1">
+          <h2 className="font-serif text-[1.4rem] text-(--color-primary-dark) mt-0 mb-6">
             {data.title}
           </h2>
 
           {data.sections.map(section => (
-            <section key={section.num} style={{ marginBottom: '1.75rem' }}>
-              <h3 style={{
-                fontFamily:    'var(--font-serif)',
-                fontSize:      '1rem',
-                color:         'var(--color-primary-dark)',
-                margin:        '0 0 0.55rem',
-                paddingBottom: '0.35rem',
-                borderBottom:  '1px solid var(--border-main)',
-              }}>
+            <section key={section.num} className="mb-7">
+              <h3 className="font-serif text-base text-(--color-primary-dark) mt-0 mb-[0.55rem] pb-[0.35rem] border-b border-(--border-main)">
                 {section.num}. {section.heading}
               </h3>
               {section.blocks.map((block, i) => <Block key={i} block={block} />)}

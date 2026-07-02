@@ -54,83 +54,38 @@ export default function LoginPage({ initialMode = 'login' }) {
   };
 
   return (
-    <div style={{
-      minHeight:      '100vh',
-      display:        'flex',
-      alignItems:     'center',
-      justifyContent: 'center',
-      padding:        '24px 16px',
-      background:     'var(--bg-page)',
-      fontFamily:     'var(--font-sans)',
-    }}>
-      <div style={{ width: '100%', maxWidth: '400px' }}>
+    <div className="min-h-screen flex items-center justify-center py-6 px-4 bg-(--bg-page) font-sans">
+      <div className="w-full max-w-100">
 
         {/* ── Logo & Title ── */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div className="text-center mb-8">
           <img
             src={logo}
             alt="The Catoolu"
-            style={{
-              display:      'block',
-              margin:       '0 auto 12px',
-              width:        '72px',
-              height:       '72px',
-              objectFit:    'contain',
-            }}
+            className="block mx-auto mb-3 w-18 h-18 object-contain"
           />
-          <h1 style={{
-            fontFamily:    'var(--font-serif)',
-            fontSize:      '32px',
-            color:         'var(--color-primary-dark)',
-            margin:        '0 0 4px',
-            letterSpacing: '0.02em',
-          }}>
+          <h1 className="font-serif text-[32px] text-(--color-primary-dark) mt-0 mb-1 tracking-[0.02em]">
             The Catoolu
           </h1>
-          <p style={{
-            fontSize:  '13px',
-            color:     'var(--text-muted)',
-            margin:    0,
-          }}>
+          <p className="text-[13px] text-(--text-muted) m-0">
             Call of Cthulhu Character Manager
           </p>
         </div>
 
         {/* ── Card ── */}
-        <div style={{
-          background:   'var(--bg-card)',
-          border:       '1px solid var(--border-main)',
-          borderRadius: '16px',
-          boxShadow:    'var(--shadow-card)',
-          padding:      '28px 28px 24px',
-        }}>
+        <div className="bg-(--bg-card) border border-(--border-main) rounded-2xl shadow-(--shadow-card) pt-7 px-7 pb-6">
 
           {/* ── Pill mode toggle ── */}
           <div
             ref={modeContainerRef}
-            style={{
-              display:      'flex',
-              position:     'relative',
-              background:   'var(--bg-section-hd)',
-              borderRadius: '10px',
-              padding:      '3px',
-              marginBottom: '24px',
-            }}
+            className="flex relative bg-(--bg-section-hd) rounded-[10px] p-0.75 mb-6"
           >
             {/* Sliding pill */}
             {modePill && (
-              <div style={{
-                position:      'absolute',
-                top:           '3px',
-                bottom:        '3px',
-                left:          modePill.left,
-                width:         modePill.width,
-                borderRadius:  '8px',
-                background:    'var(--bg-card)',
-                boxShadow:     '0 1px 3px rgba(0,0,0,0.1)',
-                pointerEvents: 'none',
-                transition:    'left 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-              }} />
+              <div
+                className="absolute top-0.75 bottom-0.75 rounded-lg bg-(--bg-card) shadow-[0_1px_3px_rgba(0,0,0,0.1)] pointer-events-none [transition:left_0.25s_cubic-bezier(0.4,0,0.2,1),width_0.25s_cubic-bezier(0.4,0,0.2,1)]"
+                style={{ left: modePill.left, width: modePill.width }}
+              />
             )}
             {[
               { value: 'login',    label: 'Sign In'        },
@@ -143,21 +98,7 @@ export default function LoginPage({ initialMode = 'login' }) {
                   ref={el => { modeButtonRefs.current[opt.value] = el; }}
                   type="button"
                   onClick={() => { setMode(opt.value); setError(''); }}
-                  style={{
-                    flex:         1,
-                    padding:      '7px 12px',
-                    borderRadius: '8px',
-                    border:       'none',
-                    background:   'transparent',
-                    color:        isActive ? 'var(--text-primary)' : 'var(--text-muted)',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '13px',
-                    fontWeight:   isActive ? '500' : '400',
-                    cursor:       isActive ? 'default' : 'pointer',
-                    position:     'relative',
-                    zIndex:       1,
-                    transition:   'color 0.2s ease',
-                  }}
+                  className={`flex-1 py-1.75 px-3 rounded-lg border-none bg-transparent font-sans text-[13px] relative z-1 [transition:color_0.2s_ease] ${isActive ? 'text-(--text-primary) font-medium cursor-default' : 'text-(--text-muted) font-normal cursor-pointer'}`}
                 >
                   {opt.label}
                 </button>
@@ -216,14 +157,10 @@ export default function LoginPage({ initialMode = 'login' }) {
               />
               {/* Forgot password link */}
               {mode === 'login' && (
-                <div style={{ textAlign: 'right', marginTop: '6px' }}>
+                <div className="text-right mt-1.5">
                   <Link
                     to="/forgot-password"
-                    style={{
-                      fontSize:   '12px',
-                      color:      'var(--text-muted)',
-                      textDecoration: 'none',
-                    }}
+                    className="text-xs text-(--text-muted) no-underline"
                     onMouseEnter={e => e.target.style.color = 'var(--accent)'}
                     onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
                   >
@@ -235,15 +172,7 @@ export default function LoginPage({ initialMode = 'login' }) {
 
             {/* Error */}
             {error && (
-              <div style={{
-                background:   'var(--danger-bg)',
-                border:       '1px solid var(--danger)',
-                borderRadius: '8px',
-                padding:      '10px 14px',
-                marginBottom: '16px',
-                fontSize:     '13px',
-                color:        'var(--danger)',
-              }}>
+              <div className="bg-(--danger-bg) border border-(--danger) rounded-lg py-2.5 px-3.5 mb-4 text-[13px] text-(--danger)">
                 ⚠ {error}
               </div>
             )}
@@ -252,21 +181,7 @@ export default function LoginPage({ initialMode = 'login' }) {
             <button
               type="submit"
               disabled={loading}
-              style={{
-                width:        '100%',
-                padding:      '11px',
-                borderRadius: '10px',
-                border:       'none',
-                background:   loading ? 'var(--text-muted)' : 'var(--color-primary)',
-                color:        '#ffffff',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '14px',
-                fontWeight:   '500',
-                letterSpacing:'0.03em',
-                cursor:       loading ? 'not-allowed' : 'pointer',
-                transition:   'background 0.15s ease, transform 0.1s ease',
-                marginTop:    '4px',
-              }}
+              className={`w-full py-2.75 rounded-[10px] border-none font-sans text-sm font-medium tracking-[0.03em] [transition:background_0.15s_ease,transform_0.1s_ease] mt-1 text-white ${loading ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
               onMouseEnter={e => {
                 if (!loading) e.currentTarget.style.background = 'var(--color-primary-dark)';
               }}
@@ -280,18 +195,11 @@ export default function LoginPage({ initialMode = 'login' }) {
             </button>
 
             {mode === 'register' && (
-              <p style={{
-                textAlign:  'center',
-                fontSize:   '11px',
-                color:      'var(--text-faint)',
-                marginTop:  '10px',
-                marginBottom: 0,
-                lineHeight: '1.6',
-              }}>
+              <p className="text-center text-[11px] text-(--text-faint) mt-2.5 mb-0 leading-[1.6]">
                 By creating an account you agree to our{' '}
-                <button onClick={() => setLegalDoc('tos')}     style={legalBtnStyle} onMouseEnter={legalHover} onMouseLeave={legalOut}>Terms of Service</button>
+                <button onClick={() => setLegalDoc('tos')}     className={legalBtnClass} onMouseEnter={legalHover} onMouseLeave={legalOut}>Terms of Service</button>
                 {' '}and{' '}
-                <button onClick={() => setLegalDoc('privacy')} style={legalBtnStyle} onMouseEnter={legalHover} onMouseLeave={legalOut}>Privacy Policy</button>
+                <button onClick={() => setLegalDoc('privacy')} className={legalBtnClass} onMouseEnter={legalHover} onMouseLeave={legalOut}>Privacy Policy</button>
               </p>
             )}
           </form>
@@ -299,45 +207,24 @@ export default function LoginPage({ initialMode = 'login' }) {
 
         {/* ── OAuth error ── */}
         {oauthError && (
-          <div style={{
-            background: 'var(--danger-bg)', border: '1px solid var(--danger)',
-            borderRadius: '8px', padding: '10px 14px', marginTop: '12px',
-            fontSize: '13px', color: 'var(--danger)',
-          }}>
+          <div className="bg-(--danger-bg) border border-(--danger) rounded-lg py-2.5 px-3.5 mt-3 text-[13px] text-(--danger)">
             ⚠ OAuth sign-in failed. Please try again or use email/password.
           </div>
         )}
 
         {/* ── OAuth providers ── */}
-        <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0',
-          }}>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border-main)' }} />
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
+        <div className="mt-4 flex flex-col gap-2">
+          <div className="flex items-center gap-2 my-1">
+            <div className="flex-1 h-px bg-(--border-main)" />
+            <span className="font-sans text-[11px] text-(--text-faint) whitespace-nowrap">
               or continue with
             </span>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border-main)' }} />
+            <div className="flex-1 h-px bg-(--border-main)" />
           </div>
 
           <a
             href="/api/auth/discord"
-            style={{
-              display:        'flex',
-              alignItems:     'center',
-              justifyContent: 'center',
-              gap:            '9px',
-              padding:        '10px',
-              borderRadius:   '10px',
-              border:         'none',
-              background:     '#5865F2',
-              color:          '#ffffff',
-              fontFamily:     'var(--font-sans)',
-              fontSize:       '14px',
-              fontWeight:     '500',
-              textDecoration: 'none',
-              transition:     'background 0.15s ease',
-            }}
+            className="flex items-center justify-center gap-2.25 p-2.5 rounded-[10px] border-none bg-[#5865F2] text-white font-sans text-sm font-medium no-underline [transition:background_0.15s_ease]"
             onMouseEnter={e => { e.currentTarget.style.background = '#4752c4'; }}
             onMouseLeave={e => { e.currentTarget.style.background = '#5865F2'; }}
           >
@@ -347,22 +234,7 @@ export default function LoginPage({ initialMode = 'login' }) {
 
           <a
             href="/api/auth/google"
-            style={{
-              display:        'flex',
-              alignItems:     'center',
-              justifyContent: 'center',
-              gap:            '9px',
-              padding:        '10px',
-              borderRadius:   '10px',
-              border:         '1px solid var(--border-input)',
-              background:     'var(--bg-card)',
-              color:          'var(--text-primary)',
-              fontFamily:     'var(--font-sans)',
-              fontSize:       '14px',
-              fontWeight:     '500',
-              textDecoration: 'none',
-              transition:     'border-color 0.15s ease',
-            }}
+            className="flex items-center justify-center gap-2.25 p-2.5 rounded-[10px] border border-(--border-input) bg-(--bg-card) text-(--text-primary) font-sans text-sm font-medium no-underline [transition:border-color_0.15s_ease]"
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-focus)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; }}
           >
@@ -372,37 +244,17 @@ export default function LoginPage({ initialMode = 'login' }) {
         </div>
 
         {/* ── Footer ── */}
-        <p style={{
-          textAlign:  'center',
-          fontSize:   '11px',
-          color:      'var(--text-faint)',
-          marginTop:  '20px',
-          fontStyle:  'italic',
-          lineHeight: '1.6',
-        }}>
+        <p className="text-center text-[11px] text-(--text-faint) mt-5 italic leading-[1.6]">
           Powered by ZimaOS and old HP office computers
         </p>
-        <p style={{
-          textAlign:  'center',
-          fontSize:   '11px',
-          color:      'var(--text-faint)',
-          marginTop:  '0px',
-          fontStyle:  'italic',
-          lineHeight: '1.6',
-        }}>
-          
+        <p className="text-center text-[11px] text-(--text-faint) mt-0 italic leading-[1.6]">
+
           Built by Someone at Saltlakes.
         </p>
-        <p style={{
-          textAlign:  'center',
-          fontSize:   '11px',
-          color:      'var(--text-faint)',
-          marginTop:  '8px',
-          lineHeight: '1.6',
-        }}>
-          <button onClick={() => setLegalDoc('tos')}     style={legalBtnStyle} onMouseEnter={legalHover} onMouseLeave={legalOut}>Terms of Service</button>
+        <p className="text-center text-[11px] text-(--text-faint) mt-2 leading-[1.6]">
+          <button onClick={() => setLegalDoc('tos')}     className={legalBtnClass} onMouseEnter={legalHover} onMouseLeave={legalOut}>Terms of Service</button>
           {' · '}
-          <button onClick={() => setLegalDoc('privacy')} style={legalBtnStyle} onMouseEnter={legalHover} onMouseLeave={legalOut}>Privacy Policy</button>
+          <button onClick={() => setLegalDoc('privacy')} className={legalBtnClass} onMouseEnter={legalHover} onMouseLeave={legalOut}>Privacy Policy</button>
         </p>
 
         {legalDoc && <LegalModal initialDoc={legalDoc} onClose={() => setLegalDoc(null)} />}
@@ -432,16 +284,7 @@ function GoogleIcon() {
 }
 
 // ── Shared legal button styles ────────────────────────────
-const legalBtnStyle = {
-  background:     'none',
-  border:         'none',
-  padding:        0,
-  font:           'inherit',
-  color:          'var(--text-faint)',
-  cursor:         'pointer',
-  textDecoration: 'underline',
-  textUnderlineOffset: '2px',
-};
+const legalBtnClass = "bg-none border-none p-0 [font:inherit] text-(--text-faint) cursor-pointer underline [text-underline-offset:2px]";
 const legalHover = e => { e.currentTarget.style.color = 'var(--accent)'; };
 const legalOut   = e => { e.currentTarget.style.color = 'var(--text-faint)'; };
 
@@ -449,17 +292,8 @@ const legalOut   = e => { e.currentTarget.style.color = 'var(--text-faint)'; };
 
 function FormField({ label, children }) {
   return (
-    <div style={{ marginBottom: '16px' }}>
-      <label style={{
-        display:       'block',
-        fontFamily:    'var(--font-sans)',
-        fontSize:      '11px',
-        fontWeight:    '500',
-        textTransform: 'uppercase',
-        letterSpacing: '0.07em',
-        color:         'var(--text-muted)',
-        marginBottom:  '6px',
-      }}>
+    <div className="mb-4">
+      <label className="block font-sans text-[11px] font-medium uppercase tracking-[0.07em] text-(--text-muted) mb-1.5">
         {label}
       </label>
       {children}
@@ -476,19 +310,7 @@ function FormInput({ type, value, onChange, placeholder, required, minLength }) 
       placeholder={placeholder}
       required={required}
       minLength={minLength}
-      style={{
-        width:        '100%',
-        padding:      '9px 12px',
-        borderRadius: '8px',
-        border:       '1px solid var(--border-input)',
-        background:   'var(--bg-input)',
-        color:        'var(--text-primary)',
-        fontFamily:   'var(--font-sans)',
-        fontSize:     '14px',
-        outline:      'none',
-        transition:   'border-color 0.15s ease',
-        boxSizing:    'border-box',
-      }}
+      className="w-full py-2.25 px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none! [transition:border-color_0.15s_ease] box-border"
       onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
       onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
     />

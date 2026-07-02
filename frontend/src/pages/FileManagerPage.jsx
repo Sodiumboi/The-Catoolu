@@ -25,16 +25,8 @@ const fmtDate = (iso) => {
 };
 const mb = (b) => { const m = b / (1024 * 1024); return m >= 10 ? Math.round(m) : Math.round(m * 10) / 10; };
 
-const iconBtn = {
-  flexShrink: 0, width: 30, height: 30, borderRadius: 7,
-  border: 'none', background: 'transparent', cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  textDecoration: 'none',
-};
-const btn = {
-  padding: '5px 11px', borderRadius: 7, fontSize: 12, fontWeight: 500,
-  fontFamily: 'var(--font-sans)', cursor: 'pointer', whiteSpace: 'nowrap',
-};
+const iconBtnClass = "shrink-0 w-7.5 h-7.5 rounded-[7px] border-none bg-transparent cursor-pointer flex items-center justify-center no-underline";
+const btnClass = "py-1.25 px-2.75 rounded-[7px] text-xs font-medium font-sans cursor-pointer whitespace-nowrap";
 
 export default function FileManagerPage() {
   const [files,     setFiles]     = useState([]);
@@ -150,27 +142,16 @@ export default function FileManagerPage() {
   const barColor   = pct >= 90 ? 'var(--danger)' : pct >= 60 ? '#d97706' : 'var(--color-primary)';
 
   return (
-    <div style={{
-      minHeight: '100vh', background: 'var(--bg-page)',
-      display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-sans)',
-    }}>
+    <div className="min-h-screen bg-(--bg-page) flex flex-col font-sans">
       <NavBar activeTab={null} />
 
-      <main className="animate-fade-rise" style={{
-        maxWidth: '820px', margin: '0 auto', padding: '32px 24px', flex: 1, width: '100%',
-      }}>
-        <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          alignItems: 'flex-start', gap: 12, flexWrap: 'wrap',
-        }}>
+      <main className="animate-fade-rise max-w-205 mx-auto py-8 px-6 flex-1 w-full">
+        <div className="flex justify-between items-start gap-3 flex-wrap">
           <div>
-            <h1 style={{
-              fontFamily: 'var(--font-serif)', fontSize: '28px',
-              color: 'var(--text-primary)', margin: '0 0 4px',
-            }}>
+            <h1 className="font-serif text-[28px] text-(--text-primary) mt-0 mb-1">
               File Storage
             </h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: '0 0 24px' }}>
+            <p className="text-(--text-muted) text-sm mt-0 mb-6">
               Everything you've uploaded — avatars, handout images, and bug screenshots.
             </p>
           </div>
@@ -178,24 +159,14 @@ export default function FileManagerPage() {
             selectionMode ? (
               <button
                 onClick={exitSelectionMode}
-                style={{
-                  padding: '6px 14px', borderRadius: 8, fontSize: 13,
-                  fontWeight: 500, fontFamily: 'var(--font-sans)', cursor: 'pointer',
-                  background: 'transparent', color: 'var(--text-muted)',
-                  border: '1px solid var(--text-muted)',
-                }}
+                className="py-1.5 px-3.5 rounded-lg text-[13px] font-medium font-sans cursor-pointer bg-transparent text-(--text-muted) border border-(--text-muted)"
               >
                 Cancel
               </button>
             ) : (
               <button
                 onClick={() => setSelectionMode(true)}
-                style={{
-                  padding: '6px 14px', borderRadius: 8, fontSize: 13,
-                  fontWeight: 500, fontFamily: 'var(--font-sans)', cursor: 'pointer',
-                  background: 'transparent', color: 'var(--color-primary)',
-                  border: '1px solid var(--color-primary)',
-                }}
+                className="py-1.5 px-3.5 rounded-lg text-[13px] font-medium font-sans cursor-pointer bg-transparent text-(--color-primary) border border-(--color-primary)"
               >
                 Select
               </button>
@@ -204,61 +175,48 @@ export default function FileManagerPage() {
         </div>
 
         {/* Quota summary */}
-        <div style={{
-          background: 'var(--bg-card)', border: '1px solid var(--border-main)',
-          borderRadius: 12, padding: '16px 18px', marginBottom: 24,
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Storage used</span>
-            <span style={{ fontSize: 14, fontWeight: 600, color: barColor }}>
-              {mb(totalUsed)} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>/ {mb(totalLimit)} MB</span>
+        <div className="bg-(--bg-card) border border-(--border-main) rounded-xl py-4 px-4.5 mb-6">
+          <div className="flex justify-between items-baseline mb-2">
+            <span className="text-[13px] text-(--text-secondary)">Storage used</span>
+            {/* barColor is computed from live quota percentage thresholds — stays inline */}
+            <span className="text-sm font-semibold" style={{ color: barColor }}>
+              {mb(totalUsed)} <span className="text-(--text-faint) font-normal">/ {mb(totalLimit)} MB</span>
             </span>
           </div>
-          <div style={{ height: 10, borderRadius: 5, background: 'var(--border-main)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${pct}%`, borderRadius: 5, background: barColor, transition: 'width 0.4s ease' }} />
+          <div className="h-2.5 rounded-[5px] bg-(--border-main) overflow-hidden">
+            {/* width/background are live data-driven values (quota %, threshold color) — stay inline */}
+            <div className="h-full rounded-[5px] [transition:width_0.4s_ease]" style={{ width: `${pct}%`, background: barColor }} />
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>
+          <div className="text-[11px] text-(--text-faint) mt-2">
             {mb(Math.max(0, totalLimit - totalUsed))} MB free · {files.length} file{files.length !== 1 ? 's' : ''} · rate cap 50 MB / 5 min
           </div>
         </div>
 
         {/* Bulk action toolbar */}
         {selectionMode && (
-          <div style={{
-            background: 'var(--bg-card)', border: '1px solid var(--border-main)',
-            borderRadius: 10, padding: '10px 14px', marginBottom: 16,
-            display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-          }}>
+          <div className="bg-(--bg-card) border border-(--border-main) rounded-[10px] py-2.5 px-3.5 mb-4 flex items-center gap-3 flex-wrap">
             <input
               ref={selectAllRef}
               type="checkbox"
               checked={selected.size === selectableFiles.length && selectableFiles.length > 0}
               onChange={toggleSelectAll}
               disabled={selectableFiles.length === 0}
-              style={{ cursor: selectableFiles.length === 0 ? 'default' : 'pointer' }}
+              className={selectableFiles.length === 0 ? 'cursor-default' : 'cursor-pointer'}
             />
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+            <span className="text-[13px] text-(--text-secondary)">
               {selected.size} of {selectableFiles.length} selected
             </span>
             <button
               onClick={handleBulkDelete}
               disabled={bulkBusy || selected.size === 0}
-              style={{
-                ...btn, background: 'var(--danger)', color: '#fff', border: 'none',
-                marginLeft: 'auto',
-                opacity: (bulkBusy || selected.size === 0) ? 0.6 : 1,
-                cursor: (bulkBusy || selected.size === 0) ? 'default' : 'pointer',
-              }}
+              className={`${btnClass} bg-(--danger) text-white border-none ml-auto ${(bulkBusy || selected.size === 0) ? 'opacity-60 cursor-default' : 'opacity-100 cursor-pointer'}`}
             >
               {bulkBusy ? 'Deleting…' : `Delete ${selected.size} file${selected.size !== 1 ? 's' : ''}`}
             </button>
             <button
               onClick={exitSelectionMode}
               disabled={bulkBusy}
-              style={{
-                ...btn, background: 'transparent', color: 'var(--text-muted)',
-                border: '1px solid var(--border-main)',
-              }}
+              className={`${btnClass} bg-transparent text-(--text-muted) border border-(--border-main)`}
             >
               Cancel
             </button>
@@ -267,45 +225,40 @@ export default function FileManagerPage() {
 
         {/* File list */}
         {loading ? (
-          <div style={{ color: 'var(--text-faint)', fontStyle: 'italic', fontSize: 13, padding: '24px 0' }}>
+          <div className="text-(--text-faint) italic text-[13px] py-6">
             Loading files…
           </div>
         ) : files.length === 0 ? (
-          <div style={{
-            textAlign: 'center', padding: '48px 16px',
-            border: '1px dashed var(--border-main)', borderRadius: 12, color: 'var(--text-faint)',
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 40, display: 'block', marginBottom: 8 }}>
+          <div className="text-center py-12 px-4 border border-dashed border-(--border-main) rounded-xl text-(--text-faint)">
+            <span className="material-symbols-outlined text-[40px] block mb-2">
               folder_open
             </span>
-            <div style={{ fontSize: 14 }}>No files uploaded yet</div>
+            <div className="text-sm">No files uploaded yet</div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="flex flex-col gap-2.5">
             {files.map(f => {
               const k          = KIND[f.kind] || { label: f.kind, icon: 'draft', color: 'var(--text-muted)' };
               const busy       = busyId === f.id;
               const isSel      = selected.has(f.id);
               const locked     = isProtected(f);
               return (
-                <div key={f.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  background: 'var(--bg-card)',
-                  border: isSel ? '2px solid var(--accent)' : '1px solid var(--border-main)',
-                  borderRadius: 10, padding: '10px 12px',
-                }}>
+                <div
+                  key={f.id}
+                  className={`flex items-center gap-3 bg-(--bg-card) rounded-[10px] py-2.5 px-3 ${isSel ? 'border-2 border-(--accent)' : 'border border-(--border-main)'}`}
+                >
                   {/* Selection checkbox — locked for the active profile picture */}
                   {selectionMode && (
                     locked ? (
                       <Tooltip content="Current profile picture — can't be deleted">
-                        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--text-faint)', flexShrink: 0, width: 18, textAlign: 'center' }}>lock</span>
+                        <span className="material-symbols-outlined text-lg text-(--text-faint) shrink-0 w-4.5 text-center">lock</span>
                       </Tooltip>
                     ) : (
                       <input
                         type="checkbox"
                         checked={isSel}
                         onChange={() => toggleSelection(f.id)}
-                        style={{ cursor: 'pointer', flexShrink: 0 }}
+                        className="cursor-pointer shrink-0"
                       />
                     )
                   )}
@@ -313,53 +266,48 @@ export default function FileManagerPage() {
                   <Tooltip content={selectionMode && !locked ? 'Select' : 'Preview'}>
                   <div
                     onClick={() => (selectionMode && !locked) ? toggleSelection(f.id) : setViewing(f)}
-                    style={{
-                      width: 48, height: 48, borderRadius: 8, overflow: 'hidden', flexShrink: 0, cursor: 'pointer',
-                      background: 'var(--bg-section-hd)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}
+                    className="w-12 h-12 rounded-lg overflow-hidden shrink-0 cursor-pointer bg-(--bg-section-hd) flex items-center justify-center"
                   >
                     <img
                       src={f.url}
                       alt=""
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="w-full h-full object-cover"
                       onError={e => { e.currentTarget.style.display = 'none'; }}
                     />
                   </div>
                   </Tooltip>
 
                   {/* Info (click to preview, or toggle in selection mode) — shows the real file name */}
-                  <div onClick={() => (selectionMode && !locked) ? toggleSelection(f.id) : setViewing(f)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 15, color: k.color, flexShrink: 0 }}>{k.icon}</span>
-                      <span style={{
-                        fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
+                  <div onClick={() => (selectionMode && !locked) ? toggleSelection(f.id) : setViewing(f)} className="flex-1 min-w-0 cursor-pointer">
+                    <div className="flex items-center gap-1.5">
+                      {/* k.color is a per-file-kind lookup value driven by f.kind — stays inline */}
+                      <span className="material-symbols-outlined text-[15px] shrink-0" style={{ color: k.color }}>{k.icon}</span>
+                      <span className="text-[13px] font-medium text-(--text-primary) truncate">
                         {f.name}
                       </span>
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>
+                    <div className="text-[11px] text-(--text-faint) mt-0.5">
                       {k.label}{f.campaignName ? ' · ' + f.campaignName : ''} · {fmtSize(f.sizeBytes)} · {fmtDate(f.createdAt)}
                     </div>
                   </div>
 
                   {/* Actions */}
                   <Tooltip content="Open raw file">
-                  <a href={f.url} target="_blank" rel="noreferrer" style={{ ...iconBtn, color: 'var(--text-muted)' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>open_in_new</span>
+                  <a href={f.url} target="_blank" rel="noreferrer" className={`${iconBtnClass} text-(--text-muted)`}>
+                    <span className="material-symbols-outlined text-lg">open_in_new</span>
                   </a>
                   </Tooltip>
                   {!selectionMode && (
                     locked ? (
                       <Tooltip content="Current profile picture — can't be deleted">
-                        <span style={{ ...iconBtn, color: 'var(--text-faint)', cursor: 'default' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>lock</span>
+                        <span className={`${iconBtnClass} text-(--text-faint) cursor-default`}>
+                          <span className="material-symbols-outlined text-lg">lock</span>
                         </span>
                       </Tooltip>
                     ) : (
                       <Tooltip content="Delete">
-                      <button onClick={() => requestDelete(f)} disabled={busy} style={{ ...iconBtn, color: 'var(--danger)' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{busy ? 'hourglass_empty' : 'delete'}</span>
+                      <button onClick={() => requestDelete(f)} disabled={busy} className={`${iconBtnClass} text-(--danger)`}>
+                        <span className="material-symbols-outlined text-lg">{busy ? 'hourglass_empty' : 'delete'}</span>
                       </button>
                       </Tooltip>
                     )

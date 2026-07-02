@@ -58,8 +58,14 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
     onWindowStateChange(next);
   };
 
-  // Minimise: collapse to the draggable bubble pill at its last position.
+  // Minimise: collapse the pill to the centre of the window's title bar, so
+  // it appears to shrink toward the middle of the bar (clamped to viewport).
   const handleMinimise = () => {
+    const centreX = pos.x + size.w / 2;          // title-bar centre
+    const bx = Math.max(0, Math.min(window.innerWidth  - 128, centreX - 64));
+    const by = Math.max(0, Math.min(window.innerHeight -  36, pos.y));
+    setBpos({ x: bx, y: by });
+    saveWindowState({ bubbleX: bx, bubbleY: by });
     changeState('bubble');
   };
 
@@ -96,7 +102,14 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
         setBpos(next);
         saveWindowState({ bubbleX: next.x, bubbleY: next.y });
       } else {
-        changeState('full');   // click (no real movement) → expand
+        // click (no real movement) → expand the window centred on the pill,
+        // so the title bar grows back out from the pill (clamped to viewport).
+        const centreX = bpos.x + 64;             // pill centre
+        const wx = Math.max(0, Math.min(Math.max(0, window.innerWidth  - size.w), centreX - size.w / 2));
+        const wy = Math.max(0, Math.min(Math.max(0, window.innerHeight - size.h), bpos.y));
+        setPos({ x: wx, y: wy });
+        saveWindowState({ x: wx, y: wy });
+        changeState('full');
       }
     };
     document.addEventListener('mousemove', onMove);

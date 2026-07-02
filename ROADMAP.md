@@ -170,11 +170,9 @@ The feature release. A unified sheet engine, a full notes system, OAuth login, c
 - [x] Image crop modal rewritten — canvas drawImage preview, portal, scroll lock
 - [x] Upload rate limiting (20 uploads per 60 seconds)
 - [x] catoolu.quest domain via Cloudflare Tunnel
-- [x] Cloudflare DDNS — automatic IP updates
 - [x] Cloudflare Worker maintenance fallback page
 - [x] Background art engine scaffold — ready for artist delivery
 - [x] `/legal` page — Terms of Service + Privacy Policy in English and Thai
-- [x] Legal modal on login page
 - [x] About page — GitHub badge, artist monument block, full content
 - [x] Roll popup positioning fix
 - [x] Double `$$` in Financial Status fixed
@@ -211,10 +209,12 @@ First patch on Atlach-Nacha. Seven feature areas shipped.
 
 ---
 
-## 🔄 v1.6b — In Progress
+## ✅ v1.6b — High Moor
 
-**Status: In Progress — June 2026**
-_"The fixes accumulate. The session stabilises."_
+**Status: Released — June 2026**
+_"The moor stretches in every direction. The investigators find the ground more stable than it looked."_
+
+Stability patch. No new features — just everything that revealed itself during real sessions.
 
 - [x] Chat history pagination — Discord-style batch loading on scroll-to-top
 - [x] Unified `/feed` endpoint — UNION ALL of messages + handout shares, composite cursor
@@ -223,36 +223,103 @@ _"The fixes accumulate. The session stabilises."_
 - [x] Version checker — GitHub Releases API, update pill in Footer
 - [x] `APP_VERSION` + `APP_CODENAME` centralised in `version.js`
 - [x] Scroll chaining fix — `overscroll-behavior: contain` on 19 containers + root safety net
-- [ ] Free specialty picks — "any two other skills" two independent dropdowns (creation engine)
-- [ ] Re-enable character creation engine (blocked on specialty picks fix)
+
+---
+
+## ✅ v1.6c — Semphar
+
+**Status: Released — June 2026**
+_"The silk road city-state. A crossroads. Everything arrives here eventually."_
+
+The largest patch since Atlach-Nacha itself. Notes rebuilt, chat overhauled, six themes, and the UI consistency pass the app needed.
+
+- [x] Notes window rebuilt with native pointer events (react-rnd incompatible with React 19)
+- [x] Notes accessible to both Keeper and player from the same RoomSubNav button
+- [x] Chat image upload — multi-attach, paste, grouped gallery message
+- [x] Anti-double-click — pending state on dice, send, and skill clicks
+- [x] Keeper delete roll cards from the feed
+- [x] Roll popup overflow fix — flips upward near viewport bottom
+- [x] Multiline chat — Shift+Enter for new line, Enter to send
+- [x] Line breaks preserved in rendered chat bubbles
+- [x] Unified ConfirmDialog + useConfirm hook across all destructive actions
+- [x] What's New modal — auto-shows once per release, reopenable from Footer
+- [x] Six themes — Parchment, Shale, Farmilia Dark, Marsh, Archive, Cosmic Void
+- [x] CustomDropdown — portal dropdown replacing all native `<select>` elements
+- [x] Custom portal tooltip component — no more browser `title` attribute tooltips
+- [x] Handout library — dashed create tiles, page-wide drag-and-drop with staging modal
+- [x] Safari drag-and-drop compatibility
+- [x] File Manager — multi-select, select-all, bulk delete
+
+---
+
+## ✅ v1.6d — Icewind Dale
+
+**Status: Released — June 2026**
+_"The frozen valley. Something stirs beneath the ice."_
+
+The atmosphere patch. The app now has a visual identity that matches the game it runs.
+
+- [x] Parallax background art — three-layer mouse-move parallax on four lobby pages
+- [x] Theme-adaptive art — multiply/screen blend modes, per-theme colour filters
+- [x] Background Visuals controls in NavBar Preferences (toggle, parallax, intensity)
+- [x] Bouts of Madness reference panel — full CoC 7e Tables VII-X, Keeper-only
+- [x] Campaign room loading screen — ring spinner with rotating CoC flavour text
+- [x] Compact left panel header — name, role badge, breathing connection dot, AFK toggle
+- [x] Disconnect from Room moved to sidebar icon strip (bottom-pinned)
+- [x] Return to Room pill reveals Disconnect option on hover
+- [x] Campaign gear icon navigates directly to correct campaign
+- [x] Logo-pulse loading states on all three main pages
+- [x] NavBar pill tray style
+- [x] Investigator card hover lift + token shadows
+- [x] All destructive dialogs unified to --danger (red)
+
+---
+
+## ✅ v1.6e — Nakamaru
+
+**Status: Released — July 2026**
+_"The castle town. Walls repainted. Gates rehung. Everything works the way it should have from the start."_
+
+The polish patch. No new systems — just everything that was slightly wrong, slightly rough, or slightly invisible getting fixed and finished.
+
+- [x] Disconnect from Room — pill bug fixed, NavBar pill self-sufficient; in-room disconnect navigates to campaign list
+- [x] NavBar pill exit animation — symmetric reverse of the pop-in
+- [x] Quit Campaign button — Players panel only, hidden from Keeper, permanent leave with confirmation
+- [x] Persistent room connection — active room survives browser refresh, socket re-subscribes automatically
+- [x] Custom tooltips app-wide — all native `title=` replaced across 24 files, 300ms delay
+- [x] Live sheet sync (Keeper view) — Keeper's open sheet updates automatically when the player edits
+- [x] Profile picture deletion guard — active avatar protected at backend and frontend
+- [x] Character editor toolbar — Material Symbol icons throughout, text arrows gone
+- [x] Notes window OS-style minimize/restore — pill appears where the window was, restore expands from the pill
+- [x] Possessions & Equipment in the campaign room — new Possessions tab, fully editable, Keeper live-sync
+
+---
+
+## 🔄 v1.7 — Eihort
+
+**Status: In Progress — Target Q3 2026**
+_"The Pale Beast. Lives in the tunnels. Does the deep internal work nobody sees."_
+
+The migration. No new features — just bringing the stylesheet up to standard. Everything looks identical after.
+
+- [ ] Tailwind CSS migration — one page at a time, visually identical throughout
 
 ---
 
 ## Planned
-
-### v1.7 — Eihort
-
-**Status: Planned — Target Q3 2026**
-_"The Pale Beast. Lives in the tunnels. Does the deep internal work nobody sees."_
-
-The migration. No new features — just bringing the stylesheet up to standard.
-
-- [ ] Tailwind migration — one page at a time, visually identical after
-
----
 
 ### v1.8 — Glaaki
 
 **Status: Planned — Target Q4 2026**
 _"Lord of Dead Dreams. Pulls things out of the deep and gives them new life."_
 
-The refactor. No new features — just making the code readable and maintainable.
+The refactor. TypeScript migration followed by a code readability pass. No new features.
 
+- [ ] TypeScript migration — shared types first, then page by page
 - [ ] Break large components into smaller focused ones
 - [ ] Remove prop drilling where it has gotten out of hand
 - [ ] Consistent naming conventions throughout
 - [ ] Remove dead code and commented-out blocks
-- [ ] Add comments on anything non-obvious
 
 ---
 
@@ -260,7 +327,7 @@ The refactor. No new features — just making the code readable and maintainable
 
 _The Black Goat of the Woods with a Thousand Young_
 
-**Status: Planned — Target Q3 2026**
+**Status: Planned — Target Q1 2027**
 _"A thousand young. The platform branches and multiplies."_
 
 **Keeper's Screen**
@@ -269,7 +336,6 @@ _"A thousand young. The platform branches and multiplies."_
 - [ ] Live push of HP/Sanity changes from Keeper to players
 - [ ] NPC stat blocks — create and track enemies
 - [ ] Initiative tracker — drag-to-reorder, visible to all
-- [ ] Session notes (Keeper-only)
 
 **Character Sheet**
 
@@ -289,7 +355,7 @@ _"A thousand young. The platform branches and multiplies."_
 
 _The Key and the Gate_
 
-**Status: Planned — Target Q1 2027**
+**Status: Planned — Target Q2 2027**
 _"The Gate. It knows. It sees. Your investigators' history is preserved."_
 
 - [ ] Session journal — post-session summaries
@@ -305,7 +371,7 @@ _"The Gate. It knows. It sees. Your investigators' history is preserved."_
 
 _The Great Dreamer_
 
-**Status: Planned — Target Q2 2027**
+**Status: Planned — Target Q3 2027**
 _"Ph'nglui mglw'nafh. The Great Dreamer wakes. The platform is complete."_
 
 - [ ] Audio ambience — Keeper streams ambient sound to all players
@@ -331,20 +397,23 @@ _"Ph'nglui mglw'nafh. The Great Dreamer wakes. The platform is complete."_
 
 ```
 2026
- May  ████████████████  v1.0 Azathoth       ✅ Released
- May  ████████████████  v1.1 Dagon          ✅ Released
- May  ████████████████  v1.2 Hypnos         ✅ Released
- May  ████████████████  v1.5 Nyarlathotep   ✅ Released
- Jun  ████████████████  v1.6  Atlach-Nacha   ✅ Released
- Jun  ████████████████  v1.6a Jade Palace    ✅ Released
- Jun  ░░░░░░░░░░░░░░░░  v1.6b TBD            🔄 In Progress
- Q3   ░░░░░░░░░░░░░░░░  v1.7  Eihort         🔮 Planned
- Q4   ░░░░░░░░░░░░░░░░  v1.8  Glaaki         🔮 Planned
+ May  ████████████████  v1.0  Azathoth        ✅ Released
+ May  ████████████████  v1.1  Dagon           ✅ Released
+ May  ████████████████  v1.2  Hypnos          ✅ Released
+ May  ████████████████  v1.5  Nyarlathotep    ✅ Released
+ Jun  ████████████████  v1.6  Atlach-Nacha    ✅ Released
+ Jun  ████████████████  v1.6a Jade Palace     ✅ Released
+ Jun  ████████████████  v1.6b High Moor       ✅ Released
+ Jun  ████████████████  v1.6c Semphar         ✅ Released
+ Jun  ████████████████  v1.6d Icewind Dale    ✅ Released
+ Jul  ████████████████  v1.6e Nakamaru        ✅ Released
+ Q3   ░░░░░░░░░░░░░░░░  v1.7  Eihort          🔄 In Progress
+ Q4   ░░░░░░░░░░░░░░░░  v1.8  Glaaki          🔮 Planned
 
 2027
- Q1   ░░░░░░░░░░░░░░░░  v2.0  Shub-Niggurath 🔮 Planned
- Q2   ░░░░░░░░░░░░░░░░  v2.5  Yog-Sothoth    🔮 Planned
- Q3   ░░░░░░░░░░░░░░░░  v3.0  Cthulhu        🔮 Planned
+ Q1   ░░░░░░░░░░░░░░░░  v2.0  Shub-Niggurath  🔮 Planned
+ Q2   ░░░░░░░░░░░░░░░░  v2.5  Yog-Sothoth     🔮 Planned
+ Q3   ░░░░░░░░░░░░░░░░  v3.0  Cthulhu         🔮 Planned
 ```
 
 ---

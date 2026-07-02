@@ -11,16 +11,8 @@ import Tooltip from '../components/ui/Tooltip';
 // ── Reusable field components ──────────────────────────────
 function FormField({ label, children }) {
   return (
-    <div style={{ marginBottom: '16px' }}>
-      <label style={{
-        display:       'block',
-        fontSize:      '11px',
-        fontWeight:    '500',
-        textTransform: 'uppercase',
-        letterSpacing: '0.07em',
-        color:         'var(--text-muted)',
-        marginBottom:  '6px',
-      }}>
+    <div className="mb-4">
+      <label className="block text-[11px] font-medium uppercase tracking-[0.07em] text-(--text-muted) mb-1.5">
         {label}
       </label>
       {children}
@@ -35,19 +27,7 @@ function FormInput({ type = 'text', value, onChange, placeholder }) {
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      style={{
-        width:        '100%',
-        padding:      '9px 12px',
-        borderRadius: '8px',
-        border:       '1px solid var(--border-input)',
-        background:   'var(--bg-input)',
-        color:        'var(--text-primary)',
-        fontFamily:   'var(--font-sans)',
-        fontSize:     '14px',
-        outline:      'none',
-        boxSizing:    'border-box',
-        transition:   'border-color 0.15s ease',
-      }}
+      className="w-full py-2.25 px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none! box-border [transition:border-color_0.15s_ease]"
       onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
       onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
     />
@@ -56,28 +36,13 @@ function FormInput({ type = 'text', value, onChange, placeholder }) {
 
 function Card({ title, children }) {
   return (
-    <div style={{
-      background:   'var(--bg-card)',
-      border:       '1px solid var(--border-main)',
-      borderRadius: '12px',
-      overflow:     'hidden',
-      marginBottom: '20px',
-    }}>
-      <div style={{
-        padding:      '14px 20px',
-        borderBottom: '1px solid var(--border-main)',
-        background:   'var(--bg-section-hd)',
-      }}>
-        <h2 style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize:   '17px',
-          color:      'var(--text-primary)',
-          margin:     0,
-        }}>
+    <div className="bg-(--bg-card) border border-(--border-main) rounded-xl overflow-hidden mb-5">
+      <div className="py-3.5 px-5 border-b border-(--border-main) bg-(--bg-section-hd)">
+        <h2 className="font-serif text-[17px] text-(--text-primary) m-0">
           {title}
         </h2>
       </div>
-      <div style={{ padding: '20px' }}>
+      <div className="p-5">
         {children}
       </div>
     </div>
@@ -89,18 +54,7 @@ function SaveButton({ onClick, saving, label = 'Save Changes' }) {
     <button
       onClick={onClick}
       disabled={saving}
-      style={{
-        padding:      '9px 20px',
-        borderRadius: '8px',
-        border:       'none',
-        background:   saving ? 'var(--text-muted)' : 'var(--color-primary)',
-        color:        '#ffffff',
-        fontFamily:   'var(--font-sans)',
-        fontSize:     '13px',
-        fontWeight:   '500',
-        cursor:       saving ? 'not-allowed' : 'pointer',
-        transition:   'background 0.15s ease',
-      }}
+      className={`py-2.25 px-5 rounded-lg border-none text-white font-sans text-[13px] font-medium [transition:background_0.15s_ease] ${saving ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
       onMouseEnter={e => { if (!saving) e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
       onMouseLeave={e => { if (!saving) e.currentTarget.style.background = 'var(--color-primary)'; }}
     >
@@ -113,15 +67,7 @@ function StatusMsg({ msg }) {
   if (!msg) return null;
   const isSuccess = msg.type === 'success';
   return (
-    <div style={{
-      padding:      '10px 14px',
-      borderRadius: '8px',
-      marginBottom: '16px',
-      fontSize:     '13px',
-      background:   isSuccess ? 'var(--accent-bg)' : 'var(--danger-bg)',
-      border:       `1px solid ${isSuccess ? 'var(--success)' : 'var(--danger)'}`,
-      color:        isSuccess ? 'var(--success)' : 'var(--danger)',
-    }}>
+    <div className={`py-2.5 px-3.5 rounded-lg mb-4 text-[13px] border ${isSuccess ? 'bg-(--accent-bg) border-(--success) text-(--success)' : 'bg-(--danger-bg) border-(--danger) text-(--danger)'}`}>
       {msg.text}
     </div>
   );
@@ -292,47 +238,21 @@ export default function ProfilePage() {
   };
 
   return (
-    <div style={{
-      minHeight:     '100vh',
-      background:    'var(--bg-page)',
-      display:       'flex',
-      flexDirection: 'column',
-      fontFamily:    'var(--font-sans)',
-    }}>
+    <div className="min-h-screen bg-(--bg-page) flex flex-col font-sans">
       <NavBar activeTab={null} />
 
-      <main className="animate-fade-rise" style={{
-        maxWidth: '1100px',
-        margin:   '0 auto',
-        padding:  '32px 24px',
-        flex:     1,
-        width:    '100%',
-      }}>
+      <main className="animate-fade-rise max-w-275 mx-auto py-8 px-6 flex-1 w-full">
 
         {/* Page title */}
-        <h1 style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize:   '28px',
-          color:      'var(--text-primary)',
-          margin:     '0 0 16px',
-        }}>
+        <h1 className="font-serif text-[28px] text-(--text-primary) mt-0 mb-4">
           My Profile
         </h1>
 
         {/* No-password warning — shown for OAuth-only accounts */}
         {hasPassword === false && (
-          <div className="animate-fade-rise" style={{
-            display:      'flex',
-            alignItems:   'center',
-            gap:          '10px',
-            padding:      '12px 16px',
-            marginBottom: '24px',
-            borderRadius: '10px',
-            background:   'var(--danger-bg)',
-            border:       '1px solid var(--danger)',
-          }}>
-            <span className="icon" style={{ color: 'var(--danger)', flexShrink: 0 }}>warning</span>
-            <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--danger)', lineHeight: 1.5 }}>
+          <div className="animate-fade-rise flex items-center gap-2.5 py-3 px-4 mb-6 rounded-[10px] bg-(--danger-bg) border border-(--danger)">
+            <span className="icon text-(--danger) shrink-0">warning</span>
+            <p className="m-0 font-sans text-[13px] text-(--danger) leading-[1.5]">
               <strong>No password set.</strong> Your account uses OAuth login only.
               Set a password in <em>Connected Accounts</em> below if you also want to sign in with email.
             </p>
@@ -340,36 +260,17 @@ export default function ProfilePage() {
         )}
 
         {/* ── Side by side layout ── */}
-        <div style={{
-          display:             'grid',
-          gridTemplateColumns: '260px 1fr',
-          gap:                 '24px',
-          alignItems:          'start',
-        }}>
+        <div className="grid grid-cols-[260px_1fr] gap-6 items-start">
 
           {/* ── LEFT COLUMN: Account info + future portrait ── */}
           <div>
             <Card title="Account">
               {/* Avatar upload area */}
-              <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+              <div className="text-center mb-4">
                 <Tooltip content="Click to change profile picture">
                 <div
                   onClick={() => avatarInputRef.current?.click()}
-                  style={{
-                    width:          '96px',
-                    height:         '96px',
-                    borderRadius:   '50%',
-                    background:     'var(--color-primary-light)',
-                    border:         '2px solid var(--border-main)',
-                    display:        'flex',
-                    alignItems:     'center',
-                    justifyContent: 'center',
-                    margin:         '0 auto 8px',
-                    cursor:         'pointer',
-                    overflow:       'hidden',
-                    transition:     'border-color 0.15s ease',
-                    position:       'relative',
-                  }}
+                  className="w-24 h-24 rounded-full bg-(--color-primary-light) border-2 border-(--border-main) flex items-center justify-center mx-auto mb-2 cursor-pointer overflow-hidden [transition:border-color_0.15s_ease] relative"
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-main)'}
                 >
@@ -377,34 +278,20 @@ export default function ProfilePage() {
                     <img
                       src={avatarUrl.startsWith('http') ? avatarUrl : (import.meta.env.VITE_API_URL || '') + avatarUrl}
                       alt="Profile"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="w-full h-full object-cover"
                       onError={() => setAvatarError(true)}
                     />
                   ) : (
-                    <span style={{
-                      fontFamily: 'var(--font-serif)',
-                      fontSize:   '32px',
-                      color:      'var(--color-primary-dark)',
-                    }}>
+                    <span className="font-serif text-[32px] text-(--color-primary-dark)">
                       {initials}
                     </span>
                   )}
 
                   {/* Hover overlay */}
-                  <div style={{
-                    position:       'absolute',
-                    inset:          0,
-                    background:     'rgba(0,0,0,0.4)',
-                    display:        'flex',
-                    alignItems:     'center',
-                    justifyContent: 'center',
-                    opacity:        0,
-                    transition:     'opacity 0.15s',
-                    borderRadius:   '50%',
-                    fontSize:       '20px',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '0'}
+                  <div
+                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 [transition:opacity_0.15s] rounded-full text-xl"
+                    onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '0'}
                   >
                     📷
                   </div>
@@ -416,13 +303,13 @@ export default function ProfilePage() {
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   onChange={handleAvatarFileChange}
-                  style={{ display: 'none' }}
+                  className="hidden"
                 />
-                <p style={{ fontSize: '11px', color: 'var(--text-faint)', margin: 0 }}>
+                <p className="text-[11px] text-(--text-faint) m-0">
                   Click to change · JPG PNG WebP · Max 2MB
                 </p>
                 {avatarProgress !== null && (
-                  <div style={{ width: 120, marginTop: 8 }}>
+                  <div className="w-30 mt-2">
                     <UploadProgressBar progress={avatarProgress} />
                   </div>
                 )}
@@ -439,31 +326,14 @@ export default function ProfilePage() {
               )}
 
               {/* Account details */}
-              <div style={{
-                borderTop:  '1px solid var(--border-main)',
-                paddingTop: '14px',
-              }}>
-                <p style={{
-                  fontFamily: 'var(--font-serif)',
-                  fontSize:   '17px',
-                  color:      'var(--text-primary)',
-                  margin:     '0 0 4px',
-                }}>
+              <div className="border-t border-(--border-main) pt-3.5">
+                <p className="font-serif text-[17px] text-(--text-primary) mt-0 mb-1">
                   {username}
                 </p>
-                <p style={{
-                  fontSize: '12px',
-                  color:    'var(--text-muted)',
-                  margin:   '0 0 4px',
-                  wordBreak:'break-all',
-                }}>
+                <p className="text-xs text-(--text-muted) mt-0 mb-1 break-all">
                   {email}
                 </p>
-                <p style={{
-                  fontSize: '11px',
-                  color:    'var(--text-faint)',
-                  margin:   0,
-                }}>
+                <p className="text-[11px] text-(--text-faint) m-0">
                   Member since {joinedAt}
                 </p>
               </div>
@@ -499,7 +369,7 @@ export default function ProfilePage() {
                 <FormInput type="password" value={confirmPw} onChange={setConfirmPw}
                            placeholder="Same password again" />
                 {confirmPw && confirmPw !== newPw && (
-                  <p style={{ fontSize: '12px', color: 'var(--danger)', margin: '6px 0 0' }}>
+                  <p className="text-xs text-(--danger) mt-1.5 mr-0 mb-0">
                     Passwords don't match
                   </p>
                 )}
@@ -531,34 +401,21 @@ export default function ProfilePage() {
               />
 
               {/* Password login row — "Set password" for OAuth-only accounts */}
-              <div style={{
-                display:     'flex',
-                alignItems:  'center',
-                gap:         '10px',
-                paddingTop:  '10px',
-                borderTop:   '1px solid var(--border-main)',
-                marginTop:   '10px',
-                flexWrap:    'wrap',
-              }}>
-                <span className="icon icon-sm" style={{ color: hasPassword ? 'var(--success)' : 'var(--text-faint)' }}>
+              <div className="flex items-center gap-2.5 pt-2.5 border-t border-(--border-main) mt-2.5 flex-wrap">
+                <span className={`icon icon-sm ${hasPassword ? 'text-(--success)' : 'text-(--text-faint)'}`}>
                   {hasPassword ? 'lock' : 'lock_open'}
                 </span>
-                <span style={{ flex: 1, fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                  Password login {hasPassword ? <span style={{ color: 'var(--success)', fontSize: '11px' }}>✓ set</span> : <span style={{ color: 'var(--text-faint)', fontSize: '11px' }}>not set</span>}
+                <span className="flex-1 font-sans text-[13px] text-(--text-secondary)">
+                  Password login {hasPassword ? <span className="text-(--success) text-[11px]">✓ set</span> : <span className="text-(--text-faint) text-[11px]">not set</span>}
                 </span>
                 {!hasPassword && (
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%', marginTop: '8px' }}>
+                  <div className="flex gap-2 items-center w-full mt-2">
                     <input
                       type="password"
                       value={newPwSet}
                       onChange={e => setNewPwSet(e.target.value)}
                       placeholder="Set a password (8+ chars)"
-                      style={{
-                        flex: 1, padding: '8px 12px', borderRadius: '8px',
-                        border: '1px solid var(--border-input)', background: 'var(--bg-input)',
-                        color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontSize: '13px',
-                        outline: 'none', boxSizing: 'border-box',
-                      }}
+                      className="flex-1 py-2 px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-[13px] outline-none! box-border"
                       onFocus={e => { e.target.style.borderColor = 'var(--border-focus)'; }}
                       onBlur={e  => { e.target.style.borderColor = 'var(--border-input)'; }}
                     />
@@ -579,31 +436,19 @@ export default function ProfilePage() {
 // ── Connected account row ──────────────────────────────────
 function ConnectedRow({ icon, label, connected, connectHref, onDisconnect }) {
   return (
-    <div style={{
-      display:      'flex',
-      alignItems:   'center',
-      gap:          '10px',
-      padding:      '8px 0',
-      borderBottom: '1px solid var(--border-main)',
-    }}>
-      <span style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icon}</span>
-      <span style={{ flex: 1, fontFamily: 'var(--font-sans)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+    <div className="flex items-center gap-2.5 py-2 border-b border-(--border-main)">
+      <span className="flex items-center shrink-0">{icon}</span>
+      <span className="flex-1 font-sans text-[13px] text-(--text-secondary)">
         {label}{' '}
         {connected
-          ? <span style={{ color: 'var(--success)', fontSize: '11px' }}>✓ connected</span>
-          : <span style={{ color: 'var(--text-faint)', fontSize: '11px' }}>not connected</span>
+          ? <span className="text-(--success) text-[11px]">✓ connected</span>
+          : <span className="text-(--text-faint) text-[11px]">not connected</span>
         }
       </span>
       {connected ? (
         <button
           onClick={onDisconnect}
-          style={{
-            padding: '4px 10px', borderRadius: '6px',
-            border: '1px solid var(--border-input)', background: 'transparent',
-            color: 'var(--text-muted)', fontFamily: 'var(--font-sans)',
-            fontSize: '11px', cursor: 'pointer',
-            transition: 'border-color 0.15s, color 0.15s',
-          }}
+          className="py-1 px-2.5 rounded-md border border-(--border-input) bg-transparent text-(--text-muted) font-sans text-[11px] cursor-pointer [transition:border-color_0.15s,color_0.15s]"
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--danger)'; e.currentTarget.style.color = 'var(--danger)'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
         >
@@ -612,13 +457,7 @@ function ConnectedRow({ icon, label, connected, connectHref, onDisconnect }) {
       ) : (
         <a
           href={connectHref}
-          style={{
-            padding: '4px 10px', borderRadius: '6px',
-            border: '1px solid var(--border-input)', background: 'transparent',
-            color: 'var(--color-primary)', fontFamily: 'var(--font-sans)',
-            fontSize: '11px', textDecoration: 'none', fontWeight: 500,
-            transition: 'border-color 0.15s, background 0.15s',
-          }}
+          className="py-1 px-2.5 rounded-md border border-(--border-input) bg-transparent text-(--color-primary) font-sans text-[11px] no-underline font-medium [transition:border-color_0.15s,background_0.15s]"
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--accent-bg)'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; e.currentTarget.style.background = 'transparent'; }}
         >
