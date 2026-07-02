@@ -144,7 +144,7 @@ export default function StepOccupationPicker({ state, setOccupation }) {
             placeholder="Search..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full py-2 px-3 border border-(--border-input) rounded-[7px] bg-(--bg-input) text-(--text-primary) font-sans text-[0.88rem] mb-2 box-border outline-none"
+            className="w-full py-2 px-3 border border-(--border-input) rounded-[7px] bg-(--bg-input) text-(--text-primary) font-sans text-[0.88rem] mb-2 box-border outline-none! focus:border-(--border-focus) input-focus-glow"
           />
 
           <div

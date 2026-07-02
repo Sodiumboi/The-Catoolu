@@ -46,7 +46,7 @@ export default function CreateCampaignModal({ onClose, onSuccess }) {
             maxLength={100}
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleCreate()}
-            className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none box-border [transition:border-color_0.15s_ease]"
+            className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none! box-border [transition:border-color_0.15s_ease]"
             onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
             onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
           />
@@ -58,7 +58,7 @@ export default function CreateCampaignModal({ onClose, onSuccess }) {
             onChange={e => setDescription(e.target.value)}
             placeholder="A globe-trotting horror campaign..."
             rows={3}
-            className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none box-border [transition:border-color_0.15s_ease] resize-y"
+            className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none! box-border [transition:border-color_0.15s_ease] resize-y"
             onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
             onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
           />

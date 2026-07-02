@@ -105,7 +105,7 @@ export default function BugReportModal({ onClose }) {
               onChange={e => setTitle(e.target.value)}
               placeholder="Short summary of the issue"
               maxLength={200}
-              className="w-full py-[9px] px-3 bg-(--bg-input) border-[1.5px] border-(--border-input) rounded-lg text-(--text-primary) font-sans text-sm outline-none box-border"
+              className="w-full py-[9px] px-3 bg-(--bg-input) border-[1.5px] border-(--border-input) rounded-lg text-(--text-primary) font-sans text-sm outline-none! box-border focus:border-(--border-focus) input-focus-glow"
             />
 
             {/* Description */}
@@ -115,7 +115,7 @@ export default function BugReportModal({ onClose }) {
               onChange={e => setDescription(e.target.value)}
               placeholder="What happened? What did you expect to happen?"
               rows={4}
-              className="w-full py-[9px] px-3 bg-(--bg-input) border-[1.5px] border-(--border-input) rounded-lg text-(--text-primary) font-sans text-sm outline-none box-border resize-y min-h-[100px]"
+              className="w-full py-[9px] px-3 bg-(--bg-input) border-[1.5px] border-(--border-input) rounded-lg text-(--text-primary) font-sans text-sm outline-none! box-border resize-y min-h-[100px] focus:border-(--border-focus) input-focus-glow"
             />
 
             {/* Screenshot */}

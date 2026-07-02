@@ -221,7 +221,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
         {/* ── Logo ── */}
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0 outline-none shrink-0 mr-auto"
+          className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0 outline-none! shrink-0 mr-auto"
         >
           <img
             src={logo}

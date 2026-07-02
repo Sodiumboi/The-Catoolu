@@ -86,7 +86,7 @@ export default function ResetPasswordPage() {
                       onChange={e => field.set(e.target.value)}
                       required
                       minLength={8}
-                      className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none box-border"
+                      className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-sm outline-none! box-border"
                       onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
                       onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
                     />

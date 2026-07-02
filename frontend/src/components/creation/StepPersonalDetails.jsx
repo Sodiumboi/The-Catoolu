@@ -33,7 +33,7 @@ export default function StepPersonalDetails({ state, setField }) {
 
   const hint = ageHint();
 
-  const inputClass = "w-full py-2 px-3 border border-(--border-input) rounded-md bg-(--bg-input) text-(--text-primary) font-sans text-[0.95rem] outline-none box-border";
+  const inputClass = "w-full py-2 px-3 border border-(--border-input) rounded-md bg-(--bg-input) text-(--text-primary) font-sans text-[0.95rem] outline-none! box-border focus:border-(--border-focus) input-focus-glow";
 
   const labelClass = "block mb-[0.3rem] text-[0.82rem] font-semibold text-(--text-secondary) font-sans uppercase tracking-[0.04em]";
 

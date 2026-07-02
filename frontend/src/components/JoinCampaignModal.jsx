@@ -48,7 +48,7 @@ export default function JoinCampaignModal({ onClose, onSuccess }) {
             maxLength={10}
             autoFocus
             onKeyDown={e => e.key === 'Enter' && handleJoin()}
-            className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) outline-none box-border [transition:border-color_0.15s_ease] uppercase tracking-[0.15em] text-[18px] font-semibold text-center font-mono"
+            className="w-full py-[9px] px-3 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) outline-none! box-border [transition:border-color_0.15s_ease] uppercase tracking-[0.15em] text-[18px] font-semibold text-center font-mono"
             onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
             onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
           />

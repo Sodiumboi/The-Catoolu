@@ -399,11 +399,46 @@ input[type='number'] {
 .dice-row::-webkit-scrollbar { display: none; }
 
 /* ── Focus Ring ─────────────────────────────────────────── */
-/* Consistent focus style for accessibility */
+/* Single derived token — NOT redeclared per theme. var(--border-focus)
+   resolves lazily wherever --shadow-focus is consumed, so it already
+   recolors correctly across all 6 themes without per-theme overrides. */
+:root {
+  --shadow-focus: color-mix(in srgb, var(--border-focus) 25%, transparent);
+}
+
+/* Consistent focus style for accessibility — animated glow instead of
+   a hard-cut outline. Layered in @layer base so any element's own more
+   specific Tailwind transition utility (in @layer utilities) still wins
+   the cascade normally — this is only a fallback for elements that don't
+   already declare their own transition. */
+@layer base {
+  a, button, input, textarea, select, [tabindex] {
+    transition: box-shadow 0.15s ease;
+  }
+}
+
 :focus-visible {
-  outline:        2px solid var(--border-focus);
-  outline-offset: 2px;
-  border-radius:  4px;
+  transition:    box-shadow 0.15s ease;
+  outline:       none;
+  box-shadow:    0 0 0 3px var(--shadow-focus);
+  border-radius: 4px;
+}
+
+/* ── Input Focus Animation ──────────────────────────────────
+   Add .input-focus-glow to any input/wrapper that uses
+   focus:border-(--border-focus) or focus-within:border-(--border-focus).
+   Fades border-color and glow in/out instead of an instant snap.
+   Glow derives from --shadow-focus (itself derived from --border-focus)
+   — recolors per theme automatically, no hardcoded color. Unlayered and
+   more specific than :focus-visible above, so it wins cleanly on the
+   elements that opt in. */
+.input-focus-glow {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-focus-glow:focus,
+.input-focus-glow:focus-within {
+  box-shadow: 0 0 0 3px var(--shadow-focus);
 }
 
 /* ── Selection ──────────────────────────────────────────── */

@@ -173,7 +173,7 @@ export default function DashboardPage() {
                   placeholder="Search investigators..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="font-sans text-[13px] py-[7px] pr-3 pl-8 rounded-lg border border-(--border-input) bg-(--bg-card) text-(--text-primary) w-[220px] outline-none [transition:border-color_0.15s_ease]"
+                  className="font-sans text-[13px] py-[7px] pr-3 pl-8 rounded-lg border border-(--border-input) bg-(--bg-card) text-(--text-primary) w-[220px] outline-none! [transition:border-color_0.15s_ease]"
                   onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
                   onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
                 />

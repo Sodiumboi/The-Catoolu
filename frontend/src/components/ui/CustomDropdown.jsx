@@ -150,14 +150,14 @@ export default function CustomDropdown({
       {/* Search bar */}
       {showSearch && (
         <div className="py-1.5 px-2 border-b-[0.5px] border-(--border-main)">
-          <div className="flex items-center gap-1.5 bg-(--bg-input) border-[0.5px] border-(--border-input) rounded-md py-[5px] px-2">
+          <div className="flex items-center gap-1.5 bg-(--bg-input) border-[0.5px] border-(--border-input) rounded-md py-[5px] px-2 focus-within:border-(--border-focus) input-focus-glow">
             <span className="icon icon-sm text-(--text-faint)">search</span>
             <input
               ref={searchRef}
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search..."
-              className="border-none bg-transparent outline-none text-xs text-(--text-primary) flex-1 font-sans"
+              className="border-none bg-transparent outline-none! text-xs text-(--text-primary) flex-1 font-sans"
             />
             {search && (
               <button

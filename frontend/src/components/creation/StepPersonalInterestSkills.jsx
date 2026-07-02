@@ -122,7 +122,7 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
                 value={slot.name}
                 onChange={e => setPersonalSlot(group, si, { name: e.target.value })}
                 placeholder={isMisc ? 'Custom skill…' : (defaultName ?? 'Specialty…')}
-                className={`font-sans text-[0.83rem] text-(--text-primary) bg-transparent border-b border-dashed border-(--border-input) outline-none px-0.5 py-0 ${isMisc ? 'w-45' : 'w-30'}`}
+                className={`font-sans text-[0.83rem] text-(--text-primary) bg-transparent border-b border-dashed border-(--border-input) outline-none! px-0.5 py-0 focus:border-(--border-focus) input-focus-glow ${isMisc ? 'w-45' : 'w-30'}`}
               />
               <span className="font-sans text-[0.68rem] text-(--text-faint) ml-[0.3rem]">
                 ({base}%)
