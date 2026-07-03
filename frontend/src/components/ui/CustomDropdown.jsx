@@ -47,7 +47,10 @@ export default function CustomDropdown({
       position: 'fixed',
       left: rect.left,
       width: width ?? rect.width,
-      zIndex: 1200,
+      // Must beat any ambient container z-index (e.g. the floating Notes
+      // window at 9999) since this panel is portaled to document.body as
+      // a sibling, not a descendant, of whatever it's opened from.
+      zIndex: 10000,
       ...(goUp
         ? { bottom: window.innerHeight - rect.top + 4 }
         : { top: rect.bottom + 4 }
@@ -112,6 +115,7 @@ export default function CustomDropdown({
       className={`flex items-center gap-2.5 py-[7px] px-2.5 cursor-pointer [transition:background_0.1s_ease] ${isSelected ? 'bg-(--accent-bg)' : 'bg-transparent'}`}
       onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--row-hover)'; }}
       onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+      onMouseDown={e => e.preventDefault()}
       onClick={() => handleSelect(option)}>
       {/* Portrait / avatar */}
       {(option.image || option.imageFallback) && (
@@ -191,6 +195,7 @@ export default function CustomDropdown({
       {/* Trigger button */}
       <button
         ref={triggerRef}
+        onMouseDown={e => e.preventDefault()}
         onClick={toggle}
         disabled={disabled}
         className={`flex items-center gap-2 w-full py-[7px] px-2.5 bg-(--bg-input) border-[0.5px] rounded-lg text-left [transition:border-color_0.15s_ease] font-sans ${open ? 'border-(--border-focus)' : 'border-(--border-input)'} ${disabled ? 'cursor-not-allowed opacity-[0.55]' : 'cursor-pointer opacity-100'}`}>
