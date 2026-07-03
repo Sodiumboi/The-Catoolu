@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+
 export default function SkillRollPopup({
   label, value, defaultMode,
   onRoll, onClose,
@@ -34,7 +36,7 @@ export default function SkillRollPopup({
     transform: 'translateX(-50%)',
   };
 
-  return (
+  return createPortal(
     <>
       {/* Click outside to close */}
       <div
@@ -109,6 +111,7 @@ export default function SkillRollPopup({
           })}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

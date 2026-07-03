@@ -24,8 +24,7 @@ export default function DiceRow({
         const notation  = '1d' + sides + (advMode ? 'adv' : disMode ? 'dis' : '');
         const isThisDie = rollingDie === notation;
         return (
-          <Tooltip key={sides} content={'Roll 1d' + sides + (advMode ? ' Adv' : disMode ? ' Dis' : '')
-              + '\nShift+click for a surprise 🎉'}>
+          <Tooltip key={sides} content={'Roll 1d' + sides + (advMode ? ' Adv' : disMode ? ' Dis' : '')}>
           <button
             onClick={e => handleDie(sides, e.shiftKey)}
             disabled={isRolling}
