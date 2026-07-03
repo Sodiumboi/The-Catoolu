@@ -26,45 +26,20 @@ export default function RoomLoadingScreen() {
   }, []);
 
   return (
-    <div style={{
-      minHeight:      'calc(100vh - 56px)',
-      display:        'flex',
-      flexDirection:  'column',
-      alignItems:     'center',
-      justifyContent: 'center',
-      gap:            '16px',
-      background:     'var(--bg-page)',
-    }}>
+    <div className="min-h-[calc(100vh-56px)] flex flex-col items-center justify-center gap-4 bg-(--bg-page)">
       {/* Accent ring spinner — continuous mechanical rotation */}
-      <div style={{
-        width:         '36px',
-        height:        '36px',
-        borderRadius:  '50%',
-        border:        '3px solid var(--border-main)',
-        borderTopColor:'var(--accent)',
-        animation:     'spin 0.8s linear infinite',
-      }} />
+      <div className="w-9 h-9 rounded-full border-[3px] border-(--border-main) [border-top-color:var(--accent)] [animation:spin_0.8s_linear_infinite]" />
 
       {/* Rotating flavour text — keyed to remount and replay the fade on change */}
       <div
         key={msgIndex}
-        className="animate-fade"
-        style={{
-          fontSize:   '14px',
-          color:      'var(--text-muted)',
-          fontStyle:  'italic',
-          fontFamily: 'var(--font-serif)',
-        }}
+        className="animate-fade text-sm text-(--text-muted) italic font-serif"
       >
         {LOADING_MESSAGES[msgIndex]}
       </div>
 
       {/* Footer */}
-      <div style={{
-        fontSize:   '11px',
-        color:      'var(--text-faint)',
-        fontFamily: 'var(--font-sans)',
-      }}>
+      <div className="text-[11px] text-(--text-faint) font-sans">
         catoolu.quest
       </div>
     </div>

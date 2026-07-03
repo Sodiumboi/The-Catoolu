@@ -14,32 +14,15 @@ export default function KeeperPlayerCard({
   const pending = pendingRequests || [];
 
   return (
-    <div style={{
-      background:   'var(--bg-card)',
-      border:       '1px solid var(--border-main)',
-      borderRadius: '10px',
-      padding:      '12px',
-      marginBottom: '10px',
-      position:     'relative',
-    }}>
+    <div className="bg-(--bg-card) border border-(--border-main) rounded-[10px] p-3 mb-2.5 relative">
       {/* Top-right action buttons */}
-      <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '4px' }}>
+      <div className="absolute top-2.5 right-2.5 flex gap-1">
         {member.character_id && onRequestRoll && (
           <Tooltip content="Request a roll">
           <button
             ref={rollBtnRef}
             onClick={e => { e.stopPropagation(); onRequestRoll(member, rollBtnRef.current?.getBoundingClientRect()); }}
-            style={{
-              background:   'none',
-              border:       'none',
-              cursor:       'pointer',
-              color:        'var(--text-faint)',
-              display:      'flex',
-              alignItems:   'center',
-              padding:      '2px',
-              borderRadius: '4px',
-              transition:   'color 0.1s ease',
-            }}
+            className="bg-none border-none cursor-pointer text-(--text-faint) flex items-center p-0.5 rounded-sm [transition:color_0.1s]"
             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
           >
@@ -51,17 +34,7 @@ export default function KeeperPlayerCard({
           <Tooltip content="View character sheet">
           <button
             onClick={e => { e.stopPropagation(); onOpenSheet(member); }}
-            style={{
-              background:   'none',
-              border:       'none',
-              cursor:       'pointer',
-              color:        'var(--text-faint)',
-              display:      'flex',
-              alignItems:   'center',
-              padding:      '2px',
-              borderRadius: '4px',
-              transition:   'color 0.1s ease',
-            }}
+            className="bg-none border-none cursor-pointer text-(--text-faint) flex items-center p-0.5 rounded-sm [transition:color_0.1s]"
             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
           >
@@ -72,35 +45,14 @@ export default function KeeperPlayerCard({
       </div>
 
       {/* Header */}
-      <div style={{
-        display:       'flex',
-        alignItems:    'center',
-        gap:           '10px',
-        marginBottom:  '10px',
-        paddingBottom: '10px',
-        borderBottom:  '1px solid var(--border-main)',
-      }}>
+      <div className="flex items-center gap-2.5 mb-2.5 pb-2.5 border-b border-(--border-main)">
         {/* Portrait */}
-        <div style={{
-          width:          '44px',
-          height:         '44px',
-          borderRadius:   '8px',
-          background:     'var(--color-primary-light)',
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'center',
-          flexShrink:     0,
-          fontFamily:     'var(--font-serif)',
-          fontSize:       '18px',
-          color:          'var(--color-primary-dark)',
-          overflow:       'hidden',
-          border:         '1px solid var(--border-main)',
-        }}>
+        <div className="w-11 h-11 rounded-lg bg-(--color-primary-light) flex items-center justify-center shrink-0 font-serif text-lg text-(--color-primary-dark) overflow-hidden border border-(--border-main)">
           {member.portrait ? (
             <img
               src={'data:image/jpeg;base64,' + member.portrait}
               alt={character_name || username}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              className="w-full h-full object-cover"
             />
           ) : (
             (character_name || username || '?').slice(0, 1).toUpperCase()
@@ -108,57 +60,28 @@ export default function KeeperPlayerCard({
         </div>
 
         <div>
-          <div style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize:   '15px',
-            color:      'var(--text-primary)',
-            lineHeight: '1.2',
-          }}>
+          <div className="font-serif text-[15px] text-(--text-primary) leading-[1.2]">
             {character_name || 'No investigator'}
           </div>
-          <div style={{
-            fontSize:  '11px',
-            color:     'var(--accent)',
-            marginTop: '2px',
-          }}>
+          <div className="text-[11px] text-(--accent) mt-0.5">
             {character_occupation || username}
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div style={{
-        display:             'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap:                 '6px',
-      }}>
+      <div className="grid grid-cols-3 gap-1.5">
         {[
           { label: 'HP',  cur: member.hit_pts,   max: member.hit_pts_max,   color: 'var(--danger)'  },
           { label: 'MP',  cur: member.magic_pts,  max: member.magic_pts_max, color: '#3B82F6'        },
           { label: 'SAN', cur: member.sanity,     max: member.sanity_max,    color: 'var(--warning)' },
         ].map(stat => (
-          <div key={stat.label} style={{
-            textAlign:   'center',
-            background:  'var(--bg-section-hd)',
-            borderRadius:'6px',
-            padding:     '6px 4px',
-            border:      '1px solid var(--border-main)',
-          }}>
-            <div style={{
-              fontSize:      '10px',
-              color:         'var(--text-muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              marginBottom:  '2px',
-            }}>
+          <div key={stat.label} className="text-center bg-(--bg-section-hd) rounded-md py-1.5 px-1 border border-(--border-main)">
+            <div className="text-[10px] text-(--text-muted) uppercase tracking-wider mb-0.5">
               {stat.label}
             </div>
-            <div style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize:   '16px',
-              fontWeight: '700',
-              color:      stat.color,
-            }}>
+            {/* color stays inline — per-stat color varies (danger/blue/warning), not a fixed token */}
+            <div className="font-serif text-base font-bold" style={{ color: stat.color }}>
               {stat.cur ?? '—'}{stat.max ? '/' + stat.max : ''}
             </div>
           </div>
@@ -167,38 +90,17 @@ export default function KeeperPlayerCard({
 
       {/* Pending roll requests */}
       {pending.length > 0 && (
-        <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="mt-2 flex flex-col gap-1">
           {pending.map(({ requestId, rollName }) => (
             <div
               key={requestId}
-              style={{
-                display:        'flex',
-                alignItems:     'center',
-                justifyContent: 'space-between',
-                padding:        '4px 8px',
-                background:     'var(--accent-bg)',
-                border:         '1px solid var(--accent)',
-                borderRadius:   '6px',
-                fontSize:       '12px',
-                color:          'var(--accent)',
-                fontFamily:     'var(--font-sans)',
-              }}
+              className="flex items-center justify-between py-1 px-2 bg-(--accent-bg) border border-(--accent) rounded-md text-xs text-(--accent) font-sans"
             >
               <span>{rollName} requested...</span>
               <Tooltip content="Cancel request">
               <button
                 onClick={() => onCancelRequest(requestId)}
-                style={{
-                  background:   'none',
-                  border:       'none',
-                  cursor:       'pointer',
-                  color:        'var(--accent)',
-                  padding:      '0 2px',
-                  display:      'flex',
-                  alignItems:   'center',
-                  lineHeight:   1,
-                  fontSize:     '14px',
-                }}
+                className="bg-none border-none cursor-pointer text-(--accent) py-0 px-0.5 flex items-center leading-none text-sm"
               >
                 ✕
               </button>

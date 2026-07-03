@@ -22,16 +22,7 @@ export default function RollRequestPill({ requests, myCharFullData, onRoll, onDi
   if (!requests.length) return null;
 
   return createPortal(
-    <div style={{
-      position:      'fixed',
-      bottom:        '20px',
-      right:         '20px',
-      zIndex:        500,
-      display:       'flex',
-      flexDirection: 'column',
-      gap:           '8px',
-      alignItems:    'flex-end',
-    }}>
+    <div className="fixed bottom-5 right-5 z-500 flex flex-col gap-2 items-end">
       {requests.map(req => {
         const resolved = req.rollValue ?? lookupValue(myCharFullData, req.rollType, req.rollName);
         const canRoll  = resolved != null;
@@ -39,74 +30,31 @@ export default function RollRequestPill({ requests, myCharFullData, onRoll, onDi
         return (
           <div
             key={req.requestId}
-            style={{
-              background:   'var(--bg-card)',
-              border:       '1.5px solid var(--accent)',
-              borderRadius: '12px',
-              padding:      '14px 16px',
-              boxShadow:    'var(--shadow-card)',
-              minWidth:     '260px',
-              maxWidth:     '320px',
-              animation:    'popIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both, pulse-accent 2s 220ms infinite',
-            }}
+            className="bg-(--bg-card) border-[1.5px] border-(--accent) rounded-xl py-3.5 px-4 shadow-(--shadow-card) min-w-65 max-w-80 [animation:popIn_220ms_cubic-bezier(0.34,1.56,0.64,1)_both,pulse-accent_2s_220ms_infinite]"
           >
-            <div style={{
-              fontSize:     '11px',
-              color:        'var(--text-muted)',
-              marginBottom: '4px',
-              fontFamily:   'var(--font-sans)',
-              display:      'flex',
-              alignItems:   'center',
-              gap:          '4px',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>casino</span>
+            <div className="text-[11px] text-(--text-muted) mb-1 font-sans flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm">casino</span>
               Keeper requests:
             </div>
-            <div style={{
-              fontFamily:   'var(--font-serif)',
-              fontSize:     '16px',
-              color:        'var(--text-primary)',
-              marginBottom: '12px',
-            }}>
+            <div className="font-serif text-base text-(--text-primary) mb-3">
               {req.rollName}
               {resolved != null && (
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginLeft: '6px' }}>
+                <span className="text-[13px] text-(--text-muted) ml-1.5">
                   ({resolved})
                 </span>
               )}
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="flex gap-2">
               <button
                 onClick={() => onRoll(req.rollName, resolved, req.requestId)}
                 disabled={!canRoll}
-                style={{
-                  flex:         1,
-                  padding:      '6px 12px',
-                  background:   canRoll ? 'var(--accent)' : 'var(--bg-section-hd)',
-                  color:        canRoll ? '#fff' : 'var(--text-faint)',
-                  border:       'none',
-                  borderRadius: '6px',
-                  cursor:       canRoll ? 'pointer' : 'not-allowed',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '13px',
-                  fontWeight:   '500',
-                  transition:   'opacity 0.1s',
-                }}
+                className={`flex-1 py-1.5 px-3 border-none rounded-md font-sans text-[13px] font-medium [transition:opacity_0.1s] ${canRoll ? 'bg-(--accent) text-white cursor-pointer' : 'bg-(--bg-section-hd) text-(--text-faint) cursor-not-allowed'}`}
               >
                 Roll
               </button>
               <button
                 onClick={() => onDismiss(req.requestId)}
-                style={{
-                  padding:      '6px 12px',
-                  background:   'none',
-                  color:        'var(--text-muted)',
-                  border:       '1px solid var(--border-main)',
-                  borderRadius: '6px',
-                  cursor:       'pointer',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '13px',
-                }}
+                className="py-1.5 px-3 bg-none text-(--text-muted) border border-(--border-main) rounded-md cursor-pointer font-sans text-[13px]"
               >
                 Dismiss
               </button>

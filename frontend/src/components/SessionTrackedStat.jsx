@@ -59,58 +59,29 @@ export default function SessionTrackedStat({
   } : { display: 'none' };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+    <div className="flex flex-col items-center gap-1">
       {/* Label */}
-      <span style={{
-        fontSize:      '10px',
-        fontWeight:    '600',
-        textTransform: 'uppercase',
-        letterSpacing: '0.07em',
-        color:         'var(--accent)',
-        fontFamily:    'var(--font-sans)',
-      }}>
+      <span className="text-[10px] font-semibold uppercase tracking-[0.07em] text-(--accent) font-sans">
         {label}
       </span>
 
       {/* Max + Now */}
-      <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end' }}>
+      <div className="flex gap-1 items-end">
         {/* Max */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <span style={{ fontSize: '9px', color: 'var(--text-faint)', marginBottom: '2px' }}>Max</span>
-          <div style={{
-            width: '36px', height: '36px', borderRadius: '7px',
-            background: 'var(--bg-input)',
-            border: '1.5px solid var(--border-input)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'var(--font-serif)', fontSize: '14px',
-            color: 'var(--text-muted)',
-          }}>
+        <div className="flex flex-col items-center">
+          <span className="text-[9px] text-(--text-faint) mb-0.5">Max</span>
+          <div className="w-9 h-9 rounded-[7px] bg-(--bg-input) border-[1.5px] border-(--border-input) flex items-center justify-center font-serif text-sm text-(--text-muted)">
             {maxVal ?? '—'}
           </div>
         </div>
 
         {/* Now — clickable */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-          <span style={{ fontSize: '9px', color: 'var(--text-faint)', marginBottom: '2px' }}>Now</span>
+        <div className="flex flex-col items-center relative">
+          <span className="text-[9px] text-(--text-faint) mb-0.5">Now</span>
           <button
             ref={btnRef}
             onClick={handleOpen}
-            style={{
-              width:        '42px',
-              height:       '42px',
-              borderRadius: '7px',
-              border:       '2px solid var(--border-focus)',
-              background:   'var(--bg-input)',
-              color:        'var(--text-primary)',
-              fontFamily:   'var(--font-serif)',
-              fontSize:     '18px',
-              fontWeight:   '700',
-              cursor:       'pointer',
-              display:      'flex',
-              alignItems:   'center',
-              justifyContent: 'center',
-              transition:   'border-color 0.15s ease',
-            }}
+            className="w-10.5 h-10.5 rounded-[7px] border-2 border-(--border-focus) bg-(--bg-input) text-(--text-primary) font-serif text-lg font-bold cursor-pointer flex items-center justify-center [transition:border-color_0.15s]"
             onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-focus)'}
           >
@@ -122,7 +93,8 @@ export default function SessionTrackedStat({
       {/* Popup */}
       {showPopup && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={handleClose} />
+          <div className="fixed inset-0 z-90" onClick={handleClose} />
+          {/* This whole block stays inline — popupStyle is runtime DOM-measured geometry (btnRect/window dimensions), merged into one style object with the rest of the popup's visual properties */}
           <div style={{
             ...popupStyle,
             background:    'var(--bg-popup)',
@@ -137,38 +109,27 @@ export default function SessionTrackedStat({
             minWidth:      POPUP_W + 'px',
           }}>
             {/* Header */}
-            <div style={{
-              fontSize: '10px', fontWeight: '600',
-              textTransform: 'uppercase', letterSpacing: '0.07em',
-              color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-            }}>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-(--accent) font-sans">
               {label} {maxVal && '(' + maxVal + ')'}
             </div>
 
             {/* Value */}
-            <div style={{
-              fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: '700',
-              color: changed ? 'var(--color-primary)' : 'var(--text-primary)',
-              minWidth: '40px', textAlign: 'center', transition: 'color 0.15s ease',
-            }}>
+            <div className={`font-serif text-[28px] font-bold min-w-10 text-center [transition:color_0.15s] ${changed ? 'text-(--color-primary)' : 'text-(--text-primary)'}`}>
               {displayVal}
             </div>
 
             {/* − ✓ + */}
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-              <button onClick={handleMinus} style={btnCss('var(--danger)')}
+            <div className="flex gap-1.5 items-center">
+              {/* color stays inline — btnCssBase's only data-driven parameter, everything else is static */}
+              <button onClick={handleMinus} className={btnCssBase} style={{ color: 'var(--danger)' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
                 <span className="icon icon-sm">remove</span>
               </button>
-              <button onClick={handleConfirm} style={{
-                ...btnCss(),
-                background:  changed ? 'var(--color-primary)' : 'var(--bg-section-hd)',
-                border:      'none',
-              }}>
-                <span className="icon icon-sm" style={{ color: changed ? '#fff' : 'var(--text-muted)' }}>check</span>
+              <button onClick={handleConfirm} className={`${btnCssBase} border-none [color:inherit] ${changed ? 'bg-(--color-primary)' : 'bg-(--bg-section-hd)'}`}>
+                <span className={`icon icon-sm ${changed ? 'text-white' : 'text-(--text-muted)'}`}>check</span>
               </button>
-              <button onClick={handlePlus} style={btnCss('var(--success)')}
+              <button onClick={handlePlus} className={btnCssBase} style={{ color: 'var(--success)' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
                 <span className="icon icon-sm">add</span>
@@ -178,17 +139,10 @@ export default function SessionTrackedStat({
             {/* Roll Sanity */}
             {rollable && (
               <>
-                <div style={{ width: '100%', height: '1px', background: 'var(--border-main)' }} />
+                <div className="w-full h-px bg-(--border-main)" />
                 <button
                   onClick={() => { onRoll?.(advMode ? 'adv' : disMode ? 'dis' : 'normal'); handleClose(); }}
-                  style={{
-                    width: '100%', padding: '5px 0', borderRadius: '7px',
-                    border: '1px solid var(--border-main)', background: 'transparent',
-                    color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-                    fontSize: '11px', fontWeight: '500', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-                    transition: 'all 0.1s ease',
-                  }}
+                  className="w-full py-1.25 px-0 rounded-[7px] border border-(--border-main) bg-transparent text-(--accent) font-sans text-[11px] font-medium cursor-pointer flex items-center justify-center gap-1 [transition:all_0.1s]"
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
@@ -200,7 +154,7 @@ export default function SessionTrackedStat({
 
             {/* Insane threshold */}
             {insaneVal !== undefined && (
-              <div style={{ fontSize: '10px', color: 'var(--danger)', fontFamily: 'var(--font-sans)' }}>
+              <div className="text-[10px] text-(--danger) font-sans">
                 Insane below {insaneVal}
               </div>
             )}
@@ -211,12 +165,5 @@ export default function SessionTrackedStat({
   );
 }
 
-function btnCss(color) {
-  return {
-    width: '32px', height: '32px', borderRadius: '8px',
-    border: '1px solid var(--border-main)',
-    background: 'var(--bg-input)', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: color ?? 'inherit', transition: 'all 0.1s ease',
-  };
-}
+// ── Shared button style helper (mirrors SessionSheet's MoneyField) ───
+const btnCssBase = 'w-8 h-8 rounded-lg border border-(--border-main) bg-(--bg-input) cursor-pointer flex items-center justify-center [transition:all_0.1s]';

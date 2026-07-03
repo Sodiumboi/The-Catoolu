@@ -54,46 +54,15 @@ export default function RoomSidebar({
 
   return (
     <>
-    <div style={{
-      display:      'flex',
-      flexDirection:'row',
-      borderLeft:   '1px solid var(--border-main)',
-    }}>
+    <div className="flex flex-row border-l border-(--border-main)">
 
       {/* Icon tab strip */}
-      <div style={{
-        display:        'flex',
-        flexDirection:  'column',
-        alignItems:     'center',
-        borderLeft:     '1px solid var(--border-main)',
-        padding:        '8px 0',
-        gap:            '4px',
-        width:          '44px',
-        flexShrink:     0,
-        background:     'var(--bg-card)',
-      }}>
+      <div className="flex flex-col items-center border-l border-(--border-main) py-2 px-0 gap-1 w-11 shrink-0 bg-(--bg-card)">
         {TABS.map(tab => (
           <Tooltip key={tab.id} content={tab.label} placement="left">
           <button
             onClick={() => onTabChange(tab.id)}
-            style={{
-              width:        '36px',
-              height:       '36px',
-              borderRadius: '8px',
-              border:       'none',
-              background:   activeTab === tab.id && tab.hasPanel
-                ? 'var(--accent-bg)'
-                : 'transparent',
-              cursor:       'pointer',
-              fontSize:     '16px',
-              display:      'flex',
-              alignItems:   'center',
-              justifyContent:'center',
-              transition:   'background 0.1s ease',
-              outline:      activeTab === tab.id && tab.hasPanel
-                ? '1.5px solid var(--accent)'
-                : 'none',
-            }}
+            className={`w-9 h-9 rounded-lg border-none cursor-pointer text-base flex items-center justify-center [transition:background_0.1s] ${activeTab === tab.id && tab.hasPanel ? 'bg-(--accent-bg) outline-[1.5px] outline-(--accent)' : 'bg-transparent outline-none'}`}
             onMouseEnter={e => {
               if (!(activeTab === tab.id && tab.hasPanel))
                 e.currentTarget.style.background = 'var(--row-hover)';
@@ -109,46 +78,22 @@ export default function RoomSidebar({
         ))}
 
         {/* Leave + Help pinned to bottom */}
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="mt-auto flex flex-col gap-1">
           <Tooltip content="Disconnect from Room" placement="left">
             <button
               onClick={handleLeaveIconClick}
-              style={{
-                width:          '36px',
-                height:         '46px',
-                borderRadius:   '8px',
-                border:         'none',
-                background:     'transparent',
-                color:          'var(--danger)',
-                cursor:         'pointer',
-                display:        'flex',
-                flexDirection:  'column',
-                alignItems:     'center',
-                justifyContent: 'center',
-                gap:            '2px',
-                transition:     'background 0.12s ease',
-              }}
+              className="w-9 h-11.5 rounded-lg border-none bg-transparent text-(--danger) cursor-pointer flex flex-col items-center justify-center gap-0.5 [transition:background_0.12s]"
               onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               <span className="icon icon-md">logout</span>
-              <span style={{ fontSize: '8px', fontFamily: 'var(--font-sans)', fontWeight: '600', letterSpacing: '0.04em', lineHeight: 1 }}>EXIT</span>
+              <span className="text-[8px] font-sans font-semibold tracking-[0.04em] leading-none">EXIT</span>
             </button>
           </Tooltip>
           <Tooltip content="Help" placement="left">
           <button
             onClick={() => onTabChange('help')}
-            style={{
-              width:          '36px',
-              height:         '36px',
-              borderRadius:   '8px',
-              border:         'none',
-              background:     activeTab === 'help' ? 'var(--accent-bg)' : 'transparent',
-              cursor:         'pointer',
-              display:        'flex',
-              alignItems:     'center',
-              justifyContent: 'center',
-            }}
+            className={`w-9 h-9 rounded-lg border-none cursor-pointer flex items-center justify-center ${activeTab === 'help' ? 'bg-(--accent-bg)' : 'bg-transparent'}`}
           >
             <span className="icon icon-md">help</span>
           </button>
@@ -157,17 +102,8 @@ export default function RoomSidebar({
       </div>
 
       {/* Panel — slides in/out via width transition */}
-      <div style={{
-        width:      activeTab ? '236px' : '0px',
-        flexShrink: 0,
-        overflowY:  activeTab ? 'auto' : 'hidden',
-        overflowX:  'hidden',
-        overscrollBehavior: 'contain',
-        borderLeft: activeTab ? '1px solid var(--border-main)' : 'none',
-        background: 'var(--bg-card)',
-        transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
-      }}>
-        <div style={{ width: '236px', padding: '12px' }}>
+      <div className={`shrink-0 overflow-x-hidden overscroll-contain bg-(--bg-card) [transition:width_0.22s_cubic-bezier(0.4,0,0.2,1)] ${activeTab ? 'w-59 overflow-y-auto border-l border-(--border-main)' : 'w-0 overflow-y-hidden border-l-0'}`}>
+        <div className="w-59 p-3">
           {activeTab === 'players'  && (
             <PlayersPanel
               members={members}
@@ -219,7 +155,7 @@ function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters,
       ))}
 
       {/* Change my character */}
-      <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '12px', marginTop: '12px' }}>
+      <div className="border-t border-(--border-main) pt-3 mt-3">
         <SectionLabel>Playing as</SectionLabel>
         <CustomDropdown
           value={myCharacter?.id ?? ''}
@@ -248,24 +184,10 @@ function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters,
       {/* Quit campaign — permanent, removes you from the campaign.
           Hidden for the Keeper: they own the campaign and must delete it instead. */}
       {myRole !== 'keeper' && (
-        <div style={{ borderTop: '1px solid var(--border-main)', paddingTop: '12px', marginTop: '12px' }}>
+        <div className="border-t border-(--border-main) pt-3 mt-3">
           <button
             onClick={onLeaveCampaign}
-            style={{
-              width:        '100%',
-              padding:      '8px 12px',
-              borderRadius: '8px',
-              border:       '1px solid var(--danger)',
-              background:   'transparent',
-              color:        'var(--danger)',
-              fontSize:     '13px',
-              fontFamily:   'var(--font-sans)',
-              cursor:       'pointer',
-              display:      'flex',
-              alignItems:   'center',
-              gap:          '8px',
-              transition:   'background 0.12s ease',
-            }}
+            className="w-full py-2 px-3 rounded-lg border border-(--danger) bg-transparent text-(--danger) text-[13px] font-sans cursor-pointer flex items-center gap-2 [transition:background_0.12s]"
             onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
@@ -302,13 +224,7 @@ function SettingsPanel() {
         onChange={() => setFeedBackground(!feedBackground)}
       />
 
-      <p style={{
-        fontSize:   '11px',
-        color:      'var(--text-faint)',
-        fontStyle:  'italic',
-        marginTop:  '12px',
-        fontFamily: 'var(--font-sans)',
-      }}>
+      <p className="text-[11px] text-(--text-faint) italic mt-3 font-sans">
         These settings are saved on this device only.
       </p>
     </div>
@@ -331,10 +247,10 @@ function HelpPanel() {
     <div>
       <FairnessTester />
 
-      <div style={{ borderTop: '1px solid var(--border-main)', margin: '16px 0 12px' }} />
+      <div className="border-t border-(--border-main) mt-4 mb-3" />
 
       <SectionLabel>How Rolls Work</SectionLabel>
-      <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: '1.6' }}>
+      <p className="text-xs text-(--text-muted) mb-3 leading-[1.6]">
         In Call of Cthulhu 7e, lower rolls are better. You want to roll
         under your skill value. Advantage means rolling twice and taking
         the lower result.
@@ -349,41 +265,22 @@ function HelpPanel() {
         { label: 'Failure',   emoji: '❌', desc: 'Roll > skill value' },
         { label: 'Fumble',    emoji: '💀', desc: 'Roll 00 (skill ≥50: only 00)' },
       ].map(row => (
-        <div key={row.label} style={{
-          display:       'flex',
-          gap:           '8px',
-          alignItems:    'center',
-          padding:       '5px 0',
-          borderBottom:  '1px solid var(--border-main)',
-          fontSize:      '12px',
-          fontFamily:    'var(--font-sans)',
-        }}>
+        <div key={row.label} className="flex gap-2 items-center py-1.25 px-0 border-b border-(--border-main) text-xs font-sans">
           <span>{row.emoji}</span>
-          <span style={{ color: 'var(--text-primary)', fontWeight: '500', minWidth: '64px' }}>
+          <span className="text-(--text-primary) font-medium min-w-16">
             {row.label}
           </span>
-          <span style={{ color: 'var(--text-muted)' }}>{row.desc}</span>
+          <span className="text-(--text-muted)">{row.desc}</span>
         </div>
       ))}
 
       <SectionLabel style={{ marginTop: '12px' }}>Commands</SectionLabel>
       {rows.map(row => (
-        <div key={row.notation} style={{
-          padding:    '5px 0',
-          borderBottom:'1px solid var(--border-main)',
-          fontSize:   '12px',
-        }}>
-          <code style={{
-            fontFamily:   'monospace',
-            color:        'var(--accent)',
-            fontSize:     '11px',
-            background:   'var(--accent-bg)',
-            padding:      '1px 5px',
-            borderRadius: '4px',
-          }}>
+        <div key={row.notation} className="py-1.25 px-0 border-b border-(--border-main) text-xs">
+          <code className="font-mono text-(--accent) text-[11px] bg-(--accent-bg) py-px px-1.25 rounded-sm">
             {row.notation}
           </code>
-          <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>
+          <span className="text-(--text-muted) ml-2">
             {row.desc}
           </span>
         </div>
@@ -395,16 +292,7 @@ function HelpPanel() {
 // ── Shared primitives ─────────────────────────────────────────
 function SectionLabel({ children, style }) {
   return (
-    <div style={{
-      fontSize:      '10px',
-      fontWeight:    '600',
-      textTransform: 'uppercase',
-      letterSpacing: '0.08em',
-      color:         'var(--text-muted)',
-      marginBottom:  '8px',
-      fontFamily:    'var(--font-sans)',
-      ...style,
-    }}>
+    <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2 font-sans" style={style}>
       {children}
     </div>
   );
@@ -413,40 +301,23 @@ function SectionLabel({ children, style }) {
 function MemberRow({ member, isOnline, status }) {
   const isAfk = status === 'afk';
   return (
-    <div style={{
-      display:    'flex',
-      alignItems: 'center',
-      gap:        '8px',
-      padding:    '4px 0',
-    }}>
-      <span style={{
-        width:        '8px',
-        height:       '8px',
-        borderRadius: '50%',
-        background:   !isOnline ? 'var(--text-faint)'
-                    : isAfk    ? '#EAB308'
-                    : '#22c55e',
-        flexShrink:   0,
-      }} />
-      <span style={{
-        fontSize:  '13px',
-        color:     isOnline ? 'var(--text-primary)' : 'var(--text-muted)',
-        fontFamily:'var(--font-sans)',
-      }}>
+    <div className="flex items-center gap-2 py-1 px-0">
+      <span className={`w-2 h-2 rounded-full shrink-0 ${!isOnline ? 'bg-(--text-faint)' : isAfk ? 'bg-[#EAB308]' : 'bg-[#22c55e]'}`} />
+      <span className={`text-[13px] font-sans ${isOnline ? 'text-(--text-primary)' : 'text-(--text-muted)'}`}>
         {member.username}
         {member.character_name && (
-          <span style={{ fontSize: '11px', color: 'var(--accent)', marginLeft: '6px' }}>
+          <span className="text-[11px] text-(--accent) ml-1.5">
             {member.character_name.split(' ')[0]}
           </span>
         )}
       </span>
       {isAfk && (
-        <span style={{ fontSize: '10px', color: '#EAB308', marginLeft: 'auto' }}>
+        <span className="text-[10px] text-[#EAB308] ml-auto">
           AFK
         </span>
       )}
       {member.role === 'keeper' && (
-        <span style={{ fontSize: '10px', color: 'var(--accent)', marginLeft: 'auto' }}>
+        <span className="text-[10px] text-(--accent) ml-auto">
           Keeper
         </span>
       )}

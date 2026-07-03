@@ -28,24 +28,15 @@ function formatDie(value, sides) {
 function DigitBox({ digit, severity = 'none' }) {
   const isNone = severity === 'none';
   return (
-    <div style={{
-      width:         '42px',
-      minWidth:      '42px',
-      height:        '50px',
-      borderRadius:  '6px',
-      border:        isNone
-        ? '2px solid var(--text-muted)'
-        : `2px solid var(--roll-${severity}-border)`,
-      background:    'var(--bg-input)',
-      display:       'flex',
-      alignItems:    'center',
-      justifyContent:'center',
-      fontFamily:    'var(--font-serif)',
-      fontSize:      '24px',
-      fontWeight:    '700',
-      color:         isNone ? 'var(--text-primary)' : `var(--roll-${severity}-text)`,
-      boxShadow:     !isNone ? `0 0 2px var(--roll-${severity}-border)` : 'none',
-    }}>
+    // border/color/boxShadow stay inline — severity drives a dynamically-named CSS custom property (roll outcome data), not a fixed token
+    <div
+      className="w-10.5 min-w-10.5 h-12.5 rounded-md bg-(--bg-input) flex items-center justify-center font-serif text-2xl font-bold"
+      style={{
+        border:    isNone ? '2px solid var(--text-muted)' : `2px solid var(--roll-${severity}-border)`,
+        color:     isNone ? 'var(--text-primary)' : `var(--roll-${severity}-text)`,
+        boxShadow: !isNone ? `0 0 2px var(--roll-${severity}-border)` : 'none',
+      }}
+    >
       {digit}
     </div>
   );
@@ -63,16 +54,14 @@ function RollDigits({ value, sides, severity = 'none', groupHighlight }) {
     : 'var(--accent-bg)';
 
   return (
-    <div style={{
-      display:        'flex',
-      gap:            '2px',
-      justifyContent: 'center',
-      padding:        '4px 5px',
-      borderRadius:   '10px',
-      border:         isWinner ? `2px solid ${borderColor}` : '2px solid transparent',
-      background:     isWinner ? bgColor : 'transparent',
-      opacity:        isLoser ? 0.38 : 1,
-    }}>
+    // border/background stay inline — severity-derived color name computed at runtime (roll outcome data)
+    <div
+      className={`flex gap-0.5 justify-center py-1 px-1.25 rounded-[10px] ${isLoser ? 'opacity-[0.38]' : 'opacity-100'}`}
+      style={{
+        border:     isWinner ? `2px solid ${borderColor}` : '2px solid transparent',
+        background: isWinner ? bgColor : 'transparent',
+      }}
+    >
       {formatDie(value, sides).map((d, i) => (
         <DigitBox key={i} digit={d} severity={severity} />
       ))}
@@ -86,17 +75,11 @@ function MultiDieDisplay({ rolls, sides, severity = 'none' }) {
   rolls.forEach((dieValue, dieIndex) => {
     if (dieIndex > 0) {
       items.push(
-        <div key={'sep-' + dieIndex} style={{
-          width:        '2px',
-          height:       '56px',
-          background:   'var(--border-main)',
-          borderRadius: '2px',
-          flexShrink:   0,
-        }} />
+        <div key={'sep-' + dieIndex} className="w-0.5 h-14 bg-(--border-main) rounded-xs shrink-0" />
       );
     }
     items.push(
-      <div key={'die-' + dieIndex} style={{ display: 'flex', gap: '2px' }}>
+      <div key={'die-' + dieIndex} className="flex gap-0.5">
         {formatDie(dieValue, sides).map((digit, digitIndex) => (
           <DigitBox key={digitIndex} digit={digit} severity={severity} />
         ))}
@@ -105,13 +88,7 @@ function MultiDieDisplay({ rolls, sides, severity = 'none' }) {
   });
 
   return (
-    <div style={{
-      display:        'flex',
-      alignItems:     'center',
-      gap:            '6px',
-      justifyContent: 'center',
-      flexWrap:       'wrap',
-    }}>
+    <div className="flex items-center gap-1.5 justify-center flex-wrap">
       {items}
     </div>
   );
@@ -184,78 +161,47 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
     hour: '2-digit', minute: '2-digit',
   });
 
-  const borderRadius = isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px';
-
   return (
     <div
-      style={{
-        display:        'flex',
-        flexDirection:  isOwn ? 'row-reverse' : 'row',
-        marginBottom:   '10px',
-        paddingLeft:    isOwn ? '80px' : '0',
-        paddingRight:   isOwn ? '0' : '80px',
-        minWidth:       0,
-        position:       'relative',
-      }}
+      className={`flex mb-2.5 min-w-0 relative ${isOwn ? 'flex-row-reverse pl-20 pr-0' : 'flex-row pl-0 pr-20'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setMenuOpen(false); }}
     >
       {/* Card + hover-actions wrapper (relative anchor; keeps the card width stable) */}
-      <div style={{ position: 'relative', minWidth: 0, maxWidth: 'min(440px, 100%)' }}>
+      <div className="relative min-w-0 max-w-[min(440px,100%)]">
       {/* Card */}
-      <div style={{
-        display:      'flex',
-        borderRadius,
-        minWidth:     0,
-        maxWidth:     '100%',
-        overflow:     'hidden',
-        border:       msg._hidden
-          ? `2px dashed var(--roll-${severity}-border)`
-          : `1px solid var(--roll-${severity}-border)`,
-        // Opaque parchment base under the (sometimes translucent) severity tint
-        // so the feed background can't bleed through the card.
-        backgroundColor: 'var(--bg-page)',
-        backgroundImage: `linear-gradient(var(--roll-${severity}-bg), var(--roll-${severity}-bg))`,
-      }}>
+      {/* border/backgroundImage stay inline — severity drives a dynamically-named CSS custom property (roll outcome data), not a fixed token */}
+      <div
+        className={`flex min-w-0 max-w-full overflow-hidden bg-(--bg-page) ${isOwn ? 'rounded-[16px_16px_4px_16px]' : 'rounded-[16px_16px_16px_4px]'}`}
+        style={{
+          border: msg._hidden
+            ? `2px dashed var(--roll-${severity}-border)`
+            : `1px solid var(--roll-${severity}-border)`,
+          backgroundImage: `linear-gradient(var(--roll-${severity}-bg), var(--roll-${severity}-bg))`,
+        }}
+      >
 
-        {/* Left colour bar */}
-        <div style={{
-          width:      '5px',
-          flexShrink: 0,
-          background: `var(--roll-${severity}-border)`,
-        }} />
+        {/* Left colour bar — background stays inline, severity-derived */}
+        <div style={{ background: `var(--roll-${severity}-border)` }} className="w-1.25 shrink-0" />
 
         {/* Main content */}
-        <div style={{ flex: 1, padding: '12px 14px', minWidth: 0 }}>
+        <div className="flex-1 py-3 px-3.5 min-w-0">
 
           {/* Top section: [action pill + skill name] alongside [portrait] */}
-          <div style={{
-            display:      'flex',
-            alignItems:   'flex-start',
-            gap:          10,
-            marginBottom: 12,
-          }}>
+          <div className="flex items-start gap-2.5 mb-3">
             {/* Left: action pill stacked above skill name */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                display:      'inline-flex',
-                alignItems:   'center',
-                background:   severity === 'none'
-                  ? 'var(--bg-section-hd)'
-                  : `var(--roll-${severity}-border)`,
-                color:        severity === 'none' ? 'var(--text-secondary)' : '#ffffff',
-                border:       severity === 'none' ? '1px solid var(--border-main)' : 'none',
-                borderRadius: '20px',
-                padding:      '3px 10px',
-                fontSize:     '11px',
-                fontWeight:   '700',
-                letterSpacing:'0.05em',
-                width:        '100%',
-                overflow:     'hidden',
-                marginBottom: '10px',
-              }}>
-                <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <span style={{ fontWeight: '800', textDecoration: 'underline' }}>
+            <div className="flex-1 min-w-0">
+              {/* background/color/border stay inline — severity drives a dynamically-named CSS custom property (roll outcome data) */}
+              <div
+                className="inline-flex items-center rounded-[20px] py-0.75 px-2.5 text-[11px] font-bold tracking-wider w-full overflow-hidden mb-2.5"
+                style={{
+                  background: severity === 'none' ? 'var(--bg-section-hd)' : `var(--roll-${severity}-border)`,
+                  color:      severity === 'none' ? 'var(--text-secondary)' : '#ffffff',
+                  border:     severity === 'none' ? '1px solid var(--border-main)' : 'none',
+                }}
+              >
+                <span className="block truncate">
+                  <span className="font-extrabold underline">
                     {displayName.trim()}
                   </span>
                   {header.slice(displayName.trim().length)}
@@ -263,14 +209,11 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
               </div>
 
               {raw.skillName && (
-                <div style={{
-                  fontFamily:   'var(--font-serif)',
-                  fontSize:     '15px',
-                  color:        `var(--roll-${severity}-text)`,
-                  fontWeight:   '700',
-                  textAlign:    'center',
-                  marginBottom: '10px',
-                }}>
+                // color stays inline — severity-derived, roll outcome data
+                <div
+                  className="font-serif text-[15px] font-bold text-center mb-2.5"
+                  style={{ color: `var(--roll-${severity}-text)` }}
+                >
                   {raw.skillName}
                   {raw.advantage    && ' (Advantage)'}
                   {raw.disadvantage && ' (Disadvantage)'}
@@ -278,26 +221,11 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
               )}
 
               {/* Dice */}
-              <div style={{
-                display:        'flex',
-                alignItems:     'center',
-                justifyContent: 'center',
-                gap:            '8px',
-                flexWrap:       'wrap',
-              }}>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
             {showMeme && (
-              <img src={wojakLeft} alt="" style={{
-                height: '60px', width: 'auto',
-                opacity: 0.85, pointerEvents: 'none', flexShrink: 0,
-              }} />
+              <img src={wojakLeft} alt="" className="h-15 w-auto opacity-85 pointer-events-none shrink-0" />
             )}
-            <div style={{
-              display:        'flex',
-              alignItems:     'center',
-              justifyContent: 'center',
-              gap:            '8px',
-              flexWrap:       'wrap',
-            }}>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
               {hasAdvDis && raw.advDisRolls ? (() => {
                 const v0 = raw.advDisRolls[0].reduce((a, b) => a + b, 0) || 100;
                 const v1 = raw.advDisRolls[1].reduce((a, b) => a + b, 0) || 100;
@@ -311,12 +239,7 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
                       severity={g0w ? severity : 'none'}
                       groupHighlight={g0w ? 'winner' : 'loser'}
                     />
-                    <div style={{
-                      width:        '2px',
-                      height:       '56px',
-                      background:   'var(--border-main)',
-                      borderRadius: '2px',
-                    }} />
+                    <div className="w-0.5 h-14 bg-(--border-main) rounded-xs" />
                     <RollDigits
                       value={v1 === 100 ? 0 : v1}
                       sides={sides}
@@ -334,10 +257,7 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
               )}
             </div>
             {showMeme && (
-              <img src={wojakRight} alt="" style={{
-                height: '60px', width: 'auto',
-                opacity: 0.85, pointerEvents: 'none', flexShrink: 0,
-              }} />
+              <img src={wojakRight} alt="" className="h-15 w-auto opacity-85 pointer-events-none shrink-0" />
             )}
           </div>
 
@@ -345,66 +265,54 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
 
             {/* Portrait — right, spans the content block height */}
             {showPortrait && (
-              <div style={{ flexShrink: 0, width: '56px', height: '64px' }}>
+              <div className="shrink-0 w-14 h-16">
                 <img
                   src={msg.portrait
                     ? 'data:image/jpeg;base64,' + msg.portrait
                     : (import.meta.env.VITE_API_URL || '') + msg.avatar_url}
                   alt={msg.username}
-                  style={{
-                    width:        '100%',
-                    height:       '100%',
-                    borderRadius: '4px',
-                    objectFit:    'cover',
-                    border:       '1px solid var(--border-main)',
-                    display:      'block',
-                  }}
+                  className="w-full h-full rounded-sm object-cover border border-(--border-main) block"
                 />
               </div>
             )}
           </div>
 
           {/* Bottom row: result (left) + time pill (right) */}
-          <div style={{
-            display:        'flex',
-            alignItems:     'center',
-            justifyContent: hasResultLine ? 'space-between' : 'flex-end',
-            gap:            8,
-            marginTop:      10,
-            fontFamily:     'var(--font-sans)',
-          }}>
+          <div className={`flex items-center gap-2 mt-2.5 font-sans ${hasResultLine ? 'justify-between' : 'justify-end'}`}>
             {/* Result */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontSize: '12px', minWidth: 0 }}>
+            <div className="flex items-center gap-1.5 flex-wrap text-xs min-w-0">
               {sl && (
                 <>
-                  <span style={{ color: `var(--roll-${severity}-text)`, fontWeight: 600 }}>
+                  {/* color stays inline — severity-derived, roll outcome data */}
+                  <span className="font-semibold" style={{ color: `var(--roll-${severity}-text)` }}>
                     {sl.emoji} {sl.label}
                     {raw.skillValue && (
-                      <span style={{ fontWeight: '400', opacity: 0.7, marginLeft: 4 }}>
+                      <span className="font-normal opacity-70 ml-1">
                         ({raw.total})
                       </span>
                     )}
                   </span>
                   {raw.skillValue && (
                     <>
-                      <span style={{ color: 'var(--text-faint)' }}>||</span>
-                      <span style={{ color: 'var(--text-faint)' }}>Reg ({raw.skillValue})</span>
+                      <span className="text-(--text-faint)">||</span>
+                      <span className="text-(--text-faint)">Reg ({raw.skillValue})</span>
                     </>
                   )}
                 </>
               )}
               {/* Sum line for multi-die rolls */}
               {showSum && (
-                <span style={{ color: 'var(--text-muted)' }}>
+                <span className="text-(--text-muted)">
                   {raw.rolls.join(' + ')}
                   {raw.modifier !== 0 ? (raw.modifier > 0 ? ' + ' : ' − ') + Math.abs(raw.modifier) : ''}
                   {' = '}
+                  {/* color stays inline — severity-derived, roll outcome data */}
                   <strong style={{ color: `var(--roll-${severity}-text)` }}>{raw.total}</strong>
                 </span>
               )}
               {/* Damage total */}
               {raw.isDamage && (
-                <span style={{ color: 'var(--roll-none-text)' }}>
+                <span className="text-(--roll-none-text)">
                   {raw.weaponName} · {raw.rolls.join(' + ')}
                   {raw.modifier !== 0 ? (raw.modifier > 0 ? ' + ' : ' − ') + Math.abs(raw.modifier) : ''}
                   {' = '}
@@ -412,44 +320,28 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
                 </span>
               )}
               {!raw.isDamage && raw.skillName?.startsWith('Attack') && sl && (
-                <span style={{
-                  fontWeight: '700',
-                  color:      isHit ? 'var(--roll-regular-text)' : 'var(--roll-failure-text)',
-                  marginLeft: 4,
-                }}>
+                <span className={`font-bold ml-1 ${isHit ? 'text-(--roll-regular-text)' : 'text-(--roll-failure-text)'}`}>
                   {isHit ? '· Hit! (' + raw.skillValue + ')' : '· Miss! (' + raw.skillValue + ')'}
                 </span>
               )}
             </div>
 
-            {/* Time pill */}
-            <div style={{
-              background:   severity === 'none'
-                ? 'var(--bg-section-hd)'
-                : `var(--roll-${severity}-border)`,
-              border:       severity === 'none' ? '1px solid var(--border-main)' : 'none',
-              borderRadius: '20px',
-              padding:      '3px 10px',
-              fontSize:     '11px',
-              fontWeight:   '700',
-              letterSpacing:'0.05em',
-              color:        severity === 'none' ? 'var(--text-muted)' : 'rgba(255,255,255,0.85)',
-              flexShrink:   0,
-              whiteSpace:   'nowrap',
-            }}>
+            {/* Time pill — background/border/color stay inline, severity-derived */}
+            <div
+              className="rounded-[20px] py-0.75 px-2.5 text-[11px] font-bold tracking-wider shrink-0 whitespace-nowrap"
+              style={{
+                background: severity === 'none' ? 'var(--bg-section-hd)' : `var(--roll-${severity}-border)`,
+                border:     severity === 'none' ? '1px solid var(--border-main)' : 'none',
+                color:      severity === 'none' ? 'var(--text-muted)' : 'rgba(255,255,255,0.85)',
+              }}
+            >
               {time}
             </div>
           </div>
 
           {/* Hidden roll indicator */}
           {msg._hidden && (
-            <div style={{
-              fontSize:  '10px',
-              color:     'var(--text-faint)',
-              fontStyle: 'italic',
-              marginTop: '8px',
-              textAlign: 'center',
-            }}>
+            <div className="text-[10px] text-(--text-faint) italic mt-2 text-center">
               <span className="icon icon-sm">lock</span>{' '}Only visible to you
             </div>
           )}
@@ -458,67 +350,25 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
 
       {/* Three-dot action button — absolutely placed so it never changes the card width */}
       {canDelete && (hovered || menuOpen) && (
-        <div style={{
-          position: 'absolute',
-          bottom:   0,
-          ...(isOwn
-            ? { right: '100%', marginRight: 8 }
-            : { left:  '100%', marginLeft:  8 }),
-        }}>
+        <div className={`absolute bottom-0 ${isOwn ? 'right-full mr-2' : 'left-full ml-2'}`}>
           <Tooltip content="Message actions">
           <button
             onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
-            style={{
-              background:    'var(--bg-card)',
-              border:        '1px solid var(--border-subtle)',
-              borderRadius:  6,
-              cursor:        'pointer',
-              color:         'var(--text-muted)',
-              padding:       '2px 4px',
-              display:       'flex',
-              alignItems:    'center',
-              justifyContent:'center',
-            }}
+            className="bg-(--bg-card) border border-(--border-subtle) rounded-md cursor-pointer text-(--text-muted) py-0.5 px-1 flex items-center justify-center"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>more_vert</span>
+            <span className="material-symbols-outlined text-base">more_vert</span>
           </button>
           </Tooltip>
 
           {menuOpen && (
-            <div style={{
-              position:     'absolute',
-              bottom:       '100%',
-              left:         isOwn ? 0 : 'auto',
-              right:        isOwn ? 'auto' : 0,
-              marginBottom: 4,
-              background: 'var(--bg-card)',
-              border:     '1px solid var(--border-subtle)',
-              borderRadius: 8,
-              boxShadow:  'var(--shadow-dropdown)',
-              zIndex:     200,
-              minWidth:   120,
-              overflow:   'hidden',
-            }}>
+            <div className={`absolute bottom-full mb-1 bg-(--bg-card) border border-(--border-subtle) rounded-lg shadow-(--shadow-dropdown) z-200 min-w-30 overflow-hidden ${isOwn ? 'left-0 right-auto' : 'right-0 left-auto'}`}>
               <button
                 onClick={handleDelete}
-                style={{
-                  display:     'flex',
-                  alignItems:  'center',
-                  gap:         6,
-                  width:       '100%',
-                  padding:     '8px 12px',
-                  background:  'none',
-                  border:      'none',
-                  cursor:      'pointer',
-                  color:       '#dc2626',
-                  fontSize:    13,
-                  fontFamily:  'var(--font-sans)',
-                  textAlign:   'left',
-                }}
+                className="flex items-center gap-1.5 w-full py-2 px-3 bg-none border-none cursor-pointer text-[#dc2626] text-[13px] font-sans text-left"
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.08)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'none'}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
+                <span className="material-symbols-outlined text-[15px]">delete</span>
                 Delete
               </button>
             </div>
@@ -533,30 +383,17 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
 // ── Roll Card Skeleton ─────────────────────────────────────────
 function RollCardSkeleton({ isOwn }) {
   return (
-    <div style={{
-      display:        'flex',
-      justifyContent: isOwn ? 'flex-end' : 'flex-start',
-      marginBottom:   '10px',
-      paddingLeft:    isOwn ? '80px' : '0',
-      paddingRight:   isOwn ? '0' : '80px',
-    }}>
-      <div style={{
-        display:      'flex',
-        background:   'var(--bg-card)',
-        border:       '1px solid var(--border-main)',
-        borderRadius: isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-        overflow:     'hidden',
-        minWidth:     '200px',
-      }}>
-        <div style={{ width: '5px', flexShrink: 0, background: 'var(--border-main)' }} />
-        <div style={{ flex: 1, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-            <div className="skeleton-box" style={{ height: '22px', flex: 1, borderRadius: '20px' }} />
-            <div className="skeleton-box" style={{ height: '22px', width: '48px', borderRadius: '20px' }} />
+    <div className={`flex mb-2.5 ${isOwn ? 'justify-end pl-20 pr-0' : 'justify-start pl-0 pr-20'}`}>
+      <div className={`flex bg-(--bg-card) border border-(--border-main) overflow-hidden min-w-50 ${isOwn ? 'rounded-[16px_16px_4px_16px]' : 'rounded-[16px_16px_16px_4px]'}`}>
+        <div className="w-1.25 shrink-0 bg-(--border-main)" />
+        <div className="flex-1 py-3 px-3.5 flex flex-col gap-3">
+          <div className="flex justify-between gap-2.5">
+            <div className="skeleton-box h-5.5 flex-1 rounded-[20px]" />
+            <div className="skeleton-box h-5.5 w-12 rounded-[20px]" />
           </div>
-          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', padding: '4px 0' }}>
+          <div className="flex gap-1.5 justify-center py-1 px-0">
             {[1, 2].map(i => (
-              <div key={i} className="skeleton-box" style={{ width: '42px', height: '50px', borderRadius: '6px' }} />
+              <div key={i} className="skeleton-box w-10.5 h-12.5 rounded-md" />
             ))}
           </div>
         </div>

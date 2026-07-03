@@ -36,45 +36,18 @@ export default function RoomSubNav({ tabs, activeTab, onTabChange, rightSlot }) 
   }, [activeTab]);
 
   return (
-    <div style={{
-      display:       'flex',
-      alignItems:    'center',
-      flexShrink:    0,
-      gap:           '8px',
-      padding:       '8px 10px',
-      background:    'var(--bg-card)',
-      borderBottom:  '1px solid var(--border-main)',
-    }}>
+    <div className="flex items-center shrink-0 gap-2 py-2 px-2.5 bg-(--bg-card) border-b border-(--border-main)">
       {/* Segmented pill container */}
       <div
         ref={containerRef}
-        style={{
-          position:     'relative',
-          display:      'flex',
-          alignItems:   'center',
-          gap:          '4px',
-          padding:      '3px',
-          borderRadius: '999px',
-          background:   'var(--bg-section-hd)',
-          border:       '1px solid var(--border-main)',
-        }}
+        className="relative flex items-center gap-1 p-[3px] rounded-full bg-(--bg-section-hd) border border-(--border-main)"
       >
         {/* Single sliding pill — morphs behind the active segment */}
         {pillBounds && (
           <div
-            style={{
-              position:      'absolute',
-              top:           '3px',
-              bottom:        '3px',
-              left:          pillBounds.left,
-              width:         pillBounds.width,
-              borderRadius:  '999px',
-              background:    'var(--accent-bg)',
-              border:        '1.5px solid var(--color-primary)',
-              zIndex:        0,
-              pointerEvents: 'none',
-              transition:    'left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
+            // left/width are runtime-measured (offsetLeft/offsetWidth) — stay inline
+            className="absolute top-[3px] bottom-[3px] rounded-full bg-(--accent-bg) border-[1.5px] border-(--color-primary) z-0 pointer-events-none [transition:left_0.3s_cubic-bezier(0.4,0,0.2,1),width_0.3s_cubic-bezier(0.4,0,0.2,1)]"
+            style={{ left: pillBounds.left, width: pillBounds.width }}
           />
         )}
 
@@ -85,29 +58,7 @@ export default function RoomSubNav({ tabs, activeTab, onTabChange, rightSlot }) 
               key={tab.id}
               ref={el => { tabRefs.current[tab.id] = el; }}
               onClick={tab.comingSoon ? undefined : () => onTabChange(tab.id)}
-              style={{
-                position:       'relative',
-                zIndex:         1,
-                display:        'flex',
-                alignItems:     'center',
-                gap:            '6px',
-                padding:        '5px 14px',
-                borderRadius:   '999px',
-                background:     'transparent',
-                border:         '1.5px solid transparent',
-                color:          tab.comingSoon
-                  ? 'var(--text-faint)'
-                  : isActive
-                    ? 'var(--accent)'
-                    : 'var(--text-muted)',
-                fontFamily:     'var(--font-sans)',
-                fontSize:       '13px',
-                fontWeight:     isActive ? '600' : '400',
-                cursor:         tab.comingSoon ? 'default' : 'pointer',
-                opacity:        tab.comingSoon ? 0.55 : 1,
-                transition:     'color 0.15s ease-in-out',
-                whiteSpace:     'nowrap',
-              }}
+              className={`relative z-1 flex items-center gap-1.5 py-1.25 px-3.5 rounded-full bg-transparent border-[1.5px] border-transparent font-sans text-[13px] [transition:color_0.15s_ease-in-out] whitespace-nowrap ${tab.comingSoon ? 'text-(--text-faint) font-normal cursor-default opacity-55' : isActive ? 'text-(--accent) font-semibold cursor-pointer' : 'text-(--text-muted) font-normal cursor-pointer'}`}
               onMouseEnter={e => {
                 if (!isActive && !tab.comingSoon)
                   e.currentTarget.style.color = 'var(--text-secondary)';
@@ -119,25 +70,12 @@ export default function RoomSubNav({ tabs, activeTab, onTabChange, rightSlot }) 
             >
               {tab.label}
               {tab.badge > 0 && (
-                <span style={{
-                  marginLeft: 2, background: '#3B6D11', color: '#EAF3DE',
-                  fontSize: 9, padding: '1px 4px', borderRadius: 10, lineHeight: '1.4',
-                }}>
+                <span className="ml-0.5 bg-[#3B6D11] text-[#EAF3DE] text-[9px] py-px px-1 rounded-[10px] leading-[1.4]">
                   {tab.badge}
                 </span>
               )}
               {tab.comingSoon && (
-                <span style={{
-                  fontSize:       '10px',
-                  fontWeight:     '600',
-                  letterSpacing:  '0.04em',
-                  background:     'var(--bg-section-hd)',
-                  border:         '1px solid var(--border-main)',
-                  borderRadius:   '4px',
-                  padding:        '1px 5px',
-                  color:          'var(--text-faint)',
-                  lineHeight:     '1.4',
-                }}>
+                <span className="text-[10px] font-semibold tracking-[0.04em] bg-(--bg-section-hd) border border-(--border-main) rounded-sm py-px px-1.25 text-(--text-faint) leading-[1.4]">
                   Soon
                 </span>
               )}
@@ -147,12 +85,7 @@ export default function RoomSubNav({ tabs, activeTab, onTabChange, rightSlot }) 
       </div>
 
       {rightSlot && (
-        <div style={{
-          marginLeft:  'auto',
-          display:     'flex',
-          alignItems:  'center',
-          paddingRight:'4px',
-        }}>
+        <div className="ml-auto flex items-center pr-1">
           {rightSlot}
         </div>
       )}

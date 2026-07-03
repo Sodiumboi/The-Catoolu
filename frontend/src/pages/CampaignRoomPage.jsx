@@ -1053,15 +1053,10 @@ export default function CampaignRoomPage() {
   );
 
   if (error) return (
-    <div style={{
-      minHeight:'100vh', background:'var(--bg-page)',
-      display:'flex', flexDirection:'column',
-      alignItems:'center', justifyContent:'center', gap:'16px',
-      fontFamily:'var(--font-sans)',
-    }}>
-      <p style={{ color:'var(--danger)' }}>{error}</p>
+    <div className="min-h-screen bg-(--bg-page) flex flex-col items-center justify-center gap-4 font-sans">
+      <p className="text-(--danger)">{error}</p>
       <button onClick={() => navigate('/campaign')}
-              style={{ color:'var(--accent)', background:'none', border:'none', cursor:'pointer' }}>
+              className="text-(--accent) bg-none border-none cursor-pointer">
         ← Back to Campaigns
       </button>
     </div>
@@ -1070,13 +1065,7 @@ export default function CampaignRoomPage() {
   // myCharFullData is populated by the effect above whenever myCharacter changes
 
   return (
-    <div style={{
-      height:        '100vh',
-      display:       'flex',
-      flexDirection: 'column',
-      background:    'var(--bg-page)',
-      overflow:      'hidden',
-    }}>
+    <div className="h-screen flex flex-col bg-(--bg-page) overflow-hidden">
 
 
 {/* Player: incoming keeper roll request pills */}
@@ -1129,10 +1118,11 @@ export default function CampaignRoomPage() {
 
       <NavBar activeTab="campaign" />
 
-      <div className="animate-fade" style={{ display:'flex', flexDirection:'column', flex:1, overflow:'hidden', '--room-font-scale': roomFontScale, zoom: roomFontScale }}>
+      {/* --room-font-scale / zoom stay inline — live theme setting, not static styling */}
+      <div className="animate-fade flex flex-col flex-1 overflow-hidden" style={{ '--room-font-scale': roomFontScale, zoom: roomFontScale }}>
 
       {/* Main content */}
-      <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
+      <div className="flex-1 flex overflow-hidden">
 
         {/* Left: sub-nav + character sheet OR Keeper player cards */}
         {(() => {
@@ -1149,100 +1139,36 @@ export default function CampaignRoomPage() {
           const tabs = myRole === 'keeper' ? keeperTabs : playerTabs;
 
           const comingSoonPanel = (
-            <div style={{
-              display:        'flex',
-              flexDirection:  'column',
-              alignItems:     'center',
-              justifyContent: 'center',
-              height:         '100%',
-              gap:            '0.75rem',
-              color:          'var(--text-faint)',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 40 }}>
+            <div className="flex flex-col items-center justify-center h-full gap-3 text-(--text-faint)">
+              <span className="material-symbols-outlined text-[40px]">
                 construction
               </span>
-              <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: '14px' }}>
+              <p className="m-0 font-sans text-sm">
                 Coming in a future update
               </p>
             </div>
           );
 
           return (
-            <div style={{
-              width:         leftWidth + 'px',
-              minWidth:      '480px',
-              flexShrink:    0,
-              display:       'flex',
-              flexDirection: 'column',
-              background:    'var(--bg-page)',
-              overflow:      'hidden',
-              '--sheet-font-scale': sheetFontScale,
-            }}>
+            // width stays inline — leftWidth is live drag-resize state; --sheet-font-scale stays inline — live theme setting
+            <div className="min-w-120 shrink-0 flex flex-col bg-(--bg-page) overflow-hidden" style={{ width: leftWidth + 'px', '--sheet-font-scale': sheetFontScale }}>
 
               {/* Left panel header — campaign name + connection dot + AFK toggle */}
-              <div style={{
-                padding:       '6px 16px',
-                borderBottom:  '1px solid var(--border-main)',
-                background:    'var(--bg-nav)',
-                display:       'flex',
-                alignItems:    'center',
-                justifyContent:'space-between',
-                flexShrink:    0,
-                gap:           '12px',
-              }}>
-                <div style={{ display:'flex', alignItems:'center', gap:'8px', minWidth:0 }}>
-                  <span style={{
-                    width:        '8px',
-                    height:       '8px',
-                    borderRadius: '50%',
-                    flexShrink:   0,
-                    background:   connected && inRoom ? '#22c55e' : !connected ? '#ef4444' : '#EAB308',
-                    animation:    connected && inRoom
-                      ? 'dot-breathe-green 2.5s ease-in-out infinite'
-                      : connected
-                        ? 'dot-breathe-yellow 1.2s ease-in-out infinite'
-                        : 'none',
-                  }} />
-                  <h2 style={{
-                    fontFamily:   'var(--font-serif)',
-                    fontSize:     '15px',
-                    color:        'var(--text-primary)',
-                    margin:       0,
-                    overflow:     'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace:   'nowrap',
-                  }}>
+              <div className="py-1.5 px-4 border-b border-(--border-main) bg-(--bg-nav) flex items-center justify-between shrink-0 gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${connected && inRoom ? 'bg-[#22c55e] animate-[dot-breathe-green_2.5s_ease-in-out_infinite]' : !connected ? 'bg-[#ef4444]' : 'bg-[#EAB308] animate-[dot-breathe-yellow_1.2s_ease-in-out_infinite]'}`} />
+                  <h2 className="font-serif text-[15px] text-(--text-primary) m-0 truncate">
                     {campaign?.name}
                   </h2>
                   {myRole && (
-                    <span style={{
-                      background:   'var(--bg-section-hd)',
-                      border:       '1px solid var(--border-main)',
-                      borderRadius: '4px',
-                      padding:      '1px 6px',
-                      fontSize:     '11px',
-                      color:        'var(--text-primary)',
-                      fontFamily:   'var(--font-sans)',
-                      flexShrink:   0,
-                    }}>
+                    <span className="bg-(--bg-section-hd) border border-(--border-main) rounded-sm py-px px-1.5 text-[11px] text-(--text-primary) font-sans shrink-0">
                       {myRole}
                     </span>
                   )}
                 </div>
                 <button
                   onClick={handleToggleAfk}
-                  style={{
-                    padding:      '4px 12px',
-                    borderRadius: '8px',
-                    border:       '1px solid var(--border-main)',
-                    background:   afk ? 'var(--bg-section-hd)' : 'transparent',
-                    color:        afk ? '#EAB308' : 'var(--text-muted)',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '12px',
-                    cursor:       'pointer',
-                    transition:   'all 0.15s ease',
-                    flexShrink:   0,
-                  }}
+                  className={`py-1 px-3 rounded-lg border border-(--border-main) font-sans text-xs cursor-pointer [transition:all_0.15s] shrink-0 ${afk ? 'bg-(--bg-section-hd) text-[#EAB308]' : 'bg-transparent text-(--text-muted)'}`}
                 >
                   {afk ? "I'm Here" : "I'm Not Here"}
                 </button>
@@ -1263,22 +1189,7 @@ export default function CampaignRoomPage() {
                       else if (notesState === 'bubble') setNotesState('full');
                       else setNotesState('bubble');
                     }}
-                    style={{
-                      display:      'flex',
-                      alignItems:   'center',
-                      gap:          '5px',
-                      padding:      '4px 12px',
-                      borderRadius: '999px',
-                      border:       notesState !== 'closed' ? '1px solid var(--accent)' : '1px solid var(--border-main)',
-                      background:   notesState !== 'closed' ? 'var(--accent-bg)' : 'transparent',
-                      color:        notesState !== 'closed' ? 'var(--accent)' : 'var(--text-muted)',
-                      fontFamily:   'var(--font-sans)',
-                      fontSize:     '12px',
-                      fontWeight:   500,
-                      cursor:       'pointer',
-                      transition:   'all 0.15s ease',
-                      whiteSpace:   'nowrap',
-                    }}
+                    className={`flex items-center gap-1.25 py-1 px-3 rounded-full font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap ${notesState !== 'closed' ? 'border border-(--accent) bg-(--accent-bg) text-(--accent)' : 'border border-(--border-main) bg-transparent text-(--text-muted)'}`}
                     onMouseEnter={e => {
                       if (notesState === 'closed') {
                         e.currentTarget.style.borderColor = 'var(--accent)';
@@ -1293,20 +1204,14 @@ export default function CampaignRoomPage() {
                     }}
                   >
                     Notes
-                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>open_in_new</span>
+                    <span className="material-symbols-outlined text-[15px]">open_in_new</span>
                   </button>
                   </Tooltip>
                 }
               />
 
-              <div key={subTab} className="animate-fade" style={{
-                flex:          1,
-                overflowY:     subTab === 'notes' ? 'hidden' : 'auto',
-                overscrollBehavior: 'contain',
-                padding:       subTab === 'main' && myRole === 'keeper' && keeperSheetModal ? 0 : subTab === 'main' ? '12px' : 0,
-                display:       subTab === 'notes' ? 'flex' : undefined,
-                flexDirection: subTab === 'notes' ? 'column' : undefined,
-              }}>
+              {/* subTab !== 'notes' branch omits display entirely — div defaults to block, which is how it already rendered (not hidden by anything else) */}
+              <div key={subTab} className={`animate-fade flex-1 overscroll-contain ${subTab === 'notes' ? 'overflow-y-hidden flex flex-col' : 'overflow-y-auto'} ${subTab === 'main' && myRole === 'keeper' && keeperSheetModal ? 'p-0' : subTab === 'main' ? 'p-3' : 'p-0'}`}>
                 {subTab === 'notes' && myRole === 'keeper' ? (
                   <NotesPane contextTagType="session" contextTag={campaign?.name} />
                 ) : subTab === 'handouts' && myRole === 'keeper' ? (
@@ -1320,21 +1225,11 @@ export default function CampaignRoomPage() {
                   <BoutsOfMadnessPanel />
                 ) : subTab === 'possessions' ? (
                   myCharFullData ? (
-                    <div style={{ padding: '12px' }}>
-                      <div style={{
-                        fontSize:      'calc(9px * var(--sheet-font-scale))',
-                        fontWeight:    '600',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        color:         'var(--accent)',
-                        fontFamily:    'var(--font-sans)',
-                        padding:       '4px 8px',
-                        borderBottom:  '1px solid var(--border-main)',
-                        marginBottom:  '6px',
-                      }}>
+                    <div className="p-3">
+                      <div className="text-[calc(9px*var(--sheet-font-scale))] font-semibold uppercase tracking-[0.08em] text-(--accent) font-sans py-1 px-2 border-b border-(--border-main) mb-1.5">
                         Possessions &amp; Equipment
                       </div>
-                      <div style={{ padding: '0 4px' }}>
+                      <div className="py-0 px-1">
                         <PossessionsList
                           items={(() => {
                             const raw = myCharFullData?.sheet_data?.Investigator?.Possessions?.item;
@@ -1345,13 +1240,7 @@ export default function CampaignRoomPage() {
                       </div>
                     </div>
                   ) : (
-                    <div style={{
-                      fontSize:  '13px',
-                      color:     'var(--text-faint)',
-                      fontStyle: 'italic',
-                      textAlign: 'center',
-                      padding:   '24px 16px',
-                    }}>
+                    <div className="text-[13px] text-(--text-faint) italic text-center py-6 px-4">
                       No investigator registered.<br/>
                       Select one in the Players tab →
                     </div>
@@ -1361,24 +1250,7 @@ export default function CampaignRoomPage() {
                     <>
                       <button
                         onClick={() => setKeeperSheetModal(null)}
-                        style={{
-                          position:     'sticky',
-                          top:          0,
-                          zIndex:       10,
-                          display:      'flex',
-                          alignItems:   'center',
-                          gap:          '4px',
-                          width:        '100%',
-                          background:   'var(--bg-page)',
-                          border:       'none',
-                          borderBottom: '1px solid var(--border-main)',
-                          cursor:       'pointer',
-                          color:        'var(--text-muted)',
-                          fontFamily:   'var(--font-sans)',
-                          fontSize:     '12px',
-                          padding:      '10px 12px',
-                          boxSizing:    'border-box',
-                        }}
+                        className="sticky top-0 z-10 flex items-center gap-1 w-full bg-(--bg-page) border-none border-b border-(--border-main) cursor-pointer text-(--text-muted) font-sans text-xs py-2.5 px-3 box-border"
                         onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
                         onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                       >
@@ -1386,52 +1258,26 @@ export default function CampaignRoomPage() {
                         Back to Investigators
                       </button>
                       {keeperSheetModal._error ? (
-                        <div style={{ padding: '40px', textAlign: 'center',
-                                      color: 'var(--text-faint)', fontStyle: 'italic' }}>
+                        <div className="p-10 text-center text-(--text-faint) italic">
                           Could not load character sheet.
                         </div>
                       ) : (
-                        <div style={{ padding: '12px' }}>
+                        <div className="p-3">
                           <ReadOnlySheet charData={keeperSheetModal} />
                         </div>
                       )}
                     </>
                   ) : (
                     <>
-                      <div style={{
-                        display:        'flex',
-                        alignItems:     'center',
-                        justifyContent: 'space-between',
-                        marginBottom:   '10px',
-                      }}>
-                        <div style={{
-                          fontSize:      '11px',
-                          fontWeight:    '600',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.07em',
-                          color:         'var(--text-muted)',
-                          fontFamily:    'var(--font-sans)',
-                        }}>
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.07em] text-(--text-muted) font-sans">
                           Investigators ({members.filter(m => m.role === 'player').length})
                         </div>
                         {members.some(m => m.role === 'player' && m.character_uuid) && (
                           <Tooltip content="Request a roll from all players">
                           <button
                             onClick={e => handleOpenAllRollPicker(e.currentTarget.getBoundingClientRect())}
-                            style={{
-                              display:      'flex',
-                              alignItems:   'center',
-                              gap:          '4px',
-                              padding:      '3px 8px',
-                              borderRadius: '6px',
-                              border:       '1px solid var(--border-main)',
-                              background:   'none',
-                              color:        'var(--text-muted)',
-                              fontFamily:   'var(--font-sans)',
-                              fontSize:     '11px',
-                              cursor:       'pointer',
-                              transition:   'all 0.1s',
-                            }}
+                            className="flex items-center gap-1 py-0.75 px-2 rounded-md border border-(--border-main) bg-none text-(--text-muted) font-sans text-[11px] cursor-pointer [transition:all_0.1s]"
                             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
                             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-main)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                           >
@@ -1460,13 +1306,7 @@ export default function CampaignRoomPage() {
                         })
                       }
                       {members.filter(m => m.role === 'player').length === 0 && (
-                        <div style={{
-                          fontSize:  '13px',
-                          color:     'var(--text-faint)',
-                          fontStyle: 'italic',
-                          textAlign: 'center',
-                          padding:   '24px 0',
-                        }}>
+                        <div className="text-[13px] text-(--text-faint) italic text-center py-6 px-0">
                           No players have joined yet.
                         </div>
                       )}
@@ -1483,13 +1323,7 @@ export default function CampaignRoomPage() {
                     onStatBlur={handleStatBlur}
                   />
                 ) : (
-                  <div style={{
-                    fontSize:  '13px',
-                    color:     'var(--text-faint)',
-                    fontStyle: 'italic',
-                    textAlign: 'center',
-                    padding:   '24px 16px',
-                  }}>
+                  <div className="text-[13px] text-(--text-faint) italic text-center py-6 px-4">
                     No investigator registered.<br/>
                     Select one in the Players tab →
                   </div>
@@ -1504,24 +1338,11 @@ export default function CampaignRoomPage() {
           onMouseDown={handlePanelDragStart}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--accent)'}
           onMouseLeave={e => e.currentTarget.style.background = 'var(--border-main)'}
-          style={{
-            width:      '4px',
-            flexShrink: 0,
-            background: 'var(--border-main)',
-            cursor:     'col-resize',
-            transition: 'background 0.15s ease',
-            zIndex:     10,
-          }}
+          className="w-1 shrink-0 bg-(--border-main) cursor-col-resize [transition:background_0.15s] z-10"
         />
 
         {/* Middle: roll feed */}
-        <div style={{
-          flex:          1,
-          display:       'flex',
-          flexDirection: 'column',
-          overflow:      'hidden',
-          background:    'var(--bg-page)',
-        }}>
+        <div className="flex-1 flex flex-col overflow-hidden bg-(--bg-page)">
           <RollFeed
             messages={messages}
             currentUserId={user?.id}
@@ -1538,11 +1359,7 @@ export default function CampaignRoomPage() {
 
           {/* Typing indicator */}
           {typingUsers.length > 0 && (
-            <div style={{
-              padding:'4px 16px 8px', fontSize:'12px',
-              color:'var(--text-faint)', fontStyle:'italic',
-              fontFamily:'var(--font-sans)',
-            }}>
+            <div className="pt-1 px-4 pb-2 text-xs text-(--text-faint) italic font-sans">
               {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
             </div>
           )}

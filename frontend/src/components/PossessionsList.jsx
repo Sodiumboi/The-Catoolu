@@ -41,45 +41,20 @@ export default function PossessionsList({ items, onChange }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+    <div className="flex flex-col gap-1">
       {rows.map((value, idx) => (
-        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div key={idx} className="flex items-center gap-1">
           <input
             type="text"
             value={value}
             placeholder="Item description…"
             onChange={e => updateRow(idx, e.target.value)}
-            style={{
-              flex:         1,
-              minWidth:     0,
-              padding:      '5px 8px',
-              borderRadius: '6px',
-              border:       '1px solid var(--border-input)',
-              background:   'var(--bg-input)',
-              color:        'var(--text-primary)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '11px',
-              outline:      'none',
-              boxSizing:    'border-box',
-            }}
+            className="flex-1 min-w-0 py-1.25 px-2 rounded-md border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-[11px] outline-none! box-border input-focus-glow focus:border-(--border-focus)"
           />
           <button
             onClick={() => deleteRow(idx)}
             title="Remove item"
-            style={{
-              flexShrink:   0,
-              width:        '28px',
-              height:       '28px',
-              borderRadius: '6px',
-              border:       '1px solid var(--border-main)',
-              background:   'var(--bg-input)',
-              color:        'var(--text-muted)',
-              cursor:       'pointer',
-              display:      'flex',
-              alignItems:   'center',
-              justifyContent: 'center',
-              transition:   'all 0.1s ease',
-            }}
+            className="shrink-0 w-7 h-7 rounded-md border border-(--border-main) bg-(--bg-input) text-(--text-muted) cursor-pointer flex items-center justify-center [transition:all_0.1s]"
             onMouseEnter={e => {
               e.currentTarget.style.background  = 'var(--danger-bg)';
               e.currentTarget.style.borderColor = 'var(--danger)';
@@ -97,35 +72,14 @@ export default function PossessionsList({ items, onChange }) {
       ))}
 
       {rows.length === 0 && (
-        <div style={{
-          fontSize:  '11px',
-          color:     'var(--text-faint)',
-          fontStyle: 'italic',
-          padding:   '2px 4px',
-        }}>
+        <div className="text-[11px] text-(--text-faint) italic py-0.5 px-1">
           No possessions yet.
         </div>
       )}
 
       <button
         onClick={addRow}
-        style={{
-          marginTop:    '2px',
-          display:      'flex',
-          alignItems:   'center',
-          justifyContent: 'center',
-          gap:          '4px',
-          padding:      '5px 8px',
-          borderRadius: '6px',
-          border:       '1px dashed var(--border-main)',
-          background:   'var(--bg-input)',
-          color:        'var(--accent)',
-          fontFamily:   'var(--font-sans)',
-          fontSize:     '11px',
-          fontWeight:   '600',
-          cursor:       'pointer',
-          transition:   'all 0.1s ease',
-        }}
+        className="mt-0.5 flex items-center justify-center gap-1 py-1.25 px-2 rounded-md border border-dashed border-(--border-main) bg-(--bg-input) text-(--accent) font-sans text-[11px] font-semibold cursor-pointer [transition:all_0.1s]"
         onMouseEnter={e => {
           e.currentTarget.style.background  = 'var(--accent-bg)';
           e.currentTarget.style.borderColor = 'var(--accent)';

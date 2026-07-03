@@ -8,14 +8,7 @@ import OptimisticChatCard from './OptimisticChatCard';
 
 function SystemMessage({ msg }) {
   return (
-    <div style={{
-      textAlign:  'center',
-      padding:    '6px 0',
-      fontSize:   '12px',
-      color:      'var(--text-faint)',
-      fontStyle:  'italic',
-      fontFamily: 'var(--font-sans)',
-    }}>
+    <div className="text-center py-1.5 px-0 text-xs text-(--text-faint) italic font-sans">
       — {msg.content} —
     </div>
   );
@@ -148,39 +141,24 @@ export default function RollFeed({
   const isKeeper = myRole === 'keeper';
 
   return (
-    <div style={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+    <div className="relative flex-1 min-h-0 flex flex-col">
       <div
         ref={containerRef}
         onScroll={onScroll}
-        className={feedBackground ? 'roll-feed-bg' : undefined}
-        style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', overflowAnchor: 'none', padding: '16px' }}
+        className={`flex-1 overflow-y-auto overscroll-contain [overflow-anchor:none] p-4 ${feedBackground ? 'roll-feed-bg' : ''}`}
       >
         <div ref={innerRef}>
         {/* Sentinel — IntersectionObserver target that triggers load-older */}
-        <div ref={sentinelRef} style={{ height: 1 }} />
+        <div ref={sentinelRef} className="h-px" />
 
         {loadingOlder && (
-          <div style={{
-            textAlign:  'center',
-            padding:    '8px 0',
-            fontSize:   '12px',
-            color:      'var(--text-muted)',
-            fontStyle:  'italic',
-            fontFamily: 'var(--font-sans)',
-          }}>
+          <div className="text-center py-2 px-0 text-xs text-(--text-muted) italic font-sans">
             Loading older messages...
           </div>
         )}
 
         {!hasMore && messages.length > 0 && (
-          <div style={{
-            textAlign:  'center',
-            padding:    '6px 0',
-            fontSize:   '12px',
-            color:      'var(--text-muted)',
-            fontStyle:  'italic',
-            fontFamily: 'var(--font-sans)',
-          }}>
+          <div className="text-center py-1.5 px-0 text-xs text-(--text-muted) italic font-sans">
             — Beginning of conversation —
           </div>
         )}
@@ -230,29 +208,7 @@ export default function RollFeed({
       {showJump && (
         <button
           onClick={handleJump}
-          className="animate-pop"
-          style={{
-            position:     'absolute',
-            bottom:       '14px',
-            left:         0,
-            right:        0,
-            margin:       '0 auto',
-            width:        'fit-content',
-            display:      'flex',
-            alignItems:   'center',
-            gap:          '5px',
-            padding:      '6px 14px',
-            borderRadius: '20px',
-            border:       'none',
-            background:   'var(--accent)',
-            color:        '#fff',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '12px',
-            fontWeight:   600,
-            cursor:       'pointer',
-            boxShadow:    'var(--shadow-dropdown)',
-            zIndex:       5,
-          }}
+          className="animate-pop absolute bottom-3.5 left-0 right-0 mx-auto w-fit flex items-center gap-1.25 py-1.5 px-3.5 rounded-[20px] border-none bg-(--accent) text-white font-sans text-xs font-semibold cursor-pointer shadow-(--shadow-dropdown) z-5"
         >
           <span className="icon icon-sm">arrow_downward</span>
           Jump to present

@@ -22,77 +22,37 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
 
   return (
     <div
-      style={{
-        display:       'flex',
-        flexDirection: isOwn ? 'row-reverse' : 'row',
-        alignItems:    'flex-end',
-        gap:           '8px',
-        marginBottom:  '8px',
-        position:      'relative',
-      }}
+      className={`flex items-end gap-2 mb-2 relative ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setMenuOpen(false); }}
     >
       {/* Portrait / avatar */}
       {!isOwn && (
-        <div style={{
-          width:         '32px',
-          height:        '32px',
-          borderRadius:  '50%',
-          overflow:      'hidden',
-          flexShrink:    0,
-          background:    'var(--color-primary-light)',
-          display:       'flex',
-          alignItems:    'center',
-          justifyContent:'center',
-          border:        '1px solid var(--border-main)',
-        }}>
+        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-(--color-primary-light) flex items-center justify-center border border-(--border-main)">
           {msg.portrait ? (
             <img
               src={'data:image/jpeg;base64,' + msg.portrait}
               alt={displayName}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              className="w-full h-full object-cover"
             />
           ) : msg.avatar_url ? (
             <img
               src={(import.meta.env.VITE_API_URL || '') + msg.avatar_url}
               alt={displayName}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              className="w-full h-full object-cover"
             />
           ) : (
-            <span style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize:   '11px',
-              fontWeight: '600',
-              color:      'var(--color-primary-dark)',
-            }}>
+            <span className="font-sans text-[11px] font-semibold text-(--color-primary-dark)">
               {displayName.slice(0, 2).toUpperCase()}
             </span>
           )}
         </div>
       )}
 
-      <div style={{ maxWidth: '65%' }}>
-        <div style={{
-          background:   isOwn ? 'var(--color-primary)' : 'var(--bg-card)',
-          color:        isOwn ? '#ffffff' : 'var(--text-primary)',
-          border:       isOwn ? 'none' : '1px solid var(--border-main)',
-          borderRadius: isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-          padding:      '8px 12px',
-          fontSize:     '14px',
-          lineHeight:   '1.5',
-          wordBreak:    'break-word',
-          whiteSpace:   'pre-wrap',
-          fontFamily:   'var(--font-sans)',
-        }}>
+      <div className="max-w-[65%]">
+        <div className={`py-2 px-3 text-sm leading-normal break-words whitespace-pre-wrap font-sans ${isOwn ? 'bg-(--color-primary) text-white border-none rounded-[16px_16px_4px_16px]' : 'bg-(--bg-card) text-(--text-primary) border border-(--border-main) rounded-[16px_16px_16px_4px]'}`}>
           {msg.image_urls?.length > 0 && (
-            <div style={{
-              display:             'grid',
-              gridTemplateColumns: msg.image_urls.length === 1 ? '1fr' : 'repeat(2, 1fr)',
-              gap:                 4,
-              maxWidth:            260,
-              marginBottom:        msg.content ? 6 : 0,
-            }}>
+            <div className={`grid gap-1 max-w-65 ${msg.image_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} ${msg.content ? 'mb-1.5' : 'mb-0'}`}>
               {msg.image_urls.map((url, i) => {
                 const single = msg.image_urls.length === 1;
                 return (
@@ -102,44 +62,23 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
                     alt={'Shared image ' + (i + 1)}
                     loading="lazy"
                     onClick={() => setViewingImage(url)}
-                    style={{
-                      width:        '100%',
-                      ...(single
-                        ? { maxHeight: 280, objectFit: 'contain' }
-                        : { aspectRatio: '1 / 1', objectFit: 'cover' }),
-                      borderRadius: 6,
-                      cursor:       'pointer',
-                      display:      'block',
-                    }}
+                    className={`w-full rounded-md cursor-pointer block ${single ? 'max-h-70 object-contain' : 'aspect-square object-cover'}`}
                   />
                 );
               })}
             </div>
           )}
           {msg.content}
-          <div style={{
-            display:        'flex',
-            alignItems:     'center',
-            justifyContent: 'flex-end',
-            gap:            '5px',
-            marginTop:      '4px',
-          }}>
+          <div className="flex items-center justify-end gap-1.25 mt-1">
             {!isOwn && (
               <>
-                <span style={{
-                  fontSize:   '10px',
-                  color:      'var(--accent)',
-                  fontWeight: '600',
-                }}>
+                <span className="text-[10px] text-(--accent) font-semibold">
                   {displayName}
                 </span>
-                <span style={{ fontSize: '10px', color: 'var(--text-faint)' }}>·</span>
+                <span className="text-[10px] text-(--text-faint)">·</span>
               </>
             )}
-            <span style={{
-              fontSize: '10px',
-              color:    isOwn ? 'rgba(255,255,255,0.6)' : 'var(--text-faint)',
-            }}>
+            <span className={`text-[10px] ${isOwn ? 'text-white/60' : 'text-(--text-faint)'}`}>
               {time}
             </span>
           </div>
@@ -148,65 +87,25 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
 
       {/* Three-dot action button */}
       {canDelete && (hovered || menuOpen) && (
-        <div style={{
-          alignSelf:   'flex-end',
-          flexShrink:  0,
-          position:    'relative',
-        }}>
+        <div className="self-end shrink-0 relative">
           <Tooltip content="Message actions">
           <button
             onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
-            style={{
-              background:    'var(--bg-card)',
-              border:        '1px solid var(--border-subtle)',
-              borderRadius:  6,
-              cursor:        'pointer',
-              color:         'var(--text-muted)',
-              padding:       '2px 4px',
-              display:       'flex',
-              alignItems:    'center',
-              justifyContent:'center',
-            }}
+            className="bg-(--bg-card) border border-(--border-subtle) rounded-md cursor-pointer text-(--text-muted) py-0.5 px-1 flex items-center justify-center"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>more_vert</span>
+            <span className="material-symbols-outlined text-base">more_vert</span>
           </button>
           </Tooltip>
 
           {menuOpen && (
-            <div style={{
-              position:     'absolute',
-              bottom:       '100%',
-              right:        isOwn ? 0 : 'auto',
-              left:         isOwn ? 'auto' : 0,
-              marginBottom: 4,
-              background: 'var(--bg-card)',
-              border:     '1px solid var(--border-subtle)',
-              borderRadius: 8,
-              boxShadow:  'var(--shadow-dropdown)',
-              zIndex:     200,
-              minWidth:   120,
-              overflow:   'hidden',
-            }}>
+            <div className={`absolute bottom-full mb-1 bg-(--bg-card) border border-(--border-subtle) rounded-lg shadow-(--shadow-dropdown) z-200 min-w-30 overflow-hidden ${isOwn ? 'right-0 left-auto' : 'right-auto left-0'}`}>
               <button
                 onClick={handleDelete}
-                style={{
-                  display:     'flex',
-                  alignItems:  'center',
-                  gap:         6,
-                  width:       '100%',
-                  padding:     '8px 12px',
-                  background:  'none',
-                  border:      'none',
-                  cursor:      'pointer',
-                  color:       '#dc2626',
-                  fontSize:    13,
-                  fontFamily:  'var(--font-sans)',
-                  textAlign:   'left',
-                }}
+                className="flex items-center gap-1.5 w-full py-2 px-3 bg-none border-none cursor-pointer text-[#dc2626] text-[13px] font-sans text-left"
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.08)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'none'}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
+                <span className="material-symbols-outlined text-[15px]">delete</span>
                 Delete
               </button>
             </div>

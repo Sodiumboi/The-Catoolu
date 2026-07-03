@@ -19,17 +19,7 @@ export default function DiceRow({
   };
 
   return (
-    <div className="dice-row" style={{
-      display:        'flex',
-      alignItems:     'center',
-      gap:            '5px',
-      padding:        '8px 12px 4px',
-      borderTop:      '1px solid var(--border-main)',
-      background:     'var(--bg-nav)',
-      overflowX:      'auto',
-      flexWrap:       'nowrap',
-      scrollbarWidth: 'none',
-    }}>
+    <div className="dice-row flex items-center gap-1.25 pt-2 px-3 pb-1 border-t border-(--border-main) bg-(--bg-nav) overflow-x-auto flex-nowrap [scrollbar-width:none]">
       {DICE.map(sides => {
         const notation  = '1d' + sides + (advMode ? 'adv' : disMode ? 'dis' : '');
         const isThisDie = rollingDie === notation;
@@ -39,20 +29,7 @@ export default function DiceRow({
           <button
             onClick={e => handleDie(sides, e.shiftKey)}
             disabled={isRolling}
-            style={{
-              padding:      '4px 9px',
-              borderRadius: '6px',
-              border:       '1px solid ' + (isThisDie ? 'var(--accent)' : 'var(--border-main)'),
-              background:   isThisDie ? 'var(--accent-bg)' : 'var(--bg-card)',
-              color:        isThisDie ? 'var(--accent)'    : 'var(--text-secondary)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '12px',
-              fontWeight:   '400',
-              cursor:       isRolling ? 'not-allowed' : 'pointer',
-              opacity:      isRolling && !isThisDie ? 0.5 : 1,
-              animation:    isThisDie ? 'pulse-accent 2s ease-in-out infinite' : 'none',
-              transition:   'all 0.1s ease',
-            }}
+            className={`py-1 px-2.25 rounded-md font-sans text-xs font-normal [transition:all_0.1s] ${isRolling ? 'cursor-not-allowed' : 'cursor-pointer'} ${isRolling && !isThisDie ? 'opacity-50' : 'opacity-100'} ${isThisDie ? 'border border-(--accent) bg-(--accent-bg) text-(--accent) [animation:pulse-accent_2s_ease-in-out_infinite]' : 'border border-(--border-main) bg-(--bg-card) text-(--text-secondary)'}`}
             onMouseEnter={e => {
               if (isRolling) return;
               e.currentTarget.style.background   = 'var(--accent-bg)';
@@ -72,36 +49,22 @@ export default function DiceRow({
         );
       })}
 
-      <div style={{ width: '1px', height: '20px', background: 'var(--border-main)', margin: '0 2px' }} />
+      <div className="w-px h-5 bg-(--border-main) mx-0.5" />
 
       {/* Adv */}
       <button onClick={onToggleAdv}
-        style={{
-          padding:    '4px 9px', borderRadius: '6px', fontFamily: 'var(--font-sans)',
-          fontSize:   '11px', fontWeight: advMode ? '600' : '400', cursor: 'pointer',
-          border:     '1px solid ' + (advMode ? 'var(--accent)' : 'var(--border-main)'),
-          background: advMode ? 'var(--accent-bg)' : 'var(--bg-card)',
-          color:      advMode ? 'var(--accent)'    : 'var(--text-faint)',
-          transition: 'all 0.1s ease',
-        }}>
-        <span className="icon icon-sm" style={{ marginRight: '2px' }}>trending_down</span>Adv
+        className={`py-1 px-2.25 rounded-md font-sans text-[11px] cursor-pointer [transition:all_0.1s] ${advMode ? 'font-semibold border border-(--accent) bg-(--accent-bg) text-(--accent)' : 'font-normal border border-(--border-main) bg-(--bg-card) text-(--text-faint)'}`}>
+        <span className="icon icon-sm mr-0.5">trending_down</span>Adv
       </button>
 
       {/* Dis */}
       <button onClick={onToggleDis}
-        style={{
-          padding:    '4px 9px', borderRadius: '6px', fontFamily: 'var(--font-sans)',
-          fontSize:   '11px', fontWeight: disMode ? '600' : '400', cursor: 'pointer',
-          border:     '1px solid ' + (disMode ? 'var(--danger)' : 'var(--border-main)'),
-          background: disMode ? 'var(--danger-bg)' : 'var(--bg-card)',
-          color:      disMode ? 'var(--danger)'    : 'var(--text-faint)',
-          transition: 'all 0.1s ease',
-        }}>
-        <span className="icon icon-sm" style={{ marginRight: '2px' }}>trending_up</span>Dis
+        className={`py-1 px-2.25 rounded-md font-sans text-[11px] cursor-pointer [transition:all_0.1s] ${disMode ? 'font-semibold border border-(--danger) bg-(--danger-bg) text-(--danger)' : 'font-normal border border-(--border-main) bg-(--bg-card) text-(--text-faint)'}`}>
+        <span className="icon icon-sm mr-0.5">trending_up</span>Dis
       </button>
 
       {/* Divider */}
-      <div style={{ width: '1px', height: '20px', background: 'var(--border-main)', margin: '0 2px' }} />
+      <div className="w-px h-5 bg-(--border-main) mx-0.5" />
 
       {/* Roll Visibility */}
       <Tooltip content={rollVisibility === 'everyone'
@@ -109,25 +72,7 @@ export default function DiceRow({
         : 'Rolls only visible to you — click for Everyone'}>
       <button
         onClick={onToggleVisibility}
-        style={{
-          padding:     '4px 9px',
-          borderRadius:'6px',
-          border:      '1px solid ' + (rollVisibility === 'only_me'
-            ? 'var(--warning)'
-            : 'var(--border-main)'),
-          background:  rollVisibility === 'only_me'
-            ? 'rgba(186,117,23,0.1)'
-            : 'var(--bg-card)',
-          color:       rollVisibility === 'only_me'
-            ? 'var(--warning)'
-            : 'var(--text-faint)',
-          fontFamily:  'var(--font-sans)',
-          fontSize:    '11px',
-          fontWeight:  rollVisibility === 'only_me' ? '600' : '400',
-          cursor:      'pointer',
-          transition:  'all 0.15s ease',
-          whiteSpace:  'nowrap',
-        }}
+        className={`py-1 px-2.25 rounded-md font-sans text-[11px] cursor-pointer [transition:all_0.15s] whitespace-nowrap ${rollVisibility === 'only_me' ? 'font-semibold border border-(--warning) text-(--warning) bg-[rgba(186,117,23,0.1)]' : 'font-normal border border-(--border-main) text-(--text-faint) bg-(--bg-card)'}`}
       >
         {rollVisibility === 'only_me'
           ? <><span className="icon icon-sm">lock</span>{' '}Only Me</>

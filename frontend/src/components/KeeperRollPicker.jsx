@@ -10,25 +10,11 @@ function PickerRow({ label, value, onClick }) {
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{
-        display:        'flex',
-        width:          '100%',
-        justifyContent: 'space-between',
-        alignItems:     'center',
-        padding:        '5px 12px',
-        background:     hover ? 'var(--accent-bg)' : 'none',
-        border:         'none',
-        cursor:         'pointer',
-        color:          'var(--text-primary)',
-        fontFamily:     'var(--font-sans)',
-        fontSize:       '13px',
-        textAlign:      'left',
-        boxSizing:      'border-box',
-      }}
+      className={`flex w-full justify-between items-center py-1.25 px-3 border-none cursor-pointer text-(--text-primary) font-sans text-[13px] text-left box-border ${hover ? 'bg-(--accent-bg)' : 'bg-none'}`}
     >
       <span>{label}</span>
       {value != null && (
-        <span style={{ color: 'var(--text-muted)', marginLeft: '8px', flexShrink: 0 }}>{value}</span>
+        <span className="text-(--text-muted) ml-2 shrink-0">{value}</span>
       )}
     </button>
   );
@@ -36,17 +22,7 @@ function PickerRow({ label, value, onClick }) {
 
 function SectionHeader({ label }) {
   return (
-    <div style={{
-      padding:       '6px 12px 3px',
-      fontSize:      '10px',
-      fontWeight:    '600',
-      textTransform: 'uppercase',
-      letterSpacing: '0.07em',
-      color:         'var(--accent)',
-      fontFamily:    'var(--font-sans)',
-      borderTop:     '1px solid var(--border-main)',
-      marginTop:     '4px',
-    }}>
+    <div className="pt-1.5 px-3 pb-0.75 text-[10px] font-semibold uppercase tracking-[0.07em] text-(--accent) font-sans border-t border-(--border-main) mt-1">
       {label}
     </div>
   );
@@ -83,46 +59,22 @@ export default function KeeperRollPicker({ charData, anchorRect, onPick, onClose
     <>
       <div
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, zIndex: 399 }}
+        className="fixed inset-0 z-399"
       />
-      <div style={{
-        position:      'fixed',
-        top:           top + 'px',
-        left:          left + 'px',
-        zIndex:        400,
-        background:    'var(--bg-popup)',
-        border:        '1px solid var(--border-main)',
-        borderRadius:  '10px',
-        boxShadow:     'var(--shadow-dropdown)',
-        width:         '260px',
-        maxHeight:     '400px',
-        display:       'flex',
-        flexDirection: 'column',
-        overflow:      'hidden',
-      }}>
+      {/* top/left stay inline — computed from anchorRect + window dimensions to keep the popup on-screen */}
+      <div className="fixed z-400 bg-(--bg-popup) border border-(--border-main) rounded-[10px] shadow-(--shadow-dropdown) w-65 max-h-100 flex flex-col overflow-hidden" style={{ top: top + 'px', left: left + 'px' }}>
         {/* Search */}
-        <div style={{ padding: '8px 8px 4px', borderBottom: '1px solid var(--border-main)' }}>
+        <div className="pt-2 px-2 pb-1 border-b border-(--border-main)">
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search skill or stat..."
             autoFocus
-            style={{
-              width:        '100%',
-              boxSizing:    'border-box',
-              padding:      '6px 8px',
-              border:       '1px solid var(--border-input)',
-              borderRadius: '6px',
-              fontSize:     '13px',
-              background:   'var(--bg-input)',
-              color:        'var(--text-primary)',
-              fontFamily:   'var(--font-sans)',
-              outline:      'none',
-            }}
+            className="w-full box-border py-1.5 px-2 border border-(--border-input) rounded-md text-[13px] bg-(--bg-input) text-(--text-primary) font-sans outline-none! input-focus-glow focus:border-(--border-focus)"
           />
         </div>
 
-        <div style={{ overflowY: 'auto', overscrollBehavior: 'contain', flex: 1, paddingBottom: '4px' }}>
+        <div className="overflow-y-auto overscroll-contain flex-1 pb-1">
           {/* Characteristics */}
           {filteredStats.length > 0 && (
             <>
@@ -158,13 +110,7 @@ export default function KeeperRollPicker({ charData, anchorRect, onPick, onClose
           )}
 
           {filteredStats.length === 0 && filteredSkills.length === 0 && (
-            <div style={{
-              padding:   '24px',
-              textAlign: 'center',
-              color:     'var(--text-faint)',
-              fontStyle: 'italic',
-              fontSize:  '13px',
-            }}>
+            <div className="p-6 text-center text-(--text-faint) italic text-[13px]">
               No results
             </div>
           )}

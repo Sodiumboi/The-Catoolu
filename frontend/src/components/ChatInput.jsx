@@ -98,11 +98,7 @@ export default function ChatInput({
   const canSend = !disabled && !isSending && (!!text.trim() || attachedFiles.length > 0);
 
   return (
-    <div style={{
-      padding:    '8px 16px 12px',
-      borderTop:  '1px solid var(--border-main)',
-      background: 'var(--bg-nav)',
-    }}>
+    <div className="pt-2 px-4 pb-3 border-t border-(--border-main) bg-(--bg-nav)">
       {/* Hidden file input */}
       {onFileSelect && (
         <input
@@ -110,24 +106,17 @@ export default function ChatInput({
           type="file"
           accept="image/*"
           multiple
-          style={{ display: 'none' }}
+          className="hidden"
           onChange={handleFilePick}
         />
       )}
 
       {/* Skill context badge */}
       {skillContext && (
-        <div style={{
-          display:      'flex',
-          alignItems:   'center',
-          gap:          '6px',
-          marginBottom: '6px',
-          fontSize:     '12px',
-          color:        'var(--accent)',
-        }}>
+        <div className="flex items-center gap-1.5 mb-1.5 text-xs text-(--accent)">
           <span>🎯</span>
           <span>{skillContext.name} ({skillContext.value})</span>
-          <span style={{ color: 'var(--text-faint)', fontSize: '11px' }}>
+          <span className="text-(--text-faint) text-[11px]">
             — success levels will be calculated
           </span>
         </div>
@@ -135,49 +124,24 @@ export default function ChatInput({
 
       {/* Attachment preview — horizontal row of per-file chips */}
       {attachedFiles.length > 0 && (
-        <div style={{
-          display: 'flex', gap: 8, alignItems: 'center',
-          marginBottom: 6, overflowX: 'auto', paddingBottom: 2,
-          scrollbarWidth: 'none',
-        }}>
+        <div className="flex gap-2 items-center mb-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]">
           {attachedFiles.map((file, index) => (
             <Tooltip key={index} content={file.name}>
             <div
-              style={{
-                display: 'flex', gap: 6, alignItems: 'center',
-                padding: '4px 8px 4px 4px', borderRadius: 8,
-                background: 'var(--accent-bg)',
-                border: '0.5px solid var(--color-primary-mid)',
-                position: 'relative', flexShrink: 0, maxWidth: 180,
-              }}
+              className="flex gap-1.5 items-center pt-1 pr-2 pb-1 pl-1 rounded-lg bg-(--accent-bg) border-[0.5px] border-(--color-primary-mid) relative shrink-0 max-w-45"
             >
-              <div style={{
-                width: 28, height: 28, borderRadius: 5,
-                background: 'var(--bg-card)',
-                display: 'flex', alignItems: 'center',
-                justifyContent: 'center', flexShrink: 0,
-              }}>
-                <span className="material-symbols-outlined" style={{ color: 'var(--accent)', fontSize: 16 }}>
+              <div className="w-7 h-7 rounded-[5px] bg-(--bg-card) flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-(--accent) text-base">
                   image
                 </span>
               </div>
-              <span style={{
-                fontSize: 11, color: 'var(--text-faint)',
-                fontFamily: 'var(--font-sans)',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
+              <span className="text-[11px] text-(--text-faint) font-sans truncate">
                 {file.name}
               </span>
               <Tooltip content="Remove">
               <button
                 onClick={() => onClearAttachment?.(index)}
-                style={{
-                  width: 16, height: 16,
-                  background: 'var(--danger)', border: 'none', borderRadius: '50%',
-                  color: '#fff', fontSize: 10, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', padding: 0, flexShrink: 0,
-                }}
+                className="w-4 h-4 bg-(--danger) border-none rounded-full text-white text-[10px] flex items-center justify-center cursor-pointer p-0 shrink-0"
               >
                 ×
               </button>
@@ -190,48 +154,29 @@ export default function ChatInput({
 
       {/* Upload error banner */}
       {uploadError && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          marginBottom: 6, padding: '6px 10px',
-          borderRadius: 8,
-          background: 'var(--danger-bg)',
-          border: '1px solid var(--danger)',
-          fontFamily: 'var(--font-sans)', fontSize: 12,
-          color: 'var(--danger)',
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 16, flexShrink: 0 }}>error</span>
-          <span style={{ flex: 1, lineHeight: 1.4 }}>{uploadError}</span>
+        <div className="flex items-center gap-2 mb-1.5 py-1.5 px-2.5 rounded-lg bg-(--danger-bg) border border-(--danger) font-sans text-xs text-(--danger)">
+          <span className="material-symbols-outlined text-base shrink-0">error</span>
+          <span className="flex-1 leading-[1.4]">{uploadError}</span>
           <Tooltip content="Dismiss">
           <button
             onClick={() => onClearUploadError?.()}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--danger)', padding: 0, display: 'flex',
-              alignItems: 'center', flexShrink: 0,
-            }}
+            className="bg-none border-none cursor-pointer text-(--danger) p-0 flex items-center shrink-0"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+            <span className="material-symbols-outlined text-base">close</span>
           </button>
           </Tooltip>
         </div>
       )}
 
       {/* Input row */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+      <div className="flex gap-2.5 items-center">
         {/* Attach button */}
         {onFileSelect && (
           <Tooltip content="Attach image">
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled}
-            style={{
-              width: 36, height: 36, border: '1px solid var(--border-input)',
-              borderRadius: 8, background: 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              color: 'var(--text-muted)', flexShrink: 0,
-              transition: 'border-color 0.15s, color 0.15s',
-            }}
+            className={`w-9 h-9 border border-(--border-input) rounded-lg bg-transparent flex items-center justify-center text-(--text-muted) shrink-0 [transition:border-color_0.15s,color_0.15s] ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             onMouseEnter={e => {
               if (!disabled) {
                 e.currentTarget.style.borderColor = 'var(--accent)';
@@ -243,22 +188,13 @@ export default function ChatInput({
               e.currentTarget.style.color = 'var(--text-muted)';
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>attach_file</span>
+            <span className="material-symbols-outlined text-lg">attach_file</span>
           </button>
           </Tooltip>
         )}
 
-        <div style={{
-          flex:         1,
-          position:     'relative',
-          borderRadius: '10px',
-          border:       '1px solid ' + (isRoll
-            ? 'var(--accent)'
-            : focused ? 'var(--border-focus)' : 'var(--border-input)'),
-          background:   'var(--bg-input)',
-          overflow:     'hidden',
-          transition:   'border-color 0.15s ease',
-        }}>
+        {/* Border color reflects focus state via React state (not imperative swap) — this wrapper div, not the textarea, owns the visible border */}
+        <div className={`flex-1 relative rounded-[10px] bg-(--bg-input) overflow-hidden [transition:border-color_0.15s] border ${isRoll ? 'border-(--accent)' : focused ? 'border-(--border-focus)' : 'border-(--border-input)'}`}>
           <textarea
             ref={inputRef}
             rows={1}
@@ -274,34 +210,13 @@ export default function ChatInput({
                 : attachedFiles.length > 0
                   ? 'Add a caption (optional)…'
                   : 'Message or /roll 1d100adv... (or /r)'}
-            style={{
-              width:         '100%',
-              padding:       '10px 14px',
-              paddingLeft:   isRoll ? '36px' : '14px',
-              border:        'none',
-              background:    'transparent',
-              color:         'var(--text-primary)',
-              fontFamily:    'var(--font-sans)',
-              fontSize:      '14px',
-              lineHeight:    '1.57',
-              outline:       'none',
-              boxSizing:     'border-box',
-              resize:        'none',
-              overflow:      'auto',
-              height:        'auto',
-              display:       'block',
-            }}
+            className={`w-full py-2.5 pr-3.5 border-none bg-transparent text-(--text-primary) font-sans text-sm leading-[1.57] outline-none! box-border resize-none overflow-auto h-auto block ${isRoll ? 'pl-9' : 'pl-3.5'}`}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
           />
           {isRoll && (
-            <span style={{
-              position:  'absolute',
-              left:      '12px',
-              top:       '14px',
-              pointerEvents: 'none',
-            }}>
-              <span className="icon" style={{ fontSize: '18px' }}>casino</span>
+            <span className="absolute left-3 top-3.5 pointer-events-none">
+              <span className="icon text-lg">casino</span>
             </span>
           )}
         </div>
@@ -309,21 +224,7 @@ export default function ChatInput({
         <button
           onClick={e => handleSend(e.shiftKey)}
           disabled={!canSend}
-          style={{
-            padding:      '10px 20px',
-            borderRadius: '10px',
-            border:       'none',
-            background:   !canSend
-              ? 'var(--text-faint)'
-              : 'var(--color-primary)',
-            color:        '#ffffff',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '14px',
-            fontWeight:   '500',
-            cursor:       !canSend ? 'not-allowed' : 'pointer',
-            transition:   'background 0.15s ease',
-            flexShrink:   0,
-          }}
+          className={`py-2.5 px-5 rounded-[10px] border-none text-white font-sans text-sm font-medium [transition:background_0.15s] shrink-0 ${!canSend ? 'bg-(--text-faint) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
           onMouseEnter={e => {
             if (canSend) e.currentTarget.style.background = 'var(--color-primary-dark)';
           }}
