@@ -7,7 +7,7 @@
 export const APP_VERSION = '1.7';
 
 // Per-release codename. Edit this here on each release, alongside APP_VERSION.
-export const APP_CODENAME = 'Atlach-Nacha - Nakamaru';
+export const APP_CODENAME = 'Eihort';
 
 // owner/repo slug used for the GitHub Releases API.
 // Verified against `git remote -v` — origin = Sodiumboi/The-Catoolu.

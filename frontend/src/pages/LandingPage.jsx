@@ -69,7 +69,6 @@ function VideoBlock({ src }) {
 
 const LANDING_TABS = [
   { id: 'overview', label: 'Overview' },
-  { id: 'howto',    label: 'How to Use' },
 ];
 
 export default function LandingPage() {
