@@ -237,7 +237,12 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
             borderRadius:    '10px',
             border:          '1px solid var(--border-main)',
             boxShadow:       '0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12)',
-            overflow:        'hidden',
+            // overflow:clip (not hidden) — still clips children to the rounded
+            // corners, but is NOT a scroll container. With the inner wrappers also
+            // clipped, the editor Body (overflow-y:auto) is the ONLY scrollable
+            // ancestor, so a focus/selection scroll can never move the title bar
+            // or toolbar out of view — it can only scroll the note body.
+            overflow:        'clip',
             transition:      openingDir === 'opening' ? 'none' : contentFade,
             animation:       openingDir === 'opening'
               ? 'notes-bounce-open 400ms cubic-bezier(0.22,1,0.36,1) both'
@@ -299,8 +304,11 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
               </div>
             </div>
 
-            {/* Content */}
-            <div style={{ flex: 1, overflow: 'hidden' }}>
+            {/* Content — overflow:clip (not hidden) so a focus/selection scroll
+                inside the editor can't scroll this wrapper and drag the toolbar
+                up under the title bar. Not a scroll container; the editor Body
+                below owns its own overflow-y:auto. */}
+            <div style={{ flex: 1, overflow: 'clip' }}>
               <NotesPane contextTagType={contextTagType} contextTag={contextTag} />
             </div>
 

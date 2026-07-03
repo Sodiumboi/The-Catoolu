@@ -268,7 +268,26 @@
   line-height: 1.6;
 }
 
-.notes-window .ProseMirror p { margin: 0 0 0.4em; }
+/* Suppress the global :focus-visible glow (index.css above) on the
+   contenteditable region — it's a rich-text canvas, not a form input,
+   so the site-wide input glow reads as a stray box around the editor. */
+.notes-window .ProseMirror:focus,
+.notes-window .ProseMirror:focus-visible {
+  outline:    none;
+  box-shadow: none;
+}
+
+/* Softened, scoped selection color — native contenteditable selection
+   extends the highlight to full container width across a paragraph break
+   (see backlog note: custom selection overlay). Lower opacity here (Notes
+   editor only, not the site-wide ::selection) makes that gap less visually
+   loud without touching selection styling anywhere else in the app. */
+.notes-window .ProseMirror::selection,
+.notes-window .ProseMirror ::selection {
+  background: color-mix(in srgb, var(--color-primary-light) 55%, transparent);
+}
+
+.notes-window .ProseMirror p { margin: 0 0 0.15em; }
 .notes-window .ProseMirror ul,
 .notes-window .ProseMirror ol { padding-left: 1.4em; margin: 0 0 0.4em; }
 .notes-window .ProseMirror p.is-editor-empty:first-child::before {
