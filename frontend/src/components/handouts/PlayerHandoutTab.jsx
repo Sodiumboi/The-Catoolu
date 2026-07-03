@@ -11,50 +11,32 @@ if (typeof document !== 'undefined' && !document.getElementById('php-styles')) {
 const typeIcon = (type) =>
   type === 'image' ? 'image' : type === 'bundle' ? 'stacks' : 'text_fields';
 
-const labelStyle = {
-  fontSize: 10, fontWeight: 600, color: 'var(--text-muted)',
-  textTransform: 'uppercase', letterSpacing: '0.08em',
-  fontFamily: 'var(--font-sans)',
-};
+const labelCss = 'text-[10px] font-semibold text-(--text-muted) uppercase tracking-[0.08em] font-sans';
 
 // ─── Preview portal (hold-to-peek) ──────────────────────────────
 function PreviewPortal({ item }) {
   if (!item) return null;
   return createPortal(
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 400, padding: 24, animation: 'php-in 0.1s ease',
-      pointerEvents: 'none',
-    }}>
+    <div className="fixed inset-0 bg-[rgba(0,0,0,0.72)] flex items-center justify-center z-400 p-6 [animation:php-in_0.1s_ease] pointer-events-none">
       {item.type === 'image' && item.content ? (
-        <img src={item.content} alt={item.title} style={{
-          maxWidth: '90vw', maxHeight: '85vh', borderRadius: 10,
-          boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
-        }} />
+        <img src={item.content} alt={item.title} className="max-w-[90vw] max-h-[85vh] rounded-[10px] shadow-[0_8px_40px_rgba(0,0,0,0.5)]" />
       ) : (
-        <div style={{
-          background: 'var(--bg-card)', borderRadius: 12, padding: 24,
-          maxWidth: 440, width: '100%', boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
+        <div className="bg-(--bg-card) rounded-xl p-6 max-w-110 w-full shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center gap-2 mb-2.5">
+            <span className="material-symbols-outlined text-lg text-(--accent)">
               {typeIcon(item.type)}
             </span>
-            <span style={{ fontFamily: 'var(--font-serif)', fontSize: 16, color: 'var(--text-primary)' }}>
+            <span className="font-serif text-base text-(--text-primary)">
               {item.title}
             </span>
           </div>
           {item.content && (
-            <div style={{
-              fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--text-secondary)',
-              lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: '60vh', overflowY: 'auto', overscrollBehavior: 'contain',
-            }}>
+            <div className="font-sans text-[13px] text-(--text-secondary) leading-[1.6] whitespace-pre-wrap max-h-[60vh] overflow-y-auto overscroll-contain">
               {item.content}
             </div>
           )}
           {item.type === 'bundle' && (
-            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>
+            <div className="text-[11px] text-(--text-faint) mt-2">
               {(item.items || []).length} items
             </div>
           )}
@@ -68,30 +50,18 @@ function PreviewPortal({ item }) {
 // ─── Sub-item mini card (inside expanded bundles) ────────────────
 function SubMiniCard({ item, hold }) {
   return (
-    <div {...hold} style={{
-      borderRadius: 6, overflow: 'hidden', userSelect: 'none',
-      border: '1px solid var(--border-main)', cursor: 'pointer',
-    }}>
-      <div style={{
-        height: 38, overflow: 'hidden',
-        background: item.type === 'image' ? 'var(--accent-bg)' : 'var(--bg-section-hd)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+    <div {...hold} className="rounded-md overflow-hidden select-none border border-(--border-main) cursor-pointer">
+      <div className={`h-9.5 overflow-hidden flex items-center justify-center ${item.type === 'image' ? 'bg-(--accent-bg)' : 'bg-(--bg-section-hd)'}`}>
         {item.type === 'image' && item.content ? (
           <img src={item.content} alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+            className="w-full h-full object-cover pointer-events-none" />
         ) : (
-          <span className="material-symbols-outlined" style={{ fontSize: 15, color: 'var(--text-faint)', opacity: 0.6 }}>
+          <span className="material-symbols-outlined text-[15px] text-(--text-faint) opacity-60">
             {typeIcon(item.type)}
           </span>
         )}
       </div>
-      <div style={{
-        padding: '2px 4px', fontSize: 9, fontFamily: 'var(--font-sans)',
-        color: 'var(--text-muted)', overflow: 'hidden',
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        background: 'var(--bg-card)',
-      }}>
+      <div className="py-0.5 px-1 text-[9px] font-sans text-(--text-muted) overflow-hidden text-ellipsis whitespace-nowrap bg-(--bg-card)">
         {item.title}
       </div>
     </div>
@@ -101,30 +71,19 @@ function SubMiniCard({ item, hold }) {
 // ─── Grid item card ──────────────────────────────────────────────
 function GridItemCard({ item, hold }) {
   return (
-    <div {...hold} style={{
-      borderRadius: 8, overflow: 'hidden', userSelect: 'none', cursor: 'pointer',
-      border: '1px solid var(--border-main)', background: 'var(--bg-card)',
-    }}>
-      <div style={{
-        height: 60, position: 'relative', overflow: 'hidden',
-        background: item.type === 'image' ? 'var(--accent-bg)' : 'var(--bg-section-hd)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+    <div {...hold} className="rounded-lg overflow-hidden select-none cursor-pointer border border-(--border-main) bg-(--bg-card)">
+      <div className={`h-15 relative overflow-hidden flex items-center justify-center ${item.type === 'image' ? 'bg-(--accent-bg)' : 'bg-(--bg-section-hd)'}`}>
         {item.type === 'image' && item.content ? (
           <img src={item.content} alt={item.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+            className="w-full h-full object-cover pointer-events-none" />
         ) : (
-          <span className="material-symbols-outlined" style={{ fontSize: 24, color: 'var(--text-faint)', opacity: 0.6 }}>
+          <span className="material-symbols-outlined text-2xl text-(--text-faint) opacity-60">
             {typeIcon(item.type)}
           </span>
         )}
       </div>
-      <div style={{ padding: '4px 6px' }}>
-        <div style={{
-          fontSize: 10, fontFamily: 'var(--font-sans)',
-          color: 'var(--text-primary)', overflow: 'hidden',
-          textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>{item.title}</div>
+      <div className="py-1 px-1.5">
+        <div className="text-[10px] font-sans text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap">{item.title}</div>
       </div>
     </div>
   );
@@ -134,77 +93,41 @@ function GridItemCard({ item, hold }) {
 function GridBundleCard({ bundle, expanded, hold, makeHold }) {
   const items = bundle.items || [];
   return (
-    <div style={{ position: 'relative', marginTop: 5, marginBottom: 2 }}>
-      <div style={{
-        position: 'absolute', top: -4, left: 3, right: 3, height: '100%',
-        background: 'var(--accent-bg)', border: '0.5px solid var(--color-primary-mid)',
-        borderRadius: 8, zIndex: 0,
-      }} />
-      <div style={{
-        position: 'absolute', top: -2, left: 1.5, right: 1.5, height: '100%',
-        background: 'var(--accent-bg)', border: '0.5px solid var(--color-primary-mid)',
-        borderRadius: 8, zIndex: 1,
-      }} />
-      <div {...hold} style={{
-        position: 'relative', zIndex: 2, borderRadius: 8, overflow: 'hidden',
-        border: `0.5px solid ${expanded ? 'var(--color-primary)' : 'var(--color-primary-mid)'}`,
-        background: 'var(--bg-card)', cursor: 'pointer', userSelect: 'none',
-        transition: 'border-color 0.1s',
-      }}>
+    <div className="relative mt-1.25 mb-0.5">
+      <div className="absolute top-[-4px] left-[3px] right-[3px] h-full bg-(--accent-bg) border-[0.5px] border-(--color-primary-mid) rounded-lg z-0" />
+      <div className="absolute top-[-2px] left-[1.5px] right-[1.5px] h-full bg-(--accent-bg) border-[0.5px] border-(--color-primary-mid) rounded-lg z-1" />
+      <div {...hold} className={`relative z-2 rounded-lg overflow-hidden bg-(--bg-card) cursor-pointer select-none [transition:border-color_0.1s] ${expanded ? 'border-[0.5px] border-(--color-primary)' : 'border-[0.5px] border-(--color-primary-mid)'}`}>
         {/* Thumbnail area */}
-        <div style={{
-          height: 60, background: 'var(--accent-bg)', position: 'relative',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-          overflow: 'hidden',
-        }}>
+        <div className="h-15 bg-(--accent-bg) relative flex items-center justify-center gap-1 overflow-hidden">
           {items.length === 0 ? (
-            <span className="material-symbols-outlined" style={{ fontSize: 22, color: 'var(--accent)', opacity: 0.4 }}>stacks</span>
+            <span className="material-symbols-outlined text-[22px] text-(--accent) opacity-40">stacks</span>
           ) : items.slice(0, 3).map((it, i) => (
             it.type === 'image' && it.content ? (
-              <img key={it.uuid} src={it.content} alt="" style={{
-                width: i === 0 ? 34 : 22, height: i === 0 ? 34 : 22,
-                borderRadius: 4, objectFit: 'cover', opacity: i === 0 ? 1 : 0.7,
-                pointerEvents: 'none',
-              }} />
+              <img key={it.uuid} src={it.content} alt=""
+                className={`rounded object-cover pointer-events-none ${i === 0 ? 'w-8.5 h-8.5 opacity-100' : 'w-5.5 h-5.5 opacity-70'}`}
+              />
             ) : (
-              <span key={it.uuid} className="material-symbols-outlined" style={{
-                fontSize: i === 0 ? 22 : 16, color: 'var(--accent)', opacity: i === 0 ? 1 : 0.6,
-              }}>
+              <span key={it.uuid} className={`material-symbols-outlined text-(--accent) ${i === 0 ? 'text-[22px] opacity-100' : 'text-base opacity-60'}`}>
                 {typeIcon(it.type)}
               </span>
             )
           ))}
-          <div style={{
-            position: 'absolute', top: 4, left: 4,
-            background: 'var(--color-primary)', color: '#fff',
-            fontSize: 9, padding: '1px 5px', borderRadius: 10,
-          }}>{items.length}</div>
-          <span className="material-symbols-outlined" style={{
-            position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)',
-            fontSize: 13, color: 'var(--accent)', opacity: 0.8,
-          }}>
+          <div className="absolute top-1 left-1 bg-(--color-primary) text-white text-[9px] py-px px-1.25 rounded-[10px]">{items.length}</div>
+          <span className="material-symbols-outlined absolute bottom-0.5 left-1/2 -translate-x-1/2 text-[13px] text-(--accent) opacity-80">
             {expanded ? 'expand_less' : 'expand_more'}
           </span>
         </div>
         {/* Footer */}
-        <div style={{ padding: '4px 6px' }}>
-          <div style={{
-            fontSize: 10, fontFamily: 'var(--font-sans)',
-            color: 'var(--text-primary)', overflow: 'hidden',
-            textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>{bundle.title}</div>
+        <div className="py-1 px-1.5">
+          <div className="text-[10px] font-sans text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap">{bundle.title}</div>
         </div>
         {/* Expanded sub-items */}
         {expanded && items.length > 0 && (
           <div
             onPointerDown={e => e.stopPropagation()}
-            style={{ padding: '6px 6px 8px', borderTop: '1px solid var(--border-subtle)' }}
+            className="py-1.5 px-1.5 pb-2 border-t border-(--border-subtle)"
           >
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))',
-              gap: 4,
-            }}>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(60px,1fr))] gap-1">
               {items.map(sub => (
                 <SubMiniCard key={sub.uuid} item={sub} hold={makeHold(sub)} />
               ))}
@@ -219,35 +142,22 @@ function GridBundleCard({ bundle, expanded, hold, makeHold }) {
 // ─── List item row ────────────────────────────────────────────────
 function ListItemRow({ item, hold }) {
   return (
-    <div {...hold} style={{
-      background: 'var(--bg-card)', border: '0.5px solid var(--border-main)',
-      borderRadius: 8, padding: '7px 10px',
-      display: 'flex', alignItems: 'center', gap: 8,
-      userSelect: 'none', cursor: 'pointer',
-    }}>
-      <div style={{
-        width: 32, height: 32, borderRadius: 6, flexShrink: 0, overflow: 'hidden',
-        background: item.type === 'image' ? 'var(--accent-bg)' : 'var(--bg-section-hd)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: item.type === 'image' ? 'var(--accent)' : 'var(--text-muted)',
-      }}>
+    <div {...hold} className="bg-(--bg-card) border-[0.5px] border-(--border-main) rounded-lg py-1.75 px-2.5 flex items-center gap-2 select-none cursor-pointer">
+      <div className={`w-8 h-8 rounded-md shrink-0 overflow-hidden flex items-center justify-center ${item.type === 'image' ? 'bg-(--accent-bg) text-(--accent)' : 'bg-(--bg-section-hd) text-(--text-muted)'}`}>
         {item.type === 'image' && item.content ? (
           <img src={item.content} alt={item.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            className="w-full h-full object-cover" />
         ) : (
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{typeIcon(item.type)}</span>
+          <span className="material-symbols-outlined text-base">{typeIcon(item.type)}</span>
         )}
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 12, fontWeight: 500, color: 'var(--text-primary)',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>{item.title}</div>
-        <div style={{ fontSize: 10, color: 'var(--text-faint)' }}>
+      <div className="flex-1 min-w-0">
+        <div className="text-xs font-medium text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap">{item.title}</div>
+        <div className="text-[10px] text-(--text-faint)">
           {item.type}
         </div>
       </div>
-      <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-faint)', flexShrink: 0 }}>
+      <span className="material-symbols-outlined text-base text-(--text-faint) shrink-0">
         visibility
       </span>
     </div>
@@ -258,46 +168,22 @@ function ListItemRow({ item, hold }) {
 function ListBundleRow({ bundle, expanded, hold, makeHold }) {
   const items = bundle.items || [];
   return (
-    <div style={{ position: 'relative', marginTop: 5, marginBottom: 2 }}>
-      <div style={{
-        position: 'absolute', top: -4, left: 3, right: 3, height: '100%',
-        background: 'var(--accent-bg)', border: '0.5px solid var(--color-primary-mid)',
-        borderRadius: 8, zIndex: 0,
-      }} />
-      <div style={{
-        position: 'absolute', top: -2, left: 1.5, right: 1.5, height: '100%',
-        background: 'var(--accent-bg)', border: '0.5px solid var(--color-primary-mid)',
-        borderRadius: 8, zIndex: 1,
-      }} />
-      <div style={{ position: 'relative', zIndex: 2 }}>
+    <div className="relative mt-1.25 mb-0.5">
+      <div className="absolute top-[-4px] left-[3px] right-[3px] h-full bg-(--accent-bg) border-[0.5px] border-(--color-primary-mid) rounded-lg z-0" />
+      <div className="absolute top-[-2px] left-[1.5px] right-[1.5px] h-full bg-(--accent-bg) border-[0.5px] border-(--color-primary-mid) rounded-lg z-1" />
+      <div className="relative z-2">
         {/* Bundle header row */}
-        <div {...hold} style={{
-          background: 'var(--bg-card)',
-          border: `0.5px solid ${expanded ? 'var(--color-primary)' : 'var(--color-primary-mid)'}`,
-          borderRadius: expanded && items.length > 0 ? '8px 8px 0 0' : 8,
-          padding: '7px 10px',
-          display: 'flex', alignItems: 'center', gap: 8,
-          cursor: 'pointer', userSelect: 'none',
-          transition: 'border-color 0.1s',
-        }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 6, flexShrink: 0,
-            background: 'var(--accent-bg)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--accent)',
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>stacks</span>
+        <div {...hold} className={`bg-(--bg-card) py-1.75 px-2.5 flex items-center gap-2 cursor-pointer select-none [transition:border-color_0.1s] ${expanded ? 'border-[0.5px] border-(--color-primary)' : 'border-[0.5px] border-(--color-primary-mid)'} ${expanded && items.length > 0 ? 'rounded-t-lg' : 'rounded-lg'}`}>
+          <div className="w-8 h-8 rounded-md shrink-0 bg-(--accent-bg) flex items-center justify-center text-(--accent)">
+            <span className="material-symbols-outlined text-base">stacks</span>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontSize: 12, fontWeight: 500, color: 'var(--text-primary)',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>{bundle.title}</div>
-            <div style={{ fontSize: 10, color: 'var(--text-faint)' }}>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-medium text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap">{bundle.title}</div>
+            <div className="text-[10px] text-(--text-faint)">
               {items.length} item{items.length !== 1 ? 's' : ''}
             </div>
           </div>
-          <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-faint)', flexShrink: 0 }}>
+          <span className="material-symbols-outlined text-base text-(--text-faint) shrink-0">
             {expanded ? 'expand_less' : 'expand_more'}
           </span>
         </div>
@@ -305,48 +191,25 @@ function ListBundleRow({ bundle, expanded, hold, makeHold }) {
         {expanded && items.length > 0 && (
           <div
             onPointerDown={e => e.stopPropagation()}
-            style={{
-              background: 'var(--bg-card)',
-              border: '0.5px solid var(--color-primary)',
-              borderTop: '1px solid var(--border-subtle)',
-              borderRadius: '0 0 8px 8px',
-              padding: '6px 10px 8px',
-              display: 'flex', flexDirection: 'column', gap: 4,
-            }}
+            className="bg-(--bg-card) border-[0.5px] border-(--color-primary) border-t border-t-(--border-subtle) rounded-b-lg py-1.5 px-2.5 pb-2 flex flex-col gap-1"
           >
             {items.map(sub => (
               <div
                 key={sub.uuid}
                 {...makeHold(sub)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '4px 6px', borderRadius: 6,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-page)', userSelect: 'none', cursor: 'pointer',
-                }}
+                className="flex items-center gap-2 py-1 px-1.5 rounded-md border border-(--border-subtle) bg-(--bg-page) select-none cursor-pointer"
               >
-                <div style={{
-                  width: 24, height: 24, borderRadius: 4, flexShrink: 0, overflow: 'hidden',
-                  background: sub.type === 'image' ? 'var(--accent-bg)' : 'var(--bg-section-hd)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+                <div className={`w-6 h-6 rounded shrink-0 overflow-hidden flex items-center justify-center ${sub.type === 'image' ? 'bg-(--accent-bg)' : 'bg-(--bg-section-hd)'}`}>
                   {sub.type === 'image' && sub.content ? (
-                    <img src={sub.content} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={sub.content} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'var(--text-faint)' }}>
+                    <span className="material-symbols-outlined text-[13px] text-(--text-faint)">
                       {typeIcon(sub.type)}
                     </span>
                   )}
                 </div>
-                <div style={{
-                  flex: 1, fontSize: 11, fontFamily: 'var(--font-sans)',
-                  color: 'var(--text-secondary)', overflow: 'hidden',
-                  textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>{sub.title}</div>
-                <span style={{
-                  fontSize: 9, color: 'var(--text-faint)',
-                  fontFamily: 'var(--font-sans)', flexShrink: 0,
-                }}>{sub.type}</span>
+                <div className="flex-1 text-[11px] font-sans text-(--text-secondary) overflow-hidden text-ellipsis whitespace-nowrap">{sub.title}</div>
+                <span className="text-[9px] text-(--text-faint) font-sans shrink-0">{sub.type}</span>
               </div>
             ))}
           </div>
@@ -408,13 +271,8 @@ export default function PlayerHandoutTab({ sharedHandouts, onView }) {
     return next;
   });
 
-  const viewToggleBtn = (active) => ({
-    padding: '3px 7px', border: 'none', borderRadius: 5,
-    background: active ? 'var(--accent-bg)' : 'transparent',
-    color: active ? 'var(--color-primary)' : 'var(--text-faint)',
-    cursor: 'pointer', display: 'flex', alignItems: 'center',
-    transition: 'background 0.1s, color 0.1s',
-  });
+  const viewToggleCss = (active) =>
+    `py-0.75 px-1.75 border-none rounded [transition:background_0.1s,color_0.1s] cursor-pointer flex items-center ${active ? 'bg-(--accent-bg) text-(--color-primary)' : 'bg-transparent text-(--text-faint)'}`;
 
   // Player only ever sees handouts shared to them; dedupe the share
   // history down to unique handouts (latest share wins) to mirror the
@@ -432,34 +290,30 @@ export default function PlayerHandoutTab({ sharedHandouts, onView }) {
 
   if (handouts.length === 0) {
     return (
-      <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 32, display: 'block', marginBottom: 8 }}>
+      <div className="py-6 px-4 text-center text-(--text-muted)">
+        <span className="material-symbols-outlined text-[32px] block mb-2">
           attach_file
         </span>
-        <div style={{ fontSize: 12 }}>No handouts yet</div>
-        <div style={{ fontSize: 11, marginTop: 4 }}>The Keeper will share clues here</div>
+        <div className="text-xs">No handouts yet</div>
+        <div className="text-[11px] mt-1">The Keeper will share clues here</div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div className="p-3 flex flex-col gap-3.5">
 
       {/* View toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ ...labelStyle }}>
+      <div className="flex items-center justify-between">
+        <span className={labelCss}>
           Received ({handouts.length} item{handouts.length !== 1 ? 's' : ''})
         </span>
-        <div style={{
-          display: 'inline-flex', gap: 2, padding: 2,
-          border: '1px solid var(--border-main)', borderRadius: 7,
-          background: 'var(--bg-card)',
-        }}>
-          <button style={viewToggleBtn(view === 'list')} onClick={() => changeView('list')}>
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>list</span>
+        <div className="inline-flex gap-0.5 p-0.5 border border-(--border-main) rounded-[7px] bg-(--bg-card)">
+          <button className={viewToggleCss(view === 'list')} onClick={() => changeView('list')}>
+            <span className="material-symbols-outlined text-sm">list</span>
           </button>
-          <button style={viewToggleBtn(view === 'grid')} onClick={() => changeView('grid')}>
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>grid_view</span>
+          <button className={viewToggleCss(view === 'grid')} onClick={() => changeView('grid')}>
+            <span className="material-symbols-outlined text-sm">grid_view</span>
           </button>
         </div>
       </div>
@@ -467,14 +321,9 @@ export default function PlayerHandoutTab({ sharedHandouts, onView }) {
       {/* Bundles */}
       {bundles.length > 0 && (
         <div>
-          <div style={{ ...labelStyle, marginBottom: 7 }}>Bundles</div>
+          <div className={`${labelCss} mb-1.75`}>Bundles</div>
           {view === 'grid' ? (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-              alignItems: 'start',
-              gap: 10,
-            }}>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] items-start gap-2.5">
               {bundles.map(b => (
                 <GridBundleCard
                   key={b.uuid}
@@ -486,7 +335,7 @@ export default function PlayerHandoutTab({ sharedHandouts, onView }) {
               ))}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="flex flex-col gap-2.5">
               {bundles.map(b => (
                 <ListBundleRow
                   key={b.uuid}
@@ -504,13 +353,9 @@ export default function PlayerHandoutTab({ sharedHandouts, onView }) {
       {/* Individual handouts */}
       {individual.length > 0 && (
         <div>
-          <div style={{ ...labelStyle, marginBottom: 7 }}>Individual</div>
+          <div className={`${labelCss} mb-1.75`}>Individual</div>
           {view === 'grid' ? (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-              gap: 8,
-            }}>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2">
               {individual.map(item => (
                 <GridItemCard
                   key={item.uuid}
@@ -520,7 +365,7 @@ export default function PlayerHandoutTab({ sharedHandouts, onView }) {
               ))}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className="flex flex-col gap-1.5">
               {individual.map(item => (
                 <ListItemRow
                   key={item.uuid}

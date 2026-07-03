@@ -32,54 +32,25 @@ if (typeof document !== 'undefined' && !document.getElementById('hl-anim-styles'
 const typeIcon = (type) =>
   type === 'image' ? 'image' : type === 'bundle' ? 'stacks' : 'text_fields';
 
-// ─── shared styles ────────────────────────────────────────────
-const inputStyle = {
-  width: '100%', padding: '8px 11px', borderRadius: 8,
-  border: '1px solid var(--border-input)',
-  background: 'var(--bg-input)', color: 'var(--text-primary)',
-  fontFamily: 'var(--font-sans)', fontSize: 13,
-  outline: 'none', boxSizing: 'border-box', display: 'block',
-};
+// ─── shared classNames ────────────────────────────────────────
+const inputCss = 'w-full py-2 px-2.75 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-[13px] outline-none! box-border block';
 
-const primaryBtn = {
-  padding: '6px 16px', borderRadius: 7, border: 'none',
-  background: 'var(--color-primary)', color: '#fff',
-  fontFamily: 'var(--font-sans)', fontSize: 12,
-  fontWeight: 500, cursor: 'pointer',
-};
+const primaryBtnCss = 'py-1.5 px-4 rounded-[7px] border-none bg-(--color-primary) text-white font-sans text-xs font-medium cursor-pointer';
 
-const cancelBtn = {
-  padding: '6px 16px', borderRadius: 7,
-  border: '1px solid var(--border-main)',
-  background: 'transparent', color: 'var(--text-muted)',
-  fontFamily: 'var(--font-sans)', fontSize: 12, cursor: 'pointer',
-};
+const cancelBtnCss = 'py-1.5 px-4 rounded-[7px] border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-xs cursor-pointer';
 
-const miniBtn = {
-  padding: '2px 7px', borderRadius: 5,
-  border: '1px solid var(--border-main)',
-  background: 'transparent', color: 'var(--text-muted)',
-  fontFamily: 'var(--font-sans)', fontSize: 10, cursor: 'pointer',
-};
+const miniBtnCss = 'py-0.5 px-1.75 rounded border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-[10px] cursor-pointer';
 
 // ─── HandoutEditModal ──────────────────────────────────────────
 function HandoutEditModal({ children, onClose }) {
   return (
     <div
       onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 200, padding: 20,
-        animation: 'hl-overlay-in 0.15s ease',
-      }}
+      className="fixed inset-0 bg-[rgba(0,0,0,0.45)] flex items-center justify-center z-200 p-5 [animation:hl-overlay-in_0.15s_ease]"
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: 460,
-          animation: 'hl-modal-in 0.2s cubic-bezier(0.34, 1.4, 0.64, 1)',
-        }}
+        className="w-full max-w-115 [animation:hl-modal-in_0.2s_cubic-bezier(0.34,1.4,0.64,1)]"
       >
         {children}
       </div>
@@ -93,22 +64,15 @@ function TextHandoutForm({ initial, onSave, onCancel, saving }) {
   const [content, setContent] = useState(initial?.content ?? '');
 
   return (
-    <div style={{
-      background: 'var(--bg-card)', borderRadius: 10,
-      border: '1px solid var(--border-main)', padding: 16,
-      marginBottom: 16, animation: 'hl-form-in 0.2s ease',
-    }}>
-      <div style={{
-        fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-        marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.07em',
-      }}>
+    <div className="bg-(--bg-card) rounded-[10px] border border-(--border-main) p-4 mb-4 [animation:hl-form-in_0.2s_ease]">
+      <div className="text-[11px] font-semibold text-(--text-muted) mb-2.5 uppercase tracking-[0.07em]">
         {initial ? 'Edit Text Handout' : 'New Text Handout'}
       </div>
       <input
         value={title}
         onChange={e => setTitle(e.target.value)}
         placeholder="Title"
-        style={inputStyle}
+        className={`${inputCss} input-focus-glow focus:border-(--border-focus)`}
         autoFocus
       />
       <textarea
@@ -116,17 +80,17 @@ function TextHandoutForm({ initial, onSave, onCancel, saving }) {
         onChange={e => setContent(e.target.value)}
         placeholder="Handout text…"
         rows={5}
-        style={{ ...inputStyle, resize: 'vertical', marginTop: 8 }}
+        className={`${inputCss} input-focus-glow focus:border-(--border-focus) resize-y mt-2`}
       />
-      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+      <div className="flex gap-2 mt-2.5">
         <button
           onClick={() => onSave(title.trim() || 'Untitled', content)}
           disabled={saving}
-          style={primaryBtn}
+          className={primaryBtnCss}
         >
           {saving ? 'Saving…' : 'Save'}
         </button>
-        <button onClick={onCancel} disabled={saving} style={cancelBtn}>Cancel</button>
+        <button onClick={onCancel} disabled={saving} className={cancelBtnCss}>Cancel</button>
       </div>
     </div>
   );
@@ -137,44 +101,33 @@ function ImageEditForm({ initial, onSave, onCancel, saving }) {
   const [title, setTitle] = useState(initial?.title ?? '');
 
   return (
-    <div style={{
-      background: 'var(--bg-card)', borderRadius: 10,
-      border: '1px solid var(--border-main)', padding: 16,
-      marginBottom: 16, animation: 'hl-form-in 0.2s ease',
-    }}>
-      <div style={{
-        fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-        marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.07em',
-      }}>
+    <div className="bg-(--bg-card) rounded-[10px] border border-(--border-main) p-4 mb-4 [animation:hl-form-in_0.2s_ease]">
+      <div className="text-[11px] font-semibold text-(--text-muted) mb-2.5 uppercase tracking-[0.07em]">
         Rename Image
       </div>
       {initial?.content && (
         <img
           src={initial.content}
           alt={initial.title}
-          style={{
-            width: '100%', maxHeight: 240, objectFit: 'contain',
-            borderRadius: 6, marginBottom: 10, display: 'block',
-            background: 'var(--bg-section-hd)',
-          }}
+          className="w-full max-h-60 object-contain rounded-md mb-2.5 block bg-(--bg-section-hd)"
         />
       )}
       <input
         value={title}
         onChange={e => setTitle(e.target.value)}
         placeholder="Image name"
-        style={inputStyle}
+        className={`${inputCss} input-focus-glow focus:border-(--border-focus)`}
         autoFocus
       />
-      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+      <div className="flex gap-2 mt-2.5">
         <button
           onClick={() => onSave(title.trim() || 'Untitled')}
           disabled={saving}
-          style={primaryBtn}
+          className={primaryBtnCss}
         >
           {saving ? 'Saving…' : 'Save'}
         </button>
-        <button onClick={onCancel} disabled={saving} style={cancelBtn}>Cancel</button>
+        <button onClick={onCancel} disabled={saving} className={cancelBtnCss}>Cancel</button>
       </div>
     </div>
   );
@@ -255,50 +208,31 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
   };
 
   return (
-    <div style={{
-      background: 'var(--bg-card)', borderRadius: 10,
-      border: '1px solid var(--border-main)', padding: 16,
-      marginBottom: 16, animation: 'hl-form-in 0.2s ease',
-    }}>
-      <div style={{
-        fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-        marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.07em',
-      }}>
+    <div className="bg-(--bg-card) rounded-[10px] border border-(--border-main) p-4 mb-4 [animation:hl-form-in_0.2s_ease]">
+      <div className="text-[11px] font-semibold text-(--text-muted) mb-2.5 uppercase tracking-[0.07em]">
         {initial ? 'Edit Bundle' : 'New Bundle'}
       </div>
       <input
         value={title}
         onChange={e => setTitle(e.target.value)}
         placeholder="Bundle title"
-        style={inputStyle}
+        className={`${inputCss} input-focus-glow focus:border-(--border-focus)`}
         autoFocus
       />
 
-      <div style={{
-        marginTop: 14, marginBottom: 8, fontSize: 11, fontWeight: 600,
-        color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em',
-      }}>
+      <div className="mt-3.5 mb-2 text-[11px] font-semibold text-(--text-muted) uppercase tracking-[0.07em]">
         Add to bundle
-        <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginLeft: 5, fontSize: 10 }}>
+        <span className="font-normal normal-case tracking-normal ml-1.25 text-[10px]">
           (hold to preview)
         </span>
       </div>
 
       {available.length === 0 ? (
-        <div style={{
-          padding: '12px', fontSize: 12, color: 'var(--text-faint)',
-          fontStyle: 'italic', textAlign: 'center',
-          border: '1px solid var(--border-main)', borderRadius: 8,
-        }}>
+        <div className="p-3 text-xs text-(--text-faint) italic text-center border border-(--border-main) rounded-lg">
           No handouts yet
         </div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))',
-          gap: 7, maxHeight: 220, overflowY: 'auto', overscrollBehavior: 'contain',
-          padding: 2,
-        }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(84px,1fr))] gap-1.75 max-h-55 overflow-y-auto overscroll-contain p-0.5">
           {available.map(h => {
             const isSel = selected.includes(h.uuid);
             return (
@@ -307,50 +241,27 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
                 onPointerDown={e => handlePointerDown(e, h)}
                 onPointerUp={() => handlePointerUp(h)}
                 onPointerLeave={handlePointerLeave}
-                style={{
-                  borderRadius: 8, overflow: 'hidden', cursor: 'pointer',
-                  border: isSel ? '2px solid var(--color-primary)' : '1px solid var(--border-main)',
-                  boxShadow: isSel ? '0 0 0 2px var(--accent-bg)' : 'none',
-                  position: 'relative', userSelect: 'none',
-                  transition: 'border-color 0.1s, box-shadow 0.1s',
-                }}
+                className={`rounded-lg overflow-hidden cursor-pointer relative select-none [transition:border-color_0.1s,box-shadow_0.1s] ${isSel ? 'border-2 border-(--color-primary) shadow-[0_0_0_2px_var(--accent-bg)]' : 'border border-(--border-main) shadow-none'}`}
               >
                 {/* Thumbnail */}
-                <div style={{
-                  height: 58, background: h.type === 'image' ? 'var(--accent-bg)' : 'var(--bg-section-hd)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-                }}>
+                <div className={`h-14.5 flex items-center justify-center overflow-hidden ${h.type === 'image' ? 'bg-(--accent-bg)' : 'bg-(--bg-section-hd)'}`}>
                   {h.type === 'image' && h.content ? (
                     <img src={h.content} alt={h.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+                      className="w-full h-full object-cover pointer-events-none" />
                   ) : (
-                    <span className="material-symbols-outlined" style={{
-                      fontSize: 22,
-                      color: isSel ? 'var(--color-primary)' : 'var(--text-faint)',
-                      opacity: 0.7,
-                    }}>
+                    <span className={`material-symbols-outlined text-[22px] opacity-70 ${isSel ? 'text-(--color-primary)' : 'text-(--text-faint)'}`}>
                       {typeIcon(h.type)}
                     </span>
                   )}
                 </div>
                 {/* Title */}
-                <div style={{
-                  padding: '3px 5px', fontSize: 10, fontFamily: 'var(--font-sans)',
-                  color: 'var(--text-primary)', overflow: 'hidden',
-                  textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  background: 'var(--bg-card)',
-                }}>
+                <div className="py-0.75 px-1.25 text-[10px] font-sans text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap bg-(--bg-card)">
                   {h.title}
                 </div>
                 {/* Selected checkmark */}
                 {isSel && (
-                  <div style={{
-                    position: 'absolute', top: 4, right: 4,
-                    width: 16, height: 16, borderRadius: '50%',
-                    background: 'var(--color-primary)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 11, color: '#fff' }}>check</span>
+                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-(--color-primary) flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[11px] text-white">check</span>
                   </div>
                 )}
               </div>
@@ -361,13 +272,10 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
 
       {selected.length > 0 && (
         <>
-          <div style={{
-            marginTop: 14, marginBottom: 6, fontSize: 11, fontWeight: 600,
-            color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em',
-          }}>
+          <div className="mt-3.5 mb-1.5 text-[11px] font-semibold text-(--text-muted) uppercase tracking-[0.07em]">
             Order ({selected.length})
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <div className="flex flex-col gap-0.75">
             {selected.map((uuid, idx) => {
               const h = byUuid[uuid];
               if (!h) return null;
@@ -378,33 +286,20 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
                   onDragStart={e => handleDragStart(e, idx)}
                   onDragOver={e => handleDragOver(e, idx)}
                   onDrop={e => handleDrop(e, idx)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '5px 8px', borderRadius: 6,
-                    border: '1px solid var(--border-main)',
-                    background: 'var(--bg-page)',
-                    cursor: 'grab', fontSize: 12,
-                  }}
+                  className="flex items-center gap-2 py-1.25 px-2 rounded-md border border-(--border-main) bg-(--bg-page) cursor-grab text-xs"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--text-faint)', flexShrink: 0 }}>
+                  <span className="material-symbols-outlined text-sm text-(--text-faint) shrink-0">
                     drag_indicator
                   </span>
-                  <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'var(--accent)', flexShrink: 0 }}>
+                  <span className="material-symbols-outlined text-[13px] text-(--accent) shrink-0">
                     {typeIcon(h.type)}
                   </span>
-                  <span style={{
-                    flex: 1, color: 'var(--text-primary)',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
+                  <span className="flex-1 text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap">
                     {h.title}
                   </span>
                   <button
                     onClick={() => toggleItem(uuid)}
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      color: 'var(--text-faint)', padding: '0 2px',
-                      fontSize: 16, lineHeight: 1,
-                    }}
+                    className="bg-none border-none cursor-pointer text-(--text-faint) py-0 px-0.5 text-base leading-none"
                   >
                     ×
                   </button>
@@ -415,64 +310,43 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
         </>
       )}
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+      <div className="flex gap-2 mt-3.5">
         <button
           onClick={() => onSave(title.trim() || 'Untitled', selected)}
           disabled={saving}
-          style={primaryBtn}
+          className={primaryBtnCss}
         >
           {saving ? 'Saving…' : 'Save'}
         </button>
-        <button onClick={onCancel} disabled={saving} style={cancelBtn}>Cancel</button>
+        <button onClick={onCancel} disabled={saving} className={cancelBtnCss}>Cancel</button>
       </div>
 
       {/* Hold-to-preview overlay */}
       {preview && createPortal(
-        <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 400, padding: 24,
-            animation: 'hl-overlay-in 0.1s ease',
-            pointerEvents: 'none',
-          }}
-        >
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.72)] flex items-center justify-center z-400 p-6 [animation:hl-overlay-in_0.1s_ease] pointer-events-none">
           {preview.type === 'image' && preview.content ? (
             <img
               src={preview.content}
               alt={preview.title}
-              style={{
-                maxWidth: '90vw', maxHeight: '85vh',
-                borderRadius: 10, boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
-                pointerEvents: 'none',
-              }}
+              className="max-w-[90vw] max-h-[85vh] rounded-[10px] shadow-[0_8px_40px_rgba(0,0,0,0.5)] pointer-events-none"
             />
           ) : (
-            <div style={{
-              background: 'var(--bg-card)', borderRadius: 12, padding: 24,
-              maxWidth: 440, width: '100%',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
-            }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12,
-              }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>
+            <div className="bg-(--bg-card) rounded-xl p-6 max-w-110 w-full shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="material-symbols-outlined text-lg text-(--accent)">
                   {typeIcon(preview.type)}
                 </span>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: 16, color: 'var(--text-primary)' }}>
+                <span className="font-serif text-base text-(--text-primary)">
                   {preview.title}
                 </span>
               </div>
               {preview.content && (
-                <div style={{
-                  fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--text-secondary)',
-                  lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: '60vh', overflowY: 'auto', overscrollBehavior: 'contain',
-                }}>
+                <div className="font-sans text-[13px] text-(--text-secondary) leading-[1.6] whitespace-pre-wrap max-h-[60vh] overflow-y-auto overscroll-contain">
                   {preview.content}
                 </div>
               )}
               {preview.type === 'bundle' && (
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 8 }}>
+                <div className="text-[11px] text-(--text-faint) mt-2">
                   {(preview.items || []).length} items in bundle
                 </div>
               )}
@@ -491,43 +365,31 @@ function HandoutCard({ handout, onEdit, onDelete }) {
   return (
     <div
       onClick={() => onEdit(handout)}
-      style={{
-        background: 'var(--bg-card)', borderRadius: 10,
-        border: '1px solid var(--border-main)', overflow: 'hidden',
-        cursor: 'pointer', transition: 'border-color 0.12s',
-      }}
+      className="bg-(--bg-card) rounded-[10px] border border-(--border-main) overflow-hidden cursor-pointer [transition:border-color_0.12s]"
       onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
       onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-main)'}
     >
-      <div style={{
-        height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: isImage ? 'var(--accent-bg)' : 'var(--bg-section-hd)',
-        overflow: 'hidden',
-      }}>
+      <div className={`h-16 flex items-center justify-center overflow-hidden ${isImage ? 'bg-(--accent-bg)' : 'bg-(--bg-section-hd)'}`}>
         {isImage && handout.content ? (
           <img
             src={handout.content}
             alt={handout.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            className="w-full h-full object-cover"
           />
         ) : (
-          <span className="material-symbols-outlined" style={{ fontSize: 28, color: 'var(--text-faint)', opacity: 0.5 }}>
+          <span className="material-symbols-outlined text-[28px] text-(--text-faint) opacity-50">
             {typeIcon(handout.type)}
           </span>
         )}
       </div>
-      <div style={{ padding: '6px 8px' }}>
-        <div style={{
-          fontSize: 11, fontWeight: 500, color: 'var(--text-primary)',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          marginBottom: 4,
-        }}>
+      <div className="py-1.5 px-2">
+        <div className="text-[11px] font-medium text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap mb-1">
           {handout.title}
         </div>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div className="flex gap-1">
           <button
             onClick={e => { e.stopPropagation(); onDelete(handout); }}
-            style={{ ...miniBtn, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+            className={`${miniBtnCss} text-(--danger) border-(--danger)`}
           >
             delete
           </button>
@@ -543,82 +405,49 @@ function BundleCard({ bundle, onEdit, onDelete }) {
   const isNested = items.some(i => i.type === 'bundle');
 
   return (
-    <div style={{ position: 'relative', marginTop: 8, marginBottom: 4 }}>
+    <div className="relative mt-2 mb-1">
       {/* Stack layer 2 — furthest back */}
-      <div style={{
-        position: 'absolute', top: -6, left: 4, right: 4,
-        height: '100%', background: 'var(--accent-bg)',
-        border: '0.5px solid var(--color-primary-mid)', borderRadius: 10, zIndex: 0,
-      }} />
+      <div className="absolute top-[-6px] left-1 right-1 h-full bg-(--accent-bg) border-[0.5px] border-(--color-primary-mid) rounded-[10px] z-0" />
       {/* Stack layer 1 */}
-      <div style={{
-        position: 'absolute', top: -3, left: 2, right: 2,
-        height: '100%', background: 'var(--accent-bg)',
-        border: '0.5px solid var(--color-primary-mid)', borderRadius: 10, zIndex: 1,
-      }} />
+      <div className="absolute top-[-3px] left-0.5 right-0.5 h-full bg-(--accent-bg) border-[0.5px] border-(--color-primary-mid) rounded-[10px] z-1" />
       {/* Main card */}
       <div
         onClick={() => onEdit(bundle)}
-        style={{
-          position: 'relative', zIndex: 2, background: 'var(--bg-card)',
-          border: '0.5px solid var(--color-primary-mid)', borderRadius: 10, overflow: 'hidden',
-          cursor: 'pointer', transition: 'border-color 0.12s',
-        }}
+        className="relative z-2 bg-(--bg-card) border-[0.5px] border-(--color-primary-mid) rounded-[10px] overflow-hidden cursor-pointer [transition:border-color_0.12s]"
         onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
         onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-primary-mid)'}
       >
         {/* Preview */}
-        <div style={{
-          height: 64, background: 'var(--accent-bg)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        }}>
+        <div className="h-16 bg-(--accent-bg) flex items-center justify-center gap-2">
           {items.length === 0 ? (
-            <span className="material-symbols-outlined" style={{ fontSize: 24, color: 'var(--accent)', opacity: 0.4 }}>
+            <span className="material-symbols-outlined text-2xl text-(--accent) opacity-40">
               stacks
             </span>
           ) : items.slice(0, 3).map((item, i) => (
-            <span key={item.uuid} className="material-symbols-outlined" style={{
-              fontSize: i === 0 ? 24 : 18,
-              color: 'var(--accent)',
-              opacity: i === 0 ? 1 : 0.6,
-            }}>
+            <span key={item.uuid} className={`material-symbols-outlined text-(--accent) ${i === 0 ? 'text-2xl opacity-100' : 'text-lg opacity-60'}`}>
               {typeIcon(item.type)}
             </span>
           ))}
         </div>
 
         {/* Item count badge */}
-        <div style={{
-          position: 'absolute', top: 6, right: 6,
-          background: 'var(--color-primary)', color: 'var(--color-primary-light)',
-          fontSize: 10, padding: '1px 5px', borderRadius: 10,
-        }}>
+        <div className="absolute top-1.5 right-1.5 bg-(--color-primary) text-(--color-primary-light) text-[10px] py-px px-1.25 rounded-[10px]">
           {items.length}
         </div>
 
         {/* Footer */}
-        <div style={{
-          padding: '6px 8px', display: 'flex',
-          alignItems: 'center', justifyContent: 'space-between', gap: 6,
-        }}>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{
-              fontSize: 11, fontWeight: 500, color: 'var(--text-primary)',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
+        <div className="py-1.5 px-2 flex items-center justify-between gap-1.5">
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] font-medium text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap">
               {bundle.title}
             </div>
-            <div style={{
-              fontSize: 9, background: 'var(--accent-bg)', color: 'var(--accent)',
-              padding: '1px 5px', borderRadius: 4, marginTop: 2,
-              display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
+            <div className="text-[9px] bg-(--accent-bg) text-(--accent) py-px px-1.25 rounded mt-0.5 block overflow-hidden text-ellipsis whitespace-nowrap">
               bundle · {items.length} item{items.length !== 1 ? 's' : ''}{isNested ? ' · nested' : ''}
             </div>
           </div>
           <button
             onClick={e => { e.stopPropagation(); onDelete(bundle); }}
-            style={{ ...miniBtn, color: 'var(--danger)', borderColor: 'var(--danger)', flexShrink: 0 }}
+            className={`${miniBtnCss} text-(--danger) border-(--danger) shrink-0`}
           >
             delete
           </button>
@@ -631,22 +460,14 @@ function BundleCard({ bundle, onEdit, onDelete }) {
 // ─── LoadingCard ───────────────────────────────────────────────
 function LoadingCard() {
   return (
-    <div style={{
-      background: 'var(--bg-card)', borderRadius: 10,
-      border: '1px solid var(--border-main)', overflow: 'hidden',
-      opacity: 0.6,
-    }}>
-      <div style={{
-        height: 64,
-        background: 'var(--accent-bg)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 22, color: 'var(--accent)', opacity: 0.5 }}>
+    <div className="bg-(--bg-card) rounded-[10px] border border-(--border-main) overflow-hidden opacity-60">
+      <div className="h-16 bg-(--accent-bg) flex items-center justify-center">
+        <span className="material-symbols-outlined text-[22px] text-(--accent) opacity-50">
           upload
         </span>
       </div>
-      <div style={{ padding: '6px 8px' }}>
-        <div style={{ fontSize: 11, color: 'var(--text-faint)', fontStyle: 'italic' }}>
+      <div className="py-1.5 px-2">
+        <div className="text-[11px] text-(--text-faint) italic">
           Uploading…
         </div>
       </div>
@@ -657,11 +478,7 @@ function LoadingCard() {
 // ─── Section heading ───────────────────────────────────────────
 function SectionHeading({ children }) {
   return (
-    <div style={{
-      fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-      textTransform: 'uppercase', letterSpacing: '0.08em',
-      marginBottom: 10,
-    }}>
+    <div className="text-[11px] font-semibold text-(--text-muted) uppercase tracking-[0.08em] mb-2.5">
       {children}
     </div>
   );
@@ -670,12 +487,7 @@ function SectionHeading({ children }) {
 // ─── Grid ──────────────────────────────────────────────────────
 function Grid({ children }) {
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-      gap: 10,
-      marginBottom: 24,
-    }}>
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2.5 mb-6">
       {children}
     </div>
   );
@@ -687,29 +499,18 @@ function CreateTile({ icon, label, hint, chevron, innerRef, onClick, style }) {
     <button
       ref={innerRef}
       onClick={onClick}
-      style={{
-        background: 'transparent',
-        border: '2px dashed var(--border-main)',
-        borderRadius: 'var(--radius-squircle, 12px)',
-        color: 'var(--text-muted)', cursor: 'pointer',
-        width: '100%', height: '100%', minHeight: 80,
-        boxSizing: 'border-box', padding: 10,
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 4,
-        fontFamily: 'var(--font-sans)',
-        transition: 'border-color 0.15s, color 0.15s',
-        ...style,
-      }}
+      className="bg-transparent border-2 border-dashed border-(--border-main) rounded-[var(--radius-squircle,12px)] text-(--text-muted) cursor-pointer w-full h-full min-h-20 box-border p-2.5 flex flex-col items-center justify-center gap-1 font-sans [transition:border-color_0.15s,color_0.15s]"
+      style={style}
       onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-focus)'; e.currentTarget.style.color = 'var(--accent)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-main)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
     >
-      <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{icon}</span>
-        <span style={{ fontSize: 13, fontWeight: 600 }}>{label}</span>
-        {chevron && <span className="material-symbols-outlined" style={{ fontSize: 16 }}>expand_more</span>}
+      <span className="flex items-center gap-1.25">
+        <span className="material-symbols-outlined text-[22px]">{icon}</span>
+        <span className="text-[13px] font-semibold">{label}</span>
+        {chevron && <span className="material-symbols-outlined text-base">expand_more</span>}
       </span>
       {hint && (
-        <span style={{ fontSize: 10, color: 'var(--text-faint)', textAlign: 'center', lineHeight: 1.3 }}>
+        <span className="text-[10px] text-(--text-faint) text-center leading-[1.3]">
           {hint}
         </span>
       )}
@@ -735,40 +536,29 @@ function AddMenu({ anchorRef, onImage, onText, onClose }) {
     };
   }, [anchorRef, onClose]);
 
-  const itemStyle = {
-    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-    padding: '8px 12px', fontSize: 13, color: 'var(--text-primary)',
-    fontFamily: 'var(--font-sans)', cursor: 'pointer',
-    background: 'transparent', border: 'none', textAlign: 'left',
-  };
+  const itemCss = 'flex items-center gap-2 w-full py-2 px-3 text-[13px] text-(--text-primary) font-sans cursor-pointer bg-transparent border-none text-left';
 
   return (
     <div
       ref={menuRef}
-      style={{
-        position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 60,
-        minWidth: 168, background: 'var(--bg-card)',
-        border: '1px solid var(--border-main)', borderRadius: 10,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.18)', overflow: 'hidden',
-        animation: 'hl-form-in 0.12s ease',
-      }}
+      className="absolute top-[calc(100%+6px)] left-0 z-60 min-w-42 bg-(--bg-card) border border-(--border-main) rounded-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] overflow-hidden [animation:hl-form-in_0.12s_ease]"
     >
       <button
-        style={itemStyle} onClick={onImage}
+        className={itemCss} onClick={onImage}
         onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>image</span>
-        <span style={{ flex: 1 }}>Image</span>
-        <span style={{ fontSize: 10, color: 'var(--text-faint)' }}>upload</span>
+        <span className="material-symbols-outlined text-lg text-(--accent)">image</span>
+        <span className="flex-1">Image</span>
+        <span className="text-[10px] text-(--text-faint)">upload</span>
       </button>
       <button
-        style={itemStyle} onClick={onText}
+        className={itemCss} onClick={onText}
         onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)' }}>text_fields</span>
-        <span style={{ flex: 1 }}>Text</span>
+        <span className="material-symbols-outlined text-lg text-(--accent)">text_fields</span>
+        <span className="flex-1">Text</span>
       </button>
     </div>
   );
@@ -779,51 +569,29 @@ function StagingModal({ items, onRemove, onCancel, onUpload, uploading }) {
   const validCount = items.filter(i => i.isImage).length;
   return (
     <HandoutEditModal onClose={uploading ? () => {} : onCancel}>
-      <div style={{
-        background: 'var(--bg-card)', borderRadius: 12,
-        border: '1px solid var(--border-main)', padding: 18,
-      }}>
-        <div style={{
-          fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-          textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12,
-        }}>
+      <div className="bg-(--bg-card) rounded-xl border border-(--border-main) p-4.5">
+        <div className="text-[11px] font-semibold text-(--text-muted) uppercase tracking-[0.07em] mb-3">
           Ready to upload ({validCount})
         </div>
-        <div style={{
-          display: 'flex', flexDirection: 'column', gap: 6,
-          maxHeight: 340, overflowY: 'auto', overscrollBehavior: 'contain',
-        }}>
+        <div className="flex flex-col gap-1.5 max-h-85 overflow-y-auto overscroll-contain">
           {items.map(it => (
             <div
               key={it.id}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '6px 8px', borderRadius: 8,
-                border: '1px solid var(--border-main)',
-                background: it.isImage ? 'var(--bg-page)' : 'var(--bg-section-hd)',
-                opacity: it.isImage ? 1 : 0.6,
-              }}
+              className={`flex items-center gap-2.5 py-1.5 px-2 rounded-lg border border-(--border-main) ${it.isImage ? 'bg-(--bg-page) opacity-100' : 'bg-(--bg-section-hd) opacity-60'}`}
             >
-              <div style={{
-                width: 40, height: 40, borderRadius: 6, overflow: 'hidden', flexShrink: 0,
-                background: 'var(--bg-section-hd)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+              <div className="w-10 h-10 rounded-md overflow-hidden shrink-0 bg-(--bg-section-hd) flex items-center justify-center">
                 {it.isImage ? (
-                  <img src={it.url} alt={it.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={it.url} alt={it.name} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--text-faint)' }}>block</span>
+                  <span className="material-symbols-outlined text-lg text-(--text-faint)">block</span>
                 )}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 12, color: 'var(--text-primary)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap">
                   {it.name}
                 </div>
                 {!it.isImage && (
-                  <div style={{ fontSize: 10, color: 'var(--danger)', marginTop: 1 }}>
+                  <div className="text-[10px] text-(--danger) mt-px">
                     not an image — will be skipped
                   </div>
                 )}
@@ -831,25 +599,22 @@ function StagingModal({ items, onRemove, onCancel, onUpload, uploading }) {
               <button
                 onClick={() => onRemove(it.id)}
                 disabled={uploading}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: '0 2px',
-                }}
+                className="bg-none border-none cursor-pointer text-(--text-faint) text-lg leading-none py-0 px-0.5"
               >
                 ×
               </button>
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+        <div className="flex gap-2 mt-3.5">
           <button
             onClick={onUpload}
             disabled={uploading || validCount === 0}
-            style={{ ...primaryBtn, opacity: validCount === 0 ? 0.5 : 1 }}
+            className={`${primaryBtnCss} ${validCount === 0 ? 'opacity-50' : 'opacity-100'}`}
           >
             {uploading ? 'Uploading…' : `Upload ${validCount} file${validCount !== 1 ? 's' : ''}`}
           </button>
-          <button onClick={onCancel} disabled={uploading} style={cancelBtn}>Cancel</button>
+          <button onClick={onCancel} disabled={uploading} className={cancelBtnCss}>Cancel</button>
         </div>
       </div>
     </HandoutEditModal>
@@ -1105,7 +870,7 @@ export default function HandoutLibrary({ campaignUuid }) {
 
   if (loading) {
     return (
-      <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>
+      <div className="py-10 px-0 text-center text-(--text-faint) text-[13px]">
         Loading handouts…
       </div>
     );
@@ -1124,33 +889,22 @@ export default function HandoutLibrary({ campaignUuid }) {
         type="file"
         accept="image/*"
         multiple
-        style={{ display: 'none' }}
+        className="hidden"
         onChange={handleFilePick}
       />
 
       {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: 12,
-        marginBottom: 20,
-      }}>
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
         <div>
-          <h2 style={{
-            fontFamily: 'var(--font-serif)', fontSize: 20,
-            color: 'var(--text-primary)', margin: 0,
-          }}>
+          <h2 className="font-serif text-xl text-(--text-primary) m-0">
             Handout library
           </h2>
-          <div style={{
-            marginTop: 3, fontSize: 11, color: 'var(--text-faint)',
-            display: 'flex', alignItems: 'center', gap: 4,
-            fontFamily: 'var(--font-sans)',
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 12 }}>public</span>
+          <div className="mt-0.75 text-[11px] text-(--text-faint) flex items-center gap-1 font-sans">
+            <span className="material-symbols-outlined text-xs">public</span>
             {stats.imageCount} image{stats.imageCount !== 1 ? 's' : ''} across all campaigns
           </div>
         </div>
-        <div style={{ width: 190, flexShrink: 0 }}>
+        <div className="w-47.5 shrink-0">
           <CustomDropdown
             value={sortBy}
             onChange={handleSortChange}
@@ -1169,7 +923,7 @@ export default function HandoutLibrary({ campaignUuid }) {
 
       {/* Upload progress */}
       {handoutProgress !== null && (
-        <div style={{ marginBottom: 8 }}>
+        <div className="mb-2">
           <UploadProgressBar progress={handoutProgress} />
         </div>
       )}
@@ -1223,7 +977,7 @@ export default function HandoutLibrary({ campaignUuid }) {
       )}
 
       {/* ── Bundles section ── */}
-      <div style={{ marginBottom: 24 }}>
+      <div className="mb-6">
         <SectionHeading>Bundles</SectionHeading>
         <Grid>
           {bundles.map(b => (
@@ -1257,7 +1011,7 @@ export default function HandoutLibrary({ campaignUuid }) {
             />
           ))}
           {Array.from({ length: uploadingCount }).map((_, i) => <LoadingCard key={`loading-${i}`} />)}
-          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}>
+          <div className="relative flex flex-col">
             <CreateTile
               innerRef={addTileRef}
               icon="add"

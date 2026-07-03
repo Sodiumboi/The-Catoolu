@@ -10,34 +10,18 @@ function ImageShareCard({ handout, onView }) {
   return (
     <div
       onClick={onView}
-      style={{
-        position: 'relative', maxWidth: 260, cursor: 'pointer',
-        borderRadius: 10, overflow: 'hidden',
-        border: '0.5px solid #C0DD97',
-        background: '#0a0a0a',
-      }}
+      className="relative max-w-65 cursor-pointer rounded-[10px] overflow-hidden border-[0.5px] border-[#C0DD97] bg-[#0a0a0a]"
     >
       <img
         src={handout.content}
         alt={handout.title}
-        style={{
-          display: 'block', width: '100%',
-          maxHeight: 200, objectFit: 'contain',
-        }}
+        className="block w-full max-h-50 object-contain"
       />
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        padding: '18px 10px 7px',
-        background: 'linear-gradient(transparent, rgba(0,0,0,0.65))',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <span style={{
-          fontSize: 11, color: '#fff', fontWeight: 500,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
-        }}>
+      <div className="absolute bottom-0 left-0 right-0 pt-[18px] px-2.5 pb-[7px] bg-[linear-gradient(transparent,rgba(0,0,0,0.65))] flex items-center justify-between">
+        <span className="text-[11px] text-white font-medium overflow-hidden text-ellipsis whitespace-nowrap flex-1">
           {handout.title}
         </span>
-        <span className="material-symbols-outlined" style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', flexShrink: 0, marginLeft: 4 }}>
+        <span className="material-symbols-outlined text-[13px] text-white/70 shrink-0 ml-1">
           open_in_full
         </span>
       </div>
@@ -50,34 +34,22 @@ function IndividualShareCard({ handout, onView }) {
   return (
     <div
       onClick={onView}
-      style={{
-        border: '0.5px solid #C0DD97', borderLeft: '2.5px solid #3B6D11',
-        borderRadius: 8, padding: '6px 10px', background: '#fff',
-        display: 'inline-flex', gap: 8, alignItems: 'center',
-        maxWidth: 280, cursor: 'pointer',
-      }}
+      className="border-[0.5px] border-[#C0DD97] border-l-[2.5px] border-l-[#3B6D11] rounded-lg py-1.5 px-2.5 bg-white inline-flex gap-2 items-center max-w-70 cursor-pointer"
     >
-      <div style={{
-        width: 30, height: 30, borderRadius: 5, background: '#EAF3DE',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#3B6D11', flexShrink: 0,
-      }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+      <div className="w-7.5 h-7.5 rounded-[5px] bg-[#EAF3DE] flex items-center justify-center text-[#3B6D11] shrink-0">
+        <span className="material-symbols-outlined text-sm">
           {typeIcon(handout.type)}
         </span>
       </div>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 10, color: '#3B6D11', fontWeight: 500 }}>
+      <div className="min-w-0 flex-1">
+        <div className="text-[10px] text-[#3B6D11] font-medium">
           📎 Handout shared
         </div>
-        <div style={{
-          fontSize: 12, fontWeight: 500, color: '#1a0f05',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
+        <div className="text-xs font-medium text-[#1a0f05] overflow-hidden text-ellipsis whitespace-nowrap">
           {handout.title}
         </div>
       </div>
-      <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#888780', flexShrink: 0 }}>
+      <span className="material-symbols-outlined text-sm text-[#888780] shrink-0">
         visibility
       </span>
     </div>
@@ -96,53 +68,42 @@ function BundleShareCard({ handout, onView }) {
   return (
     <div
       onClick={onView}
-      style={{ cursor: 'pointer', maxWidth: 260, userSelect: 'none' }}
+      className="cursor-pointer max-w-65 select-none"
     >
       {/* Stacked content cards — i=0 is front (bottom-left), i=n-1 is back (top-right) */}
-      <div style={{
-        position: 'relative',
-        width:    CARD_W + (n - 1) * OFFSET,
-        height:   CARD_H + (n - 1) * OFFSET,
-        marginBottom: 10,
-      }}>
+      <div
+        className="relative mb-2.5"
+        style={{
+          // width/height computed from live item count (n) + OFFSET — stacked card geometry, not static styling
+          width:  CARD_W + (n - 1) * OFFSET,
+          height: CARD_H + (n - 1) * OFFSET,
+        }}
+      >
         {preview.map((item, i) => (
           <div
             key={item.uuid}
+            className={`absolute rounded-[10px] overflow-hidden border-[0.5px] border-[#C0DD97] shadow-[0_2px_6px_rgba(0,0,0,0.10)] ${item.type === 'image' ? 'bg-[#0a0a0a]' : 'bg-[#EAF3DE]'}`}
             style={{
-              position:     'absolute',
-              top:          (n - 1 - i) * OFFSET,
-              left:         i * OFFSET,
-              width:        CARD_W,
-              height:       CARD_H,
-              zIndex:       n - i,
-              borderRadius: 10,
-              overflow:     'hidden',
-              border:       '0.5px solid #C0DD97',
-              background:   item.type === 'image' ? '#0a0a0a' : '#EAF3DE',
-              boxShadow:    '0 2px 6px rgba(0,0,0,0.10)',
+              // top/left/width/height/zIndex computed from live item count (n) + index (i) — stacked card geometry
+              top:    (n - 1 - i) * OFFSET,
+              left:   i * OFFSET,
+              width:  CARD_W,
+              height: CARD_H,
+              zIndex: n - i,
             }}
           >
             {item.type === 'image' && item.content ? (
               <img
                 src={item.content}
                 alt={item.title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                className="w-full h-full object-cover"
               />
             ) : (
-              <div style={{
-                width: '100%', height: '100%',
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                gap: 6, padding: 10,
-              }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 30, color: '#3B6D11' }}>
+              <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 p-2.5">
+                <span className="material-symbols-outlined text-3xl text-[#3B6D11]">
                   {typeIcon(item.type)}
                 </span>
-                <span style={{
-                  fontSize: 10, color: '#3B6D11', textAlign: 'center',
-                  overflow: 'hidden', textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap', maxWidth: '90%',
-                }}>
+                <span className="text-[10px] text-[#3B6D11] text-center overflow-hidden text-ellipsis whitespace-nowrap max-w-[90%]">
                   {item.title}
                 </span>
               </div>
@@ -152,20 +113,14 @@ function BundleShareCard({ handout, onView }) {
       </div>
 
       {/* Footer: title + count */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 10, color: '#3B6D11', fontWeight: 500 }}>📦 Bundle shared</div>
-          <div style={{
-            fontSize: 13, fontWeight: 500, color: '#1a0f05',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-[10px] text-[#3B6D11] font-medium">📦 Bundle shared</div>
+          <div className="text-[13px] font-medium text-[#1a0f05] overflow-hidden text-ellipsis whitespace-nowrap">
             {handout.title}
           </div>
         </div>
-        <div style={{
-          flexShrink: 0, fontSize: 10, background: '#EAF3DE',
-          color: '#27500A', padding: '2px 6px', borderRadius: 4,
-        }}>
+        <div className="shrink-0 text-[10px] bg-[#EAF3DE] text-[#27500A] py-0.5 px-1.5 rounded-sm">
           {items.length} item{items.length !== 1 ? 's' : ''}
         </div>
       </div>
@@ -196,33 +151,21 @@ export default function HandoutShareCard({ msg, isOwn, canDelete, onDelete }) {
   return (
     <>
       <div
-        style={{
-          display:       'flex',
-          flexDirection: isOwn ? 'row-reverse' : 'row',
-          alignItems:    'flex-end',
-          gap:           '8px',
-          marginBottom:  8,
-        }}
+        className={`flex items-end gap-2 mb-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => { setHovered(false); setMenuOpen(false); }}
       >
         {/* Avatar — only for others, matches ChatBubble pattern */}
         {!isOwn && (
-          <div style={{
-            width:          32, height: 32, borderRadius: '50%',
-            overflow:       'hidden', flexShrink: 0,
-            background:     'var(--color-primary-light)',
-            display:        'flex', alignItems: 'center', justifyContent: 'center',
-            border:         '1px solid var(--border-main)',
-          }}>
+          <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-(--color-primary-light) flex items-center justify-center border border-(--border-main)">
             {avatar_url ? (
               <img
                 src={(import.meta.env.VITE_API_URL || '') + avatar_url}
                 alt={username}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                className="w-full h-full object-cover"
               />
             ) : (
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 600, color: 'var(--color-primary-dark)' }}>
+              <span className="font-sans text-[11px] font-semibold text-(--color-primary-dark)">
                 {initials}
               </span>
             )}
@@ -230,87 +173,37 @@ export default function HandoutShareCard({ msg, isOwn, canDelete, onDelete }) {
         )}
 
         {/* Outer card box — mirrors chat bubble shape, flipped for own messages */}
-        <div style={{
-          display:      'inline-block',
-          maxWidth:     300,
-          background:   'var(--bg-card)',
-          border:       '1px solid var(--border-main)',
-          borderRadius: isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-          padding:      '8px 10px',
-          position:     'relative',
-        }}>
+        <div className={`inline-block max-w-75 bg-(--bg-card) border border-(--border-main) py-2 px-2.5 relative ${isOwn ? 'rounded-[16px_16px_4px_16px]' : 'rounded-[16px_16px_16px_4px]'}`}>
           {/* Header: username · time + three-dot */}
-          <div style={{
-            display:     'flex',
-            alignItems:  'center',
-            gap:         6,
-            marginBottom: 8,
-            fontFamily:  'var(--font-sans)',
-          }}>
-            <span style={{ fontSize: 11, color: 'var(--text-faint)', flex: 1 }}>
+          <div className="flex items-center gap-1.5 mb-2 font-sans">
+            <span className="text-[11px] text-(--text-faint) flex-1">
               {isOwn
-                ? <>You shared a handout{time ? <> · <span style={{ color: 'var(--text-faint)' }}>{time}</span></> : ''}</>
-                : <><span style={{ color: 'var(--accent)', fontWeight: 600 }}>{username}</span>{' '}shared a handout{time ? ` · ${time}` : ''}</>
+                ? <>You shared a handout{time ? <> · <span className="text-(--text-faint)">{time}</span></> : ''}</>
+                : <><span className="text-(--accent) font-semibold">{username}</span>{' '}shared a handout{time ? ` · ${time}` : ''}</>
               }
             </span>
 
             {/* Always in flow when canDelete — visibility toggled so no layout shift on hover */}
             {canDelete && (
-              <div style={{ position: 'relative', flexShrink: 0, visibility: (hovered || menuOpen) ? 'visible' : 'hidden' }}>
+              <div className={`relative shrink-0 ${(hovered || menuOpen) ? 'visible' : 'invisible'}`}>
                 <Tooltip content="Message actions">
                 <button
                   onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
-                  style={{
-                    background:     'var(--bg-surface)',
-                    border:         '1px solid var(--border-subtle)',
-                    borderRadius:   6,
-                    cursor:         'pointer',
-                    color:          'var(--text-muted)',
-                    padding:        '1px 3px',
-                    display:        'flex',
-                    alignItems:     'center',
-                    justifyContent: 'center',
-                  }}
+                  className="bg-(--bg-surface) border border-(--border-subtle) rounded-md cursor-pointer text-(--text-muted) py-px px-[3px] flex items-center justify-center"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>more_vert</span>
+                  <span className="material-symbols-outlined text-sm">more_vert</span>
                 </button>
                 </Tooltip>
 
                 {menuOpen && (
-                  <div style={{
-                    position:     'absolute',
-                    top:          '100%',
-                    right:        isOwn ? 0 : 'auto',
-                    left:         isOwn ? 'auto' : 0,
-                    marginTop:    4,
-                    background:   'var(--bg-card)',
-                    border:       '1px solid var(--border-subtle)',
-                    borderRadius: 8,
-                    boxShadow:    'var(--shadow-dropdown)',
-                    zIndex:       200,
-                    minWidth:     120,
-                    overflow:     'hidden',
-                  }}>
+                  <div className={`absolute top-full mt-1 bg-(--bg-card) border border-(--border-subtle) rounded-lg shadow-(--shadow-dropdown) z-200 min-w-30 overflow-hidden ${isOwn ? 'right-0 left-auto' : 'right-auto left-0'}`}>
                     <button
                       onClick={handleDelete}
-                      style={{
-                        display:    'flex',
-                        alignItems: 'center',
-                        gap:        6,
-                        width:      '100%',
-                        padding:    '8px 12px',
-                        background: 'none',
-                        border:     'none',
-                        cursor:     'pointer',
-                        color:      '#dc2626',
-                        fontSize:   13,
-                        fontFamily: 'var(--font-sans)',
-                        textAlign:  'left',
-                      }}
+                      className="flex items-center gap-1.5 w-full py-2 px-3 bg-none border-none cursor-pointer text-[#dc2626] text-[13px] font-sans text-left"
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.08)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'none'}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: 15 }}>delete</span>
+                      <span className="material-symbols-outlined text-[15px]">delete</span>
                       Delete
                     </button>
                   </div>

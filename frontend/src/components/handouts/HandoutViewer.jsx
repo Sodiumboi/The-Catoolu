@@ -134,44 +134,33 @@ export default function HandoutViewer({ handout, onClose }) {
     const zoom = zoomed ? CLICK_ZOOM : 1;
     return createPortal(
       <div
-        style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)',
-          zIndex: 1000, display: 'flex', flexDirection: 'column',
-        }}
+        className="fixed inset-0 bg-[rgba(0,0,0,0.72)] z-1000 flex flex-col"
         onClick={() => { if (!didDrag.current) onClose(); }}
       >
         {/* Toolbar */}
         <div
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '10px 14px', flexShrink: 0,
-            background: 'linear-gradient(rgba(0,0,0,0.6), transparent)',
-          }}
+          className="flex items-center gap-2 py-2.5 px-3.5 shrink-0 bg-[linear-gradient(rgba(0,0,0,0.6),transparent)]"
           onClick={e => e.stopPropagation()}
         >
           {viewStack.length > 1 && (
             <Tooltip content="Back">
-            <button onClick={() => setViewStack(prev => prev.slice(0, -1))} style={toolbarBtn}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+            <button onClick={() => setViewStack(prev => prev.slice(0, -1))} className={toolbarBtnCss}>
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
             </Tooltip>
           )}
-          <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', flexShrink: 0 }}>image</span>
-          <span style={{
-            flex: 1, fontSize: 14, fontWeight: 500, color: '#fff',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            fontFamily: 'var(--font-sans)',
-          }}>
+          <span className="material-symbols-outlined text-base text-white/60 shrink-0">image</span>
+          <span className="flex-1 text-sm font-medium text-white overflow-hidden text-ellipsis whitespace-nowrap font-sans">
             {current.title}
           </span>
           <Tooltip content="Save to device">
-          <button onClick={handleDownload} style={toolbarBtn}>
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>download</span>
+          <button onClick={handleDownload} className={toolbarBtnCss}>
+            <span className="material-symbols-outlined text-xl">download</span>
           </button>
           </Tooltip>
           <Tooltip content="Close (Esc)">
-          <button onClick={onClose} style={toolbarBtn}>
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
+          <button onClick={onClose} className={toolbarBtnCss}>
+            <span className="material-symbols-outlined text-xl">close</span>
           </button>
           </Tooltip>
         </div>
@@ -179,11 +168,7 @@ export default function HandoutViewer({ handout, onClose }) {
         {/* Image area — click image to toggle zoom, drag when zoomed to pan */}
         <div
           ref={imageAreaRef}
-          style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            overflow: 'hidden',
-            cursor: zoomed ? 'grab' : 'zoom-in',
-          }}
+          className={`flex-1 flex items-center justify-center overflow-hidden ${zoomed ? 'cursor-grab' : 'cursor-zoom-in'}`}
           onMouseDown={handleMouseDown}
         >
           <img
@@ -196,15 +181,12 @@ export default function HandoutViewer({ handout, onClose }) {
               if (didDrag.current) return;
               toggleZoom(e);
             }}
+            className="max-w-[88vw] max-h-[80vh] object-contain origin-center select-none"
             style={{
-              maxWidth: '88vw',
-              maxHeight: '80vh',
-              objectFit: 'contain',
+              // pan/zoom transform stays inline — live drag/zoom state; transition duration
+              // is JS-interpolated (ZOOM_DURATION), never safe inside a Tailwind arbitrary bracket
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-              transformOrigin: 'center center',
-              // Transition only active during zoom click (not during pan drag)
               transition: showTransition ? `transform ${ZOOM_DURATION}ms ease-in-out` : 'none',
-              userSelect: 'none',
             }}
           />
         </div>
@@ -216,97 +198,58 @@ export default function HandoutViewer({ handout, onClose }) {
   // ─── Text / bundle modal ─────────────────────────────────────
   return createPortal(
     <div
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 1000, padding: 20,
-      }}
+      className="fixed inset-0 bg-[rgba(0,0,0,0.6)] flex items-center justify-center z-1000 p-5"
       onClick={onClose}
     >
       <div
-        style={{
-          background: 'var(--bg-card)',
-          borderRadius: 14,
-          border: '1px solid var(--border-main)',
-          maxWidth: '90vw', maxHeight: '90vh',
-          width: 480,
-          overflow: 'hidden',
-          display: 'flex', flexDirection: 'column',
-          boxShadow: 'var(--shadow-dropdown)',
-        }}
+        className="bg-(--bg-card) rounded-[14px] border border-(--border-main) max-w-[90vw] max-h-[90vh] w-120 overflow-hidden flex flex-col shadow-(--shadow-dropdown)"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '12px 16px',
-          borderBottom: '1px solid var(--border-main)',
-          flexShrink: 0,
-        }}>
+        <div className="flex items-center gap-2 py-3 px-4 border-b border-(--border-main) shrink-0">
           {viewStack.length > 1 && (
             <button
               onClick={() => setViewStack(prev => prev.slice(0, -1))}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0, flexShrink: 0 }}
+              className="bg-none border-none cursor-pointer text-(--text-muted) p-0 shrink-0"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
+              <span className="material-symbols-outlined text-lg">arrow_back</span>
             </button>
           )}
-          <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--accent)', flexShrink: 0 }}>
+          <span className="material-symbols-outlined text-base text-(--accent) shrink-0">
             {typeIcon(current.type)}
           </span>
-          <span style={{
-            fontFamily: 'var(--font-sans)', fontSize: 14, fontWeight: 500,
-            color: 'var(--text-primary)', flex: 1,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
+          <span className="font-sans text-sm font-medium text-(--text-primary) flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
             {current.title}
           </span>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 2, flexShrink: 0 }}
+            className="bg-none border-none cursor-pointer text-(--text-muted) p-0.5 shrink-0"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
+            <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
 
         {/* Body */}
-        <div style={{ overflowY: 'auto', overscrollBehavior: 'contain', flex: 1 }}>
+        <div className="overflow-y-auto overscroll-contain flex-1">
           {current.type === 'text' && (
-            <div style={{
-              margin: 16, padding: '16px 20px',
-              borderLeft: '3px solid var(--accent)',
-              borderRadius: '0 8px 8px 0',
-              background: 'var(--bg-section-hd)',
-            }}>
-              <p style={{
-                fontFamily: 'var(--font-serif)', fontSize: 15, lineHeight: '1.75',
-                color: 'var(--text-primary)', margin: 0, whiteSpace: 'pre-wrap', fontStyle: 'italic',
-              }}>
+            <div className="m-4 py-4 px-5 border-l-[3px] border-l-(--accent) rounded-[0_8px_8px_0] bg-(--bg-section-hd)">
+              <p className="font-serif text-[15px] leading-[1.75] text-(--text-primary) m-0 whitespace-pre-wrap italic">
                 {current.content || '(empty)'}
               </p>
             </div>
           )}
 
           {current.type === 'bundle' && (
-            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="p-4 flex flex-col gap-2">
               {(current.items || []).length === 0 ? (
-                <div style={{
-                  fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic',
-                  textAlign: 'center', padding: 24, fontFamily: 'var(--font-sans)',
-                }}>
+                <div className="text-[13px] text-(--text-faint) italic text-center p-6 font-sans">
                   Empty bundle
                 </div>
               ) : (current.items || []).map(item => (
                 <div
                   key={item.uuid}
                   onClick={() => setViewStack(prev => [...prev, item])}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '10px 12px', borderRadius: 8,
-                    border: '1px solid var(--border-main)',
-                    background: 'var(--bg-page)', cursor: 'pointer',
-                    transition: 'border-color 0.1s, background 0.1s',
-                  }}
+                  className="flex items-center gap-2.5 py-2.5 px-3 rounded-lg border border-(--border-main) bg-(--bg-page) cursor-pointer [transition:border-color_0.1s,background_0.1s]"
                   onMouseEnter={e => {
                     e.currentTarget.style.borderColor = 'var(--accent)';
                     e.currentTarget.style.background  = 'var(--accent-bg)';
@@ -317,17 +260,17 @@ export default function HandoutViewer({ handout, onClose }) {
                   }}
                 >
                   {item.type === 'image' && item.content && (
-                    <img src={item.content} alt="" style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                    <img src={item.content} alt="" className="w-10 h-10 rounded-md object-cover shrink-0" />
                   )}
                   {item.type !== 'image' && (
-                    <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--accent)', flexShrink: 0 }}>
+                    <span className="material-symbols-outlined text-lg text-(--accent) shrink-0">
                       {typeIcon(item.type)}
                     </span>
                   )}
-                  <span style={{ fontSize: 13, color: 'var(--text-primary)', flex: 1, fontFamily: 'var(--font-sans)' }}>
+                  <span className="text-[13px] text-(--text-primary) flex-1 font-sans">
                     {item.title}
                   </span>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--text-faint)' }}>
+                  <span className="material-symbols-outlined text-base text-(--text-faint)">
                     chevron_right
                   </span>
                 </div>
@@ -341,11 +284,5 @@ export default function HandoutViewer({ handout, onClose }) {
   );
 }
 
-// ─── Shared button styles ──────────────────────────────────────
-
-const toolbarBtn = {
-  background: 'rgba(255,255,255,0.1)',
-  border: 'none', borderRadius: 6, cursor: 'pointer', color: '#fff',
-  padding: '4px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-  flexShrink: 0,
-};
+// ─── Shared button style helper (toolbar icon buttons — image lightbox) ──
+const toolbarBtnCss = 'bg-white/10 border-none rounded-md cursor-pointer text-white py-1 px-1.5 flex items-center justify-center shrink-0';
