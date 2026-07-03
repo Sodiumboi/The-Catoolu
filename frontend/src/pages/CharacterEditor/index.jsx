@@ -96,12 +96,11 @@ export default function CharacterEditorPage() {
   if (loading || (!editor.sheet && !error) || currentId !== uuid) return (
     <>
       <NavBar activeTab="investigators" />
-      <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 56px)' }}>
+      <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
         <div className="text-center">
           <img src={logo} alt="The Catoolu"
-               className="object-contain animate-pulse mx-auto mb-4"
-               style={{ width: '56px', height: '56px' }} />
-          <p style={{ color: 'var(--text-muted)' }}>Loading investigator file...</p>
+               className="object-contain animate-pulse mx-auto mb-4 w-14 h-14" />
+          <p className="text-(--text-muted)">Loading investigator file...</p>
         </div>
       </div>
       <Footer />
@@ -112,12 +111,11 @@ export default function CharacterEditorPage() {
   if (error && !editor.sheet) return (
     <>
       <NavBar activeTab="investigators" />
-      <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 56px)' }}>
+      <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
         <div className="text-center">
-          <p style={{ color: 'var(--danger)' }}>{error}</p>
+          <p className="text-(--danger)">{error}</p>
           <button onClick={() => guardedNavigate('/dashboard')}
-                  className="mt-4 px-4 py-2 rounded text-sm"
-                  style={{ background: 'var(--accent)', color: 'var(--bg-page)' }}>
+                  className="mt-4 px-4 py-2 rounded text-sm bg-(--accent) text-(--bg-page)">
             Back to Dashboard
           </button>
         </div>
@@ -146,7 +144,8 @@ export default function CharacterEditorPage() {
 
   // ── Render ────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', '--sheet-font-scale': sheetFontScale }}>
+    // --sheet-font-scale stays inline — sheetFontScale is a live theme setting, not static styling
+    <div className="min-h-screen flex flex-col" style={{ '--sheet-font-scale': sheetFontScale }}>
 
       {/* Unsaved changes modal */}
       {showWarning && (
@@ -163,32 +162,11 @@ export default function CharacterEditorPage() {
       <NavBar activeTab="investigators" />
 
       {/* Editor toolbar */}
-      <div style={{
-        position: 'sticky', top: '56px', zIndex: 40,
-        borderBottom: '1px solid var(--border-main)',
-        padding: '8px 24px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'var(--bg-nav)', backdropFilter: 'blur(8px)',
-      }}>
+      <div className="sticky top-14 z-40 border-b border-(--border-main) py-2 px-6 flex items-center justify-between bg-(--bg-nav) [backdrop-filter:blur(8px)]">
         {/* Left */}
         <div className="flex items-center gap-3">
           <button onClick={() => guardedNavigate('/dashboard')}
-                  style={{
-                    display:      'inline-flex',
-                    alignItems:   'center',
-                    gap:          '5px',
-                    padding:      '4px 12px',
-                    borderRadius: '999px',
-                    border:       '1px solid var(--border-main)',
-                    background:   'transparent',
-                    color:        'var(--text-muted)',
-                    fontFamily:   'var(--font-sans)',
-                    fontSize:     '12px',
-                    fontWeight:   500,
-                    cursor:       'pointer',
-                    transition:   'all 0.15s ease',
-                    whiteSpace:   'nowrap',
-                  }}
+                  className="inline-flex items-center gap-1.25 py-1 px-3 rounded-full border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap"
                   onMouseEnter={e => {
                     e.currentTarget.style.borderColor = 'var(--accent)';
                     e.currentTarget.style.color = 'var(--accent)';
@@ -201,10 +179,10 @@ export default function CharacterEditorPage() {
             Dashboard
           </button>
           <div>
-            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', color: 'var(--text-primary)', margin: 0 }}>
+            <h1 className="font-serif text-base text-(--text-primary) m-0">
               {details.Name || 'Investigator'}
             </h1>
-            <p style={{ fontSize: '11px', color: 'var(--accent)', margin: 0 }}>
+            <p className="text-[11px] text-(--accent) m-0">
               {details.Occupation} · {inv?.Header?.GameType}
             </p>
           </div>
@@ -212,27 +190,12 @@ export default function CharacterEditorPage() {
 
         {/* Right */}
         <div className="flex items-center gap-3">
-          {error && <span style={{ fontSize: '12px', color: 'var(--danger)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">warning</span>{error}</span>}
-          {saved && <span style={{ fontSize: '12px', color: 'var(--success)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">check</span>Saved!</span>}
+          {error && <span className="text-xs text-(--danger) inline-flex items-center gap-0.75"><span className="icon icon-sm">warning</span>{error}</span>}
+          {saved && <span className="text-xs text-(--success) inline-flex items-center gap-0.75"><span className="icon icon-sm">check</span>Saved!</span>}
           <Tooltip content="Toggle notes">
           <button
             onClick={handleNotesButton}
-            style={{
-              display:      'flex',
-              alignItems:   'center',
-              gap:          '5px',
-              padding:      '4px 12px',
-              borderRadius: '999px',
-              border:       notesState !== 'closed' ? '1px solid var(--accent)' : '1px solid var(--border-main)',
-              background:   notesState !== 'closed' ? 'var(--accent-bg)' : 'transparent',
-              color:        notesState !== 'closed' ? 'var(--accent)' : 'var(--text-muted)',
-              fontFamily:   'var(--font-sans)',
-              fontSize:     '12px',
-              fontWeight:   500,
-              cursor:       'pointer',
-              transition:   'all 0.15s ease',
-              whiteSpace:   'nowrap',
-            }}
+            className={`flex items-center gap-1.25 py-1 px-3 rounded-full font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap ${notesState !== 'closed' ? 'border border-(--accent) bg-(--accent-bg) text-(--accent)' : 'border border-(--border-main) bg-transparent text-(--text-muted)'}`}
             onMouseEnter={e => {
               if (notesState === 'closed') {
                 e.currentTarget.style.borderColor = 'var(--accent)';
@@ -251,21 +214,14 @@ export default function CharacterEditorPage() {
           </button>
           </Tooltip>
           <button onClick={handleExport}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', border: '1px solid var(--success)', background: 'transparent', color: 'var(--success)', cursor: 'pointer' }}
+                  className="inline-flex items-center gap-1.25 py-1.5 px-3.5 rounded-lg text-[13px] border border-(--success) bg-transparent text-(--success) cursor-pointer"
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <span className="icon icon-sm">download</span>
             Export JSON
           </button>
           <button onClick={handleSave} disabled={saving}
-                  style={{
-                    padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: '500',
-                    border:      isDirty ? '2px solid var(--color-primary-dark)' : '2px solid transparent',
-                    background:  saving ? 'var(--text-muted)' : isDirty ? 'var(--color-primary)' : 'var(--accent-bg)',
-                    color:       saving || isDirty ? '#ffffff' : 'var(--accent)',
-                    cursor:      saving ? 'not-allowed' : 'pointer',
-                    transition:  'all 0.2s ease',
-                  }}>
+                  className={`py-1.5 px-3.5 rounded-lg text-[13px] font-medium [transition:all_0.2s] border-2 ${isDirty ? 'border-(--color-primary-dark)' : 'border-transparent'} ${saving ? 'bg-(--text-muted) text-white cursor-not-allowed' : isDirty ? 'bg-(--color-primary) text-white cursor-pointer' : 'bg-(--accent-bg) text-(--accent) cursor-pointer'}`}>
             {saving ? 'Saving...' : isDirty
               ? <><span className="icon icon-sm">save</span>{' '}Save*</>
               : <><span className="icon icon-sm">check</span>{' '}Saved</>
@@ -275,7 +231,7 @@ export default function CharacterEditorPage() {
       </div>
 
       {/* Page content */}
-      <div className="animate-fade-rise max-w-6xl mx-auto px-6 py-8" style={{ flex: 1 }}>
+      <div className="animate-fade-rise max-w-6xl mx-auto px-6 py-8 flex-1">
 
         <PersonalDetails
           details={details} portrait={portrait}
@@ -332,35 +288,23 @@ export default function CharacterEditorPage() {
 
       {/* UUID reveal toast — press U five times to toggle */}
       {showUuid && (
-        <div style={{
-          position: 'fixed', bottom: '28px', right: '28px', zIndex: 200,
-          background: 'var(--bg-card)', border: '1px solid var(--border-main)',
-          borderRadius: '10px', padding: '12px 16px',
-          boxShadow: 'var(--shadow-dropdown)',
-          display: 'flex', flexDirection: 'column', gap: '6px',
-          maxWidth: '340px', minWidth: '260px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+        <div className="fixed bottom-7 right-7 z-200 bg-(--bg-card) border border-(--border-main) rounded-[10px] py-3 px-4 shadow-(--shadow-dropdown) flex flex-col gap-1.5 max-w-85 min-w-65">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] text-(--text-muted) uppercase tracking-[0.08em] font-semibold">
               Character UUID
             </span>
             <button onClick={() => setShowUuid(false)}
-                    style={{ background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', lineHeight: 1, padding: '0 2px' }}>
+                    className="bg-transparent border-none text-(--text-faint) cursor-pointer leading-none py-0 px-0.5">
               <span className="icon icon-sm">close</span>
             </button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <code style={{ fontSize: '11px', color: 'var(--text-primary)', fontFamily: 'monospace', flex: 1, wordBreak: 'break-all', lineHeight: 1.5 }}>
-              {editor.inv?.Header?.UUID ?? <span style={{ color: 'var(--text-faint)' }}>No UUID — re-import to assign one</span>}
+          <div className="flex items-center gap-2">
+            <code className="text-[11px] text-(--text-primary) font-mono flex-1 break-all leading-normal">
+              {editor.inv?.Header?.UUID ?? <span className="text-(--text-faint)">No UUID — re-import to assign one</span>}
             </code>
             {editor.inv?.Header?.UUID && (
               <button onClick={handleCopyUuid}
-                      style={{
-                        fontSize: '11px', padding: '3px 10px', borderRadius: '6px',
-                        border: '1px solid var(--border-main)', background: uuidCopied ? 'var(--accent-bg)' : 'transparent',
-                        color: uuidCopied ? 'var(--accent)' : 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap',
-                        transition: 'all 0.15s ease',
-                      }}>
+                      className={`text-[11px] py-0.75 px-2.5 rounded-md border border-(--border-main) cursor-pointer whitespace-nowrap [transition:all_0.15s] ${uuidCopied ? 'bg-(--accent-bg) text-(--accent)' : 'bg-transparent text-(--text-secondary)'}`}>
                 {uuidCopied ? '✓ Copied' : 'Copy'}
               </button>
             )}

@@ -10,7 +10,7 @@ const RIGHT_STATS = [{ key: 'SIZ' }, { key: 'POW' }, { key: 'APP' }, { key: 'EDU
 
 function StatRow({ stats, chars, editable, onChangeChar, compact }) {
   return (
-    <div style={{ display: 'flex', gap: compact ? '6px' : '8px' }}>
+    <div className={`flex ${compact ? 'gap-1.5' : 'gap-2'}`}>
       {stats.map(({ key, sub }) => (
         <StatBox
           key={key} label={key} sublabel={sub}
@@ -26,7 +26,7 @@ export default function StatGrid({ chars = {}, editable = false, onChangeChar, c
   return (
     <>
       <StatRow stats={LEFT_STATS}  chars={chars} editable={editable} onChangeChar={onChangeChar} compact={compact} />
-      <div style={{ width: '1px', alignSelf: 'stretch', background: 'var(--border-main)', flexShrink: 0, margin: '0 4px' }} />
+      <div className="w-px self-stretch bg-(--border-main) shrink-0 mx-1" />
       <StatRow stats={RIGHT_STATS} chars={chars} editable={editable} onChangeChar={onChangeChar} compact={compact} />
     </>
   );

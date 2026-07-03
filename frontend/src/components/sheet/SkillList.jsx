@@ -5,23 +5,14 @@ import SkillGroup from './SkillGroup';
 // Full skill section: two-column layout with Reg/½/⅕ headers.
 // Font sizing comes from --sheet-font-scale CSS variable on the container.
 
-const FS     = 'calc(9px * var(--sheet-font-scale))';
-const VAL_W  = 'calc(44px * var(--sheet-font-scale))';
-const NUM_W  = 'calc(32px * var(--sheet-font-scale))';
-
 function Header() {
   return (
-    <div className="flex items-center gap-2 px-3 pb-1 mb-1 border-b"
-         style={{ borderColor: 'var(--border-main)' }}>
-      <span style={{ width: '8px' }} />
-      <span className="flex-1 uppercase tracking-widest"
-            style={{ fontSize: FS, color: 'var(--accent)' }}>Skill</span>
-      <span className="uppercase tracking-widest text-center"
-            style={{ fontSize: FS, width: VAL_W, color: 'var(--accent)' }}>Val</span>
-      <span className="uppercase tracking-widest text-center"
-            style={{ fontSize: FS, width: NUM_W, color: 'var(--text-muted)' }}>½</span>
-      <span className="uppercase tracking-widest text-center"
-            style={{ fontSize: FS, width: NUM_W, color: 'var(--text-muted)' }}>⅕</span>
+    <div className="flex items-center gap-2 px-3 pb-1 mb-1 border-b border-(--border-main)">
+      <span className="w-2" />
+      <span className="flex-1 uppercase tracking-widest text-[calc(9px*var(--sheet-font-scale))] text-(--accent)">Skill</span>
+      <span className="uppercase tracking-widest text-center text-[calc(9px*var(--sheet-font-scale))] w-[calc(44px*var(--sheet-font-scale))] text-(--accent)">Val</span>
+      <span className="uppercase tracking-widest text-center text-[calc(9px*var(--sheet-font-scale))] w-[calc(32px*var(--sheet-font-scale))] text-(--text-muted)">½</span>
+      <span className="uppercase tracking-widest text-center text-[calc(9px*var(--sheet-font-scale))] w-[calc(32px*var(--sheet-font-scale))] text-(--text-muted)">⅕</span>
     </div>
   );
 }

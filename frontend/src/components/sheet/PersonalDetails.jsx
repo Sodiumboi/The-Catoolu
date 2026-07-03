@@ -19,8 +19,7 @@ const FIELDS = [
 function DetailField({ label, value, editable, onChange }) {
   return (
     <div>
-      <label className="block text-xs uppercase tracking-widest mb-1"
-             style={{ color: 'var(--accent)' }}>
+      <label className="block text-xs uppercase tracking-widest mb-1 text-(--accent)">
         {label}
       </label>
       {editable ? (
@@ -28,13 +27,7 @@ function DetailField({ label, value, editable, onChange }) {
           type="text"
           value={value || ''}
           onChange={e => onChange(e.target.value)}
-          className="w-full px-3 py-2 rounded text-sm outline-none"
-          style={{
-            background: 'var(--bg-input)',
-            border: '1.5px solid var(--border-input)',
-            color: 'var(--text-primary)',
-            transition: 'border-color 0.12s ease, background 0.12s ease',
-          }}
+          className="w-full px-3 py-2 rounded text-sm outline-none! bg-(--bg-input) border-[1.5px] border-(--border-input) text-(--text-primary) [transition:border-color_0.12s_ease,background_0.12s_ease]"
           onMouseEnter={inputHoverEnter}
           onMouseLeave={inputHoverLeave}
           onFocus={inputFocus}
@@ -42,14 +35,7 @@ function DetailField({ label, value, editable, onChange }) {
         />
       ) : (
         <div
-          className="w-full px-3 py-2 rounded text-sm"
-          style={{
-            background: 'var(--bg-input)',
-            border: '1.5px solid var(--border-input)',
-            color: 'var(--text-primary)',
-            minHeight: 'calc(1.25rem + 16px)',
-            whiteSpace: 'pre-wrap',
-          }}
+          className="w-full px-3 py-2 rounded text-sm bg-(--bg-input) border-[1.5px] border-(--border-input) text-(--text-primary) whitespace-pre-wrap min-h-[calc(1.25rem+16px)]"
         >
           {value || ''}
         </div>

@@ -17,8 +17,7 @@ const FIELDS = [
 function Field({ label, value, editable, onChange }) {
   return (
     <div className="mb-4">
-      <label className="block text-xs uppercase tracking-widest mb-1"
-             style={{ color: 'var(--accent)' }}>
+      <label className="block text-xs uppercase tracking-widest mb-1 text-(--accent)">
         {label}
       </label>
       {editable ? (
@@ -26,14 +25,7 @@ function Field({ label, value, editable, onChange }) {
           value={value || ''}
           onChange={e => onChange(e.target.value)}
           rows={3}
-          className="w-full px-3 py-2 rounded text-sm outline-none resize-y"
-          style={{
-            background: 'var(--bg-input)',
-            border: '1.5px solid var(--border-input)',
-            color: 'var(--text-primary)',
-            lineHeight: '1.6',
-            transition: 'border-color 0.12s ease',
-          }}
+          className="w-full px-3 py-2 rounded text-sm outline-none! resize-y bg-(--bg-input) border-[1.5px] border-(--border-input) text-(--text-primary) leading-[1.6] [transition:border-color_0.12s_ease]"
           onMouseEnter={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-focus)'; }}
           onMouseLeave={e => { if (document.activeElement !== e.target) e.target.style.borderColor = 'var(--border-input)'; }}
           onFocus={e => e.target.style.borderColor = 'var(--accent)'}
@@ -41,15 +33,7 @@ function Field({ label, value, editable, onChange }) {
         />
       ) : (
         <div
-          className="w-full px-3 py-2 rounded text-sm"
-          style={{
-            background: 'var(--bg-input)',
-            border: '1.5px solid var(--border-input)',
-            color: 'var(--text-primary)',
-            lineHeight: '1.6',
-            minHeight: 'calc(1.6em * 3 + 16px)',
-            whiteSpace: 'pre-wrap',
-          }}
+          className="w-full px-3 py-2 rounded text-sm bg-(--bg-input) border-[1.5px] border-(--border-input) text-(--text-primary) leading-[1.6] whitespace-pre-wrap min-h-[calc(1.6em*3+16px)]"
         >
           {value || ''}
         </div>

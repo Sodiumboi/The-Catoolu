@@ -6,14 +6,11 @@ import { SubSkillRow } from './SkillRow';
 
 export default function SkillGroup({ parentName, entries, onChangeEntry, editable = false }) {
   return (
-    <div className="rounded mb-1 overflow-hidden border"
-         style={{ borderColor: 'var(--border-main)' }}>
+    <div className="rounded mb-1 overflow-hidden border border-(--border-main)">
 
       {/* Group header */}
-      <div className="px-3 py-1 flex items-center"
-           style={{ background: 'var(--bg-section-hd)' }}>
-        <span className="font-semibold"
-              style={{ fontSize: 'calc(11px * var(--sheet-font-scale))', color: 'var(--accent)' }}>
+      <div className="px-3 py-1 flex items-center bg-(--bg-section-hd)">
+        <span className="font-semibold text-[calc(11px*var(--sheet-font-scale))] text-(--accent)">
           {parentName}
         </span>
       </div>

@@ -15,14 +15,10 @@ function EditableCell({ value, onChange, wide, center, color }) {
       type="text"
       value={value || ''}
       onChange={e => onChange(e.target.value)}
-      className="text-xs rounded outline-none px-1.5 py-0.5"
-      style={{
-        width:      cellWidth({ wide, center }),
-        background: 'var(--bg-input)',
-        border:     '1px solid var(--accent)22',
-        color:      color || 'var(--text-primary)',
-        textAlign:  center ? 'center' : 'left',
-      }}
+      // width stays inline — cellWidth() is a runtime function of column props, not static styling
+      // color stays inline — per-column color comes from weaponColumns.js data, not a fixed token
+      className={`text-xs rounded outline-none! px-1.5 py-0.5 bg-(--bg-input) border-[1px_solid_var(--accent)22] ${center ? 'text-center' : 'text-left'}`}
+      style={{ width: cellWidth({ wide, center }), color: color || 'var(--text-primary)' }}
       onFocus={e => e.target.style.borderColor = 'var(--accent)'}
       onBlur={e  => e.target.style.borderColor = 'var(--accent-bg)'}
     />
@@ -32,15 +28,10 @@ function EditableCell({ value, onChange, wide, center, color }) {
 function StaticCell({ value, wide, center, color }) {
   return (
     <span
-      className="text-xs rounded px-1.5 py-0.5"
-      style={{
-        display:    'inline-block',
-        width:      cellWidth({ wide, center }),
-        border:     '1px solid var(--accent)22',
-        color:      color || 'var(--text-primary)',
-        textAlign:  center ? 'center' : 'left',
-        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-      }}
+      // width stays inline — cellWidth() is a runtime function of column props, not static styling
+      // color stays inline — per-column color comes from weaponColumns.js data, not a fixed token
+      className={`text-xs rounded px-1.5 py-0.5 inline-block border-[1px_solid_var(--accent)22] truncate ${center ? 'text-center' : 'text-left'}`}
+      style={{ width: cellWidth({ wide, center }), color: color || 'var(--text-primary)' }}
     >
       {value || '—'}
     </span>
@@ -51,7 +42,7 @@ export default function WeaponRow({ weapon, index, onChange, onDelete, editable 
   const update = (field, value) => onChange(index, { ...weapon, [field]: value });
 
   return (
-    <tr className="border-b" style={{ borderColor: 'var(--accent)11' }}
+    <tr className="border-b [border-color:var(--accent)11]"
         onMouseEnter={e => e.currentTarget.style.background = 'var(--accent)08'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
 
@@ -75,8 +66,7 @@ export default function WeaponRow({ weapon, index, onChange, onDelete, editable 
           <Tooltip content="Delete weapon">
           <button
             onClick={() => onDelete(index)}
-            className="text-xs px-1.5 py-0.5 rounded transition-all"
-            style={{ color: 'var(--danger)', border: '1px solid var(--danger)33' }}
+            className="text-xs px-1.5 py-0.5 rounded transition-all text-(--danger) border-[1px_solid_var(--danger)33]"
             onMouseEnter={e => e.currentTarget.style.background = 'var(--danger)22'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <span className="icon icon-sm">close</span>

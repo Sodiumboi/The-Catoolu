@@ -9,16 +9,9 @@
 
 const SheetBackground = ({ theme, children, className = '', style }) => (
   <div
-    className={`sheet-background ${className}`.trim()}
+    className={`sheet-background relative bg-cover bg-center bg-no-repeat [background-image:var(--sheet-bg-art,_none)] ${className}`.trim()}
     data-theme={theme}
-    style={{
-      position:           'relative',
-      backgroundImage:    'var(--sheet-bg-art, none)',
-      backgroundSize:     'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat:   'no-repeat',
-      ...style,
-    }}
+    style={style}
   >
     {children}
   </div>

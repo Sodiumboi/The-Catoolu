@@ -20,23 +20,11 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll }) {
   }
 
   return (
-    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="relative flex flex-col items-center">
       <button
         ref={buttonRef}
         onClick={handleClick}
-        style={{
-          display:        'flex',
-          flexDirection:  'column',
-          alignItems:     'center',
-          gap:            '2px',
-          padding:        '6px 8px',
-          borderRadius:   '8px',
-          border:         '1px solid var(--border-main)',
-          background:     'var(--bg-input)',
-          cursor:         'pointer',
-          transition:     'all 0.1s ease',
-          minWidth:       '52px',
-        }}
+        className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg border border-(--border-main) bg-(--bg-input) cursor-pointer [transition:all_0.1s] min-w-13"
         onMouseEnter={e => {
           e.currentTarget.style.background  = 'var(--accent-bg)';
           e.currentTarget.style.borderColor = 'var(--accent)';
@@ -46,32 +34,23 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll }) {
           e.currentTarget.style.borderColor = 'var(--border-main)';
         }}
       >
+        {/* accentLabel stays as style={accentLabel} — imported plain style object from tokens.js, which stays untouched per the Batch 5b decision */}
         <span style={accentLabel}>
           {label}
         </span>
         {sublabel && (
-          <span style={{
-            fontSize: 'calc(8px * var(--sheet-font-scale))', fontWeight: '700',
-            color: 'var(--text-muted)', fontFamily: 'var(--font-sans)',
-            textTransform: 'uppercase', letterSpacing: '0.06em',
-            background: 'var(--bg-section-hd)',
-            borderRadius: '3px', padding: '0 3px',
-          }}>
+          <span className="font-bold uppercase tracking-[0.06em] rounded-[3px] py-0 px-0.75 text-(--text-muted) font-sans bg-(--bg-section-hd) text-[calc(8px*var(--sheet-font-scale))]">
             {sublabel}
           </span>
         )}
-        <span style={{
-          fontSize: 'calc(18px * var(--sheet-font-scale))', fontWeight: '700',
-          fontFamily: 'var(--font-serif)', color: 'var(--text-primary)',
-          lineHeight: 1,
-        }}>
+        <span className="font-bold font-serif text-(--text-primary) leading-none text-[calc(18px*var(--sheet-font-scale))]">
           {num}
         </span>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          <span style={{ fontSize: 'calc(9px * var(--sheet-font-scale))', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+        <div className="flex gap-1">
+          <span className="text-(--text-faint) font-sans text-[calc(9px*var(--sheet-font-scale))]">
             {half}
           </span>
-          <span style={{ fontSize: 'calc(9px * var(--sheet-font-scale))', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+          <span className="text-(--text-faint) font-sans text-[calc(9px*var(--sheet-font-scale))]">
             {fifth}
           </span>
         </div>
@@ -94,18 +73,11 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll }) {
 // ── Section wrapper ────────────────────────────────────────────
 function Section({ title, children }) {
   return (
-    <div style={{ marginBottom: '12px' }}>
-      <div style={{
-        fontSize: 'calc(9px * var(--sheet-font-scale))', fontWeight: '600',
-        textTransform: 'uppercase', letterSpacing: '0.08em',
-        color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-        padding: '4px 8px',
-        borderBottom: '1px solid var(--border-main)',
-        marginBottom: '6px',
-      }}>
+    <div className="mb-3">
+      <div className="text-[calc(9px*var(--sheet-font-scale))] font-semibold uppercase tracking-[0.08em] text-(--accent) font-sans py-1 px-2 border-b border-(--border-main) mb-1.5">
         {title}
       </div>
-      <div style={{ padding: '0 4px' }}>
+      <div className="py-0 px-1">
         {children}
       </div>
     </div>
@@ -198,59 +170,33 @@ export default function SessionSheet({
   ];
 
   return (
-    <div style={{
-      fontFamily: 'var(--font-sans)',
-      background: 'var(--bg-page)',
-    }}>
+    <div className="font-sans bg-(--bg-page)">
 
       {/* ── Personal Details ── */}
-      <div style={{
-        display:     'flex',
-        gap:         '10px',
-        padding:     '12px',
-        borderBottom:'1px solid var(--border-main)',
-        alignItems:  'flex-start',
-      }}>
+      <div className="flex gap-2.5 p-3 border-b border-(--border-main) items-start">
         {/* Portrait — read only */}
-        <div style={{
-          width:        '56px',
-          height:       '72px',
-          borderRadius: '6px',
-          overflow:     'hidden',
-          flexShrink:   0,
-          background:   'var(--bg-section-hd)',
-          border:       '1px solid var(--border-main)',
-        }}>
+        <div className="w-14 h-18 rounded-md overflow-hidden shrink-0 bg-(--bg-section-hd) border border-(--border-main)">
           {portrait ? (
             <img
               src={'data:image/jpeg;base64,' + portrait}
               alt={details.Name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              className="w-full h-full object-cover"
             />
           ) : (
-            <div style={{
-              width: '100%', height: '100%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'var(--font-serif)', fontSize: '20px',
-              color: 'var(--text-muted)',
-            }}>
+            <div className="w-full h-full flex items-center justify-center font-serif text-xl text-(--text-muted)">
               {(details.Name || '?').slice(0, 1)}
             </div>
           )}
         </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontFamily: 'var(--font-serif)', fontSize: '15px',
-            color: 'var(--text-primary)', marginBottom: '2px',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
+        <div className="flex-1 min-w-0">
+          <div className="font-serif text-[15px] text-(--text-primary) mb-0.5 truncate">
             {details.Name || 'Investigator'}
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--accent)', marginBottom: '4px' }}>
+          <div className="text-[11px] text-(--accent) mb-1">
             {details.Occupation}
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text-faint)' }}>
+          <div className="text-[10px] text-(--text-faint)">
             {[details.Age && 'Age ' + details.Age,
               details.Birthplace,
               details.Residence]
@@ -260,24 +206,21 @@ export default function SessionSheet({
       </div>
 
       {/* ── Tracked Stats ── */}
-      <div style={{
-        padding:     '10px 12px',
-        borderBottom:'1px solid var(--border-main)',
-      }}>
+      <div className="py-2.5 px-3 border-b border-(--border-main)">
         {/* HP / MP / Luck / Sanity — single row */}
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'flex-start' }}>
+        <div className="flex gap-2 justify-center items-start">
           <SessionTrackedStat
             label="HP" statKey="HitPts"
             maxVal={chars.HitPtsMax}   currentVal={chars.HitPts}
             onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
           />
-          <div style={{ width: '1px', background: 'var(--border-main)', alignSelf: 'stretch', margin: '4px 0' }} />
+          <div className="w-px bg-(--border-main) self-stretch my-1" />
           <SessionTrackedStat
             label="MP" statKey="MagicPts"
             maxVal={chars.MagicPtsMax} currentVal={chars.MagicPts}
             onSave={(sk, ov, nv) => onStatBlur(sk, ov, nv, characterId)}
           />
-          <div style={{ width: '1px', background: 'var(--border-main)', alignSelf: 'stretch', margin: '4px 0' }} />
+          <div className="w-px bg-(--border-main) self-stretch my-1" />
           <SessionTrackedStat
             label="Luck" statKey="Luck"
             maxVal={chars.LuckMax}     currentVal={chars.Luck}
@@ -291,7 +234,7 @@ export default function SessionSheet({
               mode
             )}
           />
-          <div style={{ width: '1px', background: 'var(--border-main)', alignSelf: 'stretch', margin: '4px 0' }} />
+          <div className="w-px bg-(--border-main) self-stretch my-1" />
           <SessionTrackedStat
             label="Sanity" statKey="Sanity"
             maxVal={chars.SanityStart} currentVal={chars.Sanity}
@@ -307,7 +250,7 @@ export default function SessionSheet({
 
       {/* ── Characteristics ── */}
       <Section title="Characteristics">
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div className="flex gap-1 flex-wrap justify-center">
           {[...LEFT_STATS, ...RIGHT_STATS].map(({ key, sub }) => (
             <StatButton
               key={key}
@@ -322,32 +265,19 @@ export default function SessionSheet({
         </div>
 
         {/* Derived stats */}
-        <div style={{
-          display: 'flex', gap: '8px', flexWrap: 'wrap',
-          justifyContent: 'center', marginTop: '8px',
-          padding: '6px 0',
-          borderTop: '1px solid var(--border-main)',
-        }}>
+        <div className="flex gap-2 flex-wrap justify-center mt-2 py-1.5 px-0 border-t border-(--border-main)">
           {[
             { label: 'DB',    value: chars.DamageBonus || 'None', color: 'var(--danger)'       },
             { label: 'Build', value: chars.Build,                 color: 'var(--text-primary)'  },
             { label: 'Dodge', value: inv?.Combat?.Dodge?.value,   color: '#60a5fa'              },
             { label: 'Move',  value: chars.Move,                  color: 'var(--text-primary)'  },
           ].map(({ label, value, color }) => (
-            <div key={label} style={{ textAlign: 'center' }}>
-              <div style={{
-                fontSize: '9px', color: 'var(--text-faint)',
-                textTransform: 'uppercase', marginBottom: '2px',
-              }}>
+            <div key={label} className="text-center">
+              <div className="text-[9px] text-(--text-faint) uppercase mb-0.5">
                 {label}
               </div>
-              <div style={{
-                fontFamily: 'var(--font-serif)', fontSize: '14px',
-                fontWeight: '600', color,
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-main)',
-                borderRadius: '6px', padding: '3px 8px',
-              }}>
+              {/* color stays inline — per-stat color varies (danger/primary/hardcoded blue), not a fixed token; same pattern as sheet/DerivedStats.jsx */}
+              <div className="font-serif text-sm font-semibold bg-(--bg-input) border border-(--border-main) rounded-md py-0.75 px-2" style={{ color }}>
                 {value ?? '—'}
               </div>
             </div>
@@ -358,7 +288,7 @@ export default function SessionSheet({
       {/* ── Weapons ── */}
       {weapons.length > 0 && (
         <Section title="Weapons">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div className="flex flex-col gap-1">
             {weapons.map((weapon, i) => (
               <WeaponButton
                 key={i}
@@ -376,7 +306,7 @@ export default function SessionSheet({
       {/* ── Financial Status ── */}
       {(cash.spending || cash.cash || cash.assets) && (
         <Section title="Financial Status">
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="flex gap-2 flex-wrap justify-center">
             {[
               { label: 'Spending Limit', field: 'spending' },
               { label: 'Cash',           field: 'cash'     },
@@ -414,35 +344,19 @@ export default function SessionSheet({
           placeholder="🔍 Search skills..."
           value={skillSearch}
           onChange={e => setSkillSearch(e.target.value)}
-          style={{
-            width:        '100%',
-            padding:      '5px 8px',
-            borderRadius: '6px',
-            border:       '1px solid var(--border-input)',
-            background:   'var(--bg-input)',
-            color:        'var(--text-primary)',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '11px',
-            outline:      'none',
-            boxSizing:    'border-box',
-            marginBottom: '6px',
-          }}
+          className="w-full py-1.25 px-2 rounded-md border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-[11px] outline-none! box-border mb-1.5 input-focus-glow focus:border-(--border-focus)"
         />
 
         {/* Grouped two-column layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-0">
           {[skillGroups.left, skillGroups.right].map((col, ci) => (
             <div key={ci}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '0 8px 4px', marginBottom: '4px',
-                borderBottom: '1px solid var(--border-main)',
-              }}>
-                <span style={{ width: '8px', flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: '9px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Skill</span>
-                <span style={{ minWidth: '28px', textAlign: 'right', fontSize: '9px', color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Reg</span>
+              <div className="flex items-center gap-1 pt-0 px-2 pb-1 mb-1 border-b border-(--border-main)">
+                <span className="w-2 shrink-0" />
+                <span className="flex-1 text-[9px] text-(--accent) uppercase tracking-[0.06em]">Skill</span>
+                <span className="min-w-7 text-right text-[9px] text-(--accent) uppercase tracking-[0.06em]">Reg</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <div className="flex flex-col gap-0.75">
                 {col.map(g => g.type === 'flat' ? (
                   <SessionSkillRow
                     key={g.idx}
@@ -452,16 +366,13 @@ export default function SessionSheet({
                     onRoll={onStatRoll}
                   />
                 ) : (
-                  <div key={g.parentName} style={{
-                    borderRadius: '6px', overflow: 'hidden',
-                    border: '1px solid var(--border-main)',
-                  }}>
-                    <div style={{ padding: '3px 8px', background: 'var(--bg-section-hd)' }}>
-                      <span style={{ fontSize: 'calc(11px * var(--sheet-font-scale))', fontWeight: '600', color: 'var(--accent)' }}>
+                  <div key={g.parentName} className="rounded-md overflow-hidden border border-(--border-main)">
+                    <div className="py-0.75 px-2 bg-(--bg-section-hd)">
+                      <span className="text-[calc(11px*var(--sheet-font-scale))] font-semibold text-(--accent)">
                         {g.parentName}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '3px' }}>
+                    <div className="flex flex-col gap-0.75 p-0.75">
                       {g.entries.map(({ skill, idx }) => {
                         const sub = skill.subskill && skill.subskill !== 'None' ? skill.subskill : null;
                         return (
@@ -484,18 +395,14 @@ export default function SessionSheet({
         </div>
 
         {filteredSkills.length === 0 && (
-          <div style={{
-            textAlign: 'center', padding: '12px',
-            fontSize: '12px', color: 'var(--text-faint)',
-            fontStyle: 'italic',
-          }}>
+          <div className="text-center p-3 text-xs text-(--text-faint) italic">
             No skills found
           </div>
         )}
       </Section>
 
       {/* Bottom padding */}
-      <div style={{ height: '20px' }} />
+      <div className="h-5" />
     </div>
   );
 }
@@ -517,24 +424,11 @@ function WeaponButton({ weapon, skills, advMode, disMode, onAttack }) {
     : matchedSkill ? parseInt(matchedSkill.value) : null;
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       <button
         ref={buttonRef}
         onClick={() => { setButtonRect(buttonRef.current?.getBoundingClientRect() ?? null); setShowPopup(true); }}
-        style={{
-          width:          '100%',
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'space-between',
-          padding:        '6px 8px',
-          borderRadius:   '6px',
-          border:         '1px solid var(--border-main)',
-          background:     'var(--bg-input)',
-          cursor:         'pointer',
-          fontFamily:     'var(--font-sans)',
-          transition:     'all 0.1s ease',
-          textAlign:      'left',
-        }}
+        className="w-full flex items-center justify-between py-1.5 px-2 rounded-md border border-(--border-main) bg-(--bg-input) cursor-pointer font-sans [transition:all_0.1s] text-left"
         onMouseEnter={e => {
           e.currentTarget.style.background  = 'var(--accent-bg)';
           e.currentTarget.style.borderColor = 'var(--accent)';
@@ -545,22 +439,22 @@ function WeaponButton({ weapon, skills, advMode, disMode, onAttack }) {
         }}
       >
         <div>
-          <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: '500' }}>
+          <div className="text-xs text-(--text-primary) font-medium">
             {weapon.name}
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+          <div className="text-[10px] text-(--text-muted)">
             {weapon.skillname}
             {weapon.damage && ' · ' + weapon.damage}
             {weapon.range && weapon.range !== 'Touch' && ' · ' + weapon.range}
           </div>
         </div>
-        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div className="text-right shrink-0">
           {skillVal ? (
-            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--accent)', fontFamily: 'var(--font-serif)' }}>
+            <span className="text-sm font-bold text-(--accent) font-serif">
               {skillVal}
             </span>
           ) : (
-            <span style={{ fontSize: '11px', color: 'var(--text-faint)' }}>—</span>
+            <span className="text-[11px] text-(--text-faint)">—</span>
           )}
         </div>
       </button>
@@ -584,15 +478,7 @@ function WeaponButton({ weapon, skills, advMode, disMode, onAttack }) {
 }
 
 // ── Shared button style helper (mirrors SessionTrackedStat) ───
-function btnCss(color) {
-  return {
-    width: '32px', height: '32px', borderRadius: '8px',
-    border: '1px solid var(--border-main)',
-    background: 'var(--bg-input)', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: color ?? 'inherit', transition: 'all 0.1s ease',
-  };
-}
+const btnCssBase = 'w-8 h-8 rounded-lg border border-(--border-main) bg-(--bg-input) cursor-pointer flex items-center justify-center [transition:all_0.1s]';
 
 // ── Money Field ────────────────────────────────────────────────
 const MONEY_POPUP_W = 160;
@@ -636,32 +522,15 @@ function MoneyField({ label, value, onSave }) {
   } : { display: 'none' };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-      <span style={{
-        fontSize: 'calc(9px * var(--sheet-font-scale))', fontWeight: '600',
-        textTransform: 'uppercase', letterSpacing: '0.07em',
-        color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-      }}>
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-[calc(9px*var(--sheet-font-scale))] font-semibold uppercase tracking-[0.07em] text-(--accent) font-sans">
         {label}
       </span>
 
       <button
         ref={btnRef}
         onClick={handleOpen}
-        style={{
-          minWidth:     '90px',
-          padding:      '5px 8px',
-          borderRadius: '6px',
-          border:       '2px solid var(--border-focus)',
-          background:   'var(--bg-input)',
-          color:        'var(--text-primary)',
-          fontFamily:   'var(--font-sans)',
-          fontSize:     '12px',
-          textAlign:    'center',
-          cursor:       'pointer',
-          transition:   'border-color 0.15s ease',
-          whiteSpace:   'nowrap',
-        }}
+        className="min-w-22.5 py-1.25 px-2 rounded-md border-2 border-(--border-focus) bg-(--bg-input) text-(--text-primary) font-sans text-xs text-center cursor-pointer [transition:border-color_0.15s] whitespace-nowrap"
         onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
         onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-focus)'}
       >
@@ -670,7 +539,8 @@ function MoneyField({ label, value, onSave }) {
 
       {showPopup && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={handleClose} />
+          <div className="fixed inset-0 z-90" onClick={handleClose} />
+          {/* This whole block stays inline — popupStyle is runtime DOM-measured geometry (btnRect/window.innerWidth), merged into one style object with the rest of the popup's visual properties; not splitting it apart to keep the geometry exception isolated and unambiguous */}
           <div style={{
             ...popupStyle,
             background:    'var(--bg-popup)',
@@ -684,19 +554,12 @@ function MoneyField({ label, value, onSave }) {
             gap:           '8px',
             minWidth:      MONEY_POPUP_W + 'px',
           }}>
-            <div style={{
-              fontSize: '10px', fontWeight: '600',
-              textTransform: 'uppercase', letterSpacing: '0.07em',
-              color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-            }}>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-(--accent) font-sans">
               {label}
             </div>
 
             {/* Current value */}
-            <div style={{
-              fontFamily: 'var(--font-serif)', fontSize: '26px', fontWeight: '700',
-              color: 'var(--text-primary)',
-            }}>
+            <div className="font-serif text-[26px] font-bold text-(--text-primary)">
               ${current || '0'}
             </div>
 
@@ -709,29 +572,18 @@ function MoneyField({ label, value, onSave }) {
               onKeyDown={e => { if (e.key === 'Escape') handleClose(); }}
               placeholder="amount"
               autoFocus
-              style={{
-                width:        '100%',
-                padding:      '4px 8px',
-                borderRadius: '6px',
-                border:       '1px solid var(--border-input)',
-                background:   'var(--bg-input)',
-                color:        'var(--text-primary)',
-                fontFamily:   'var(--font-sans)',
-                fontSize:     '13px',
-                textAlign:    'center',
-                outline:      'none',
-                boxSizing:    'border-box',
-              }}
+              className="w-full py-1 px-2 rounded-md border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-[13px] text-center outline-none! box-border input-focus-glow focus:border-(--border-focus)"
             />
 
             {/* − + */}
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-              <button onClick={() => applyStep(-1)} style={btnCss('var(--danger)')}
+            <div className="flex gap-1.5 items-center">
+              {/* color stays inline — btnCssBase's only data-driven parameter, everything else is static */}
+              <button onClick={() => applyStep(-1)} className={btnCssBase} style={{ color: 'var(--danger)' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
                 <span className="icon icon-sm">remove</span>
               </button>
-              <button onClick={() => applyStep(+1)} style={btnCss('var(--success)')}
+              <button onClick={() => applyStep(+1)} className={btnCssBase} style={{ color: 'var(--success)' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
                 <span className="icon icon-sm">add</span>

@@ -14,11 +14,10 @@ export default function WeaponTable({ weapons = [], onUpdateWeapon, onDeleteWeap
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b" style={{ borderColor: 'var(--border-main)' }}>
+          <tr className="border-b border-(--border-main)">
             {WEAPON_COLS.map((col, i) => (
               <th key={col.field}
-                  className={`py-2 text-xs uppercase tracking-widest ${i === 0 ? 'pl-2' : ''} ${col.center ? 'text-center' : 'text-left'}`}
-                  style={{ color: 'var(--accent)' }}>{col.label}</th>
+                  className={`py-2 text-xs uppercase tracking-widest text-(--accent) ${i === 0 ? 'pl-2' : ''} ${col.center ? 'text-center' : 'text-left'}`}>{col.label}</th>
             ))}
             {editable && <th className="py-2" />}
           </tr>

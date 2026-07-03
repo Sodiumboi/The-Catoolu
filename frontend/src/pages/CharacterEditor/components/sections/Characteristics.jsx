@@ -16,14 +16,14 @@ export default function Characteristics({
           onUpdateSheet(s => { s.Investigator.Characteristics[field] = v; })}
       />
 
-      <div style={{ borderTop: '1px solid var(--border-main)', margin: '20px 0 16px' }} />
+      <div className="border-t border-(--border-main) mt-5 mb-4" />
 
       {/* 8 characteristics — two groups of four in a flex row */}
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className="flex gap-2 items-start flex-wrap justify-center">
         <StatGrid chars={chars} editable onChangeChar={onUpdateChar} />
       </div>
 
-      <div style={{ borderTop: '1px solid var(--border-main)', margin: '16px 0 0', paddingTop: '14px' }}>
+      <div className="border-t border-(--border-main) mt-4 pt-3.5">
         <DerivedBadges chars={chars} inv={inv} />
       </div>
 

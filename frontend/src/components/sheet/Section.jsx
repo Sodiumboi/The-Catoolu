@@ -5,12 +5,9 @@
 
 export default function Section({ title, children }) {
   return (
-    <div className="rounded-lg border mb-6 overflow-hidden"
-         style={{ borderColor: 'var(--border-main)', background: 'var(--bg-card)' }}>
-      <div className="px-4 py-2 border-b"
-           style={{ borderColor: 'var(--border-main)', background: 'var(--bg-section-hd)' }}>
-        <h2 className="text-xs font-bold uppercase tracking-widest"
-            style={{ color: 'var(--accent)' }}>
+    <div className="rounded-lg border mb-6 overflow-hidden border-(--border-main) bg-(--bg-card)">
+      <div className="px-4 py-2 border-b border-(--border-main) bg-(--bg-section-hd)">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-(--accent)">
           {title}
         </h2>
       </div>

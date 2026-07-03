@@ -13,8 +13,8 @@ export default function Skills({ skills, skillSearch, onSearchChange, onUpdateSk
   return (
     <Section title="Skills">
       <div className="mb-3 flex items-center gap-4 flex-wrap">
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-          <span style={{ color: 'var(--accent)' }}>●</span> = Occupation skill &nbsp;·&nbsp;
+        <p className="text-xs text-(--text-muted)">
+          <span className="text-(--accent)">●</span> = Occupation skill &nbsp;·&nbsp;
           ½ and ⅕ update automatically
         </p>
         <input
@@ -22,11 +22,7 @@ export default function Skills({ skills, skillSearch, onSearchChange, onUpdateSk
           placeholder="🔍 Search skills..."
           value={skillSearch}
           onChange={e => onSearchChange(e.target.value)}
-          className="ml-auto px-3 py-1 rounded text-xs outline-none"
-          style={{
-            background: 'var(--bg-input)', border: '1px solid var(--border-input)',
-            color: 'var(--text-primary)', width: '180px',
-          }}
+          className="ml-auto px-3 py-1 rounded text-xs outline-none! w-45 bg-(--bg-input) border border-(--border-input) text-(--text-primary)"
           onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
           onBlur={e  => e.target.style.borderColor = 'var(--border-input)'}
         />

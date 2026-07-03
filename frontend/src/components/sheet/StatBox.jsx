@@ -9,40 +9,13 @@ export default function StatBox({ label, sublabel, value, editable = false, onCh
   const fifth = Math.floor(num / 5);
 
   return (
-    <div style={{
-      display:       'flex',
-      flexDirection: 'column',
-      alignItems:    'center',
-      gap:           compact ? '3px' : '4px',
-      padding:       compact ? '6px 8px' : '8px 10px',
-      borderRadius:  compact ? '8px' : '10px',
-      border:        '1px solid var(--border-main)',
-      background:    'var(--bg-input)',
-      minWidth:      compact ? '54px' : '64px',
-    }}>
+    <div className={`flex flex-col items-center border border-(--border-main) bg-(--bg-input) ${compact ? 'gap-0.75 py-1.5 px-2 rounded-lg min-w-13.5' : 'gap-1 py-2 px-2.5 rounded-[10px] min-w-16'}`}>
       {label && (
-        <div style={{ textAlign: 'center', lineHeight: 1 }}>
-          <span style={{
-            display:       'block',
-            fontSize:      compact ? '11px' : '12px',
-            fontWeight:    '700',
-            color:         'var(--accent)',
-            fontFamily:    'var(--font-sans)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}>
+        <div className="text-center leading-none">
+          <span className={`block font-bold text-(--accent) font-sans uppercase tracking-wider ${compact ? 'text-[11px]' : 'text-xs'}`}>
             {label}
           </span>
-          <span style={{
-            display:       'block',
-            fontSize:      compact ? '7px' : '8px',
-            color:         'var(--text-faint)',
-            fontFamily:    'var(--font-sans)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            marginTop:     '1px',
-            visibility:    sublabel ? 'visible' : 'hidden',
-          }}>
+          <span className={`block font-sans text-(--text-faint) uppercase tracking-[0.04em] mt-px ${sublabel ? 'visible' : 'invisible'} ${compact ? 'text-[7px]' : 'text-[8px]'}`}>
             {sublabel || 'X'}
           </span>
         </div>
@@ -53,42 +26,21 @@ export default function StatBox({ label, sublabel, value, editable = false, onCh
           type="number" min="1" max="99"
           value={value || ''}
           onChange={e => onChange && onChange(e.target.value)}
-          style={{
-            width:         compact ? '42px' : '52px',
-            height:        compact ? '32px' : '40px',
-            fontSize:      compact ? '18px' : '22px',
-            fontWeight:    '700',
-            fontFamily:    'var(--font-serif)',
-            textAlign:     'center',
-            background:    'transparent',
-            border:        'none',
-            borderBottom:  '2px solid var(--border-input)',
-            color:         'var(--text-primary)',
-            outline:       'none',
-            MozAppearance: 'textfield',
-            padding:       0,
-          }}
+          className={`outline-none! font-bold font-serif text-center bg-transparent border-none border-b-2 border-(--border-input) text-(--text-primary) p-0 [-moz-appearance:textfield] ${compact ? 'w-10.5 h-8 text-lg' : 'w-13 h-10 text-[22px]'}`}
           onFocus={e => e.target.style.borderBottomColor = 'var(--accent)'}
           onBlur={e  => e.target.style.borderBottomColor = 'var(--border-input)'}
         />
       ) : (
-        <div style={{
-          fontSize:   compact ? '18px' : '22px',
-          fontWeight: '700',
-          fontFamily: 'var(--font-serif)',
-          color:      'var(--text-primary)',
-          lineHeight: 1,
-          padding:    compact ? '4px 0 2px' : '6px 0 4px',
-        }}>
+        <div className={`font-bold font-serif text-(--text-primary) leading-none ${compact ? 'text-lg pt-1 px-0 pb-0.5' : 'text-[22px] pt-1.5 px-0 pb-1'}`}>
           {num}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '6px' }}>
-        <span style={{ fontSize: compact ? '10px' : '11px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+      <div className="flex gap-1.5">
+        <span className={`text-(--text-faint) font-sans ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
           {half}
         </span>
-        <span style={{ fontSize: compact ? '10px' : '11px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>
+        <span className={`text-(--text-faint) font-sans ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
           {fifth}
         </span>
       </div>

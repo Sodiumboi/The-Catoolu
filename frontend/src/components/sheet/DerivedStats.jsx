@@ -10,86 +10,56 @@ import { calcDodge } from '../../utils/cocCalculations';
 // ── Vertical divider used between stat groups ─────────────────────────
 function VDivider({ style }) {
   return (
-    <div style={{
-      width:      '1px',
-      background: 'var(--border-main)',
-      margin:     '0 20px',
-      alignSelf:  'stretch',
-      flexShrink: 0,
-      ...style,
-    }} />
+    <div className="w-px bg-(--border-main) mx-5 self-stretch shrink-0" style={style} />
   );
 }
-
-// ── Box helpers shared by horizontal + vertical layouts ───────────────
-const dimBox = {
-  width: '46px', height: '46px',
-  background: 'var(--bg-input)',
-  border: '1.5px solid var(--border-input)',
-  borderRadius: '8px',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: '700',
-  color: 'var(--text-muted)',
-};
-const nowBox = {
-  width: '50px', height: '50px',
-  background: 'var(--bg-input)',
-  border: '2px solid var(--accent)',
-  borderRadius: '8px',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: '700',
-  color: 'var(--text-primary)',
-};
 
 // ── Single tracked stat ───────────────────────────────────────────────
 function TrackedStat({ label, maxVal, currentVal, onChangeCurrent, thirdLabel, thirdVal, editable, horizontal, compact }) {
 
   if (horizontal) {
-    const mBox = compact
-      ? { ...dimBox, width: '36px', height: '36px', fontSize: '14px', borderRadius: '6px' }
-      : dimBox;
-    const nBox = compact
-      ? { ...nowBox, width: '40px', height: '40px', fontSize: '16px', borderRadius: '6px' }
-      : nowBox;
+    const mBoxClass = compact
+      ? 'w-9 h-9 text-sm rounded-md bg-(--bg-input) border-[1.5px] border-(--border-input) flex items-center justify-center font-serif font-bold text-(--text-muted)'
+      : 'w-11.5 h-11.5 text-lg rounded-lg bg-(--bg-input) border-[1.5px] border-(--border-input) flex items-center justify-center font-serif font-bold text-(--text-muted)';
+    const nBoxClass = compact
+      ? 'w-10 h-10 text-base rounded-md bg-(--bg-input) border-2 border-(--accent) flex items-center justify-center font-serif font-bold text-(--text-primary)'
+      : 'w-12.5 h-12.5 text-xl rounded-lg bg-(--bg-input) border-2 border-(--accent) flex items-center justify-center font-serif font-bold text-(--text-primary)';
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: compact ? '5px' : '8px' }}>
-        <span style={{
-          fontSize: compact ? '10px' : '12px', fontWeight: '700', textTransform: 'uppercase',
-          letterSpacing: '0.06em', color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-        }}>
+      <div className={`flex flex-col items-center ${compact ? 'gap-1.25' : 'gap-2'}`}>
+        <span className={`font-bold uppercase tracking-[0.06em] text-(--accent) font-sans ${compact ? 'text-[10px]' : 'text-xs'}`}>
           {label}
         </span>
 
-        <div style={{ display: 'flex', gap: compact ? '5px' : '8px', alignItems: 'flex-start' }}>
+        <div className={`flex items-start ${compact ? 'gap-1.25' : 'gap-2'}`}>
           {/* Max */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-            <span style={{ fontSize: '9px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>Max</span>
-            <div style={mBox}>{maxVal ?? '—'}</div>
+          <div className="flex flex-col items-center gap-0.75">
+            <span className="text-[9px] text-(--text-faint) font-sans">Max</span>
+            <div className={mBoxClass}>{maxVal ?? '—'}</div>
           </div>
 
           {/* Now */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-            <span style={{ fontSize: '9px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>Now</span>
+          <div className="flex flex-col items-center gap-0.75">
+            <span className="text-[9px] text-(--text-faint) font-sans">Now</span>
             {editable ? (
               <input
                 type="number"
                 value={currentVal ?? maxVal ?? ''}
                 onChange={e => onChangeCurrent && onChangeCurrent(e.target.value)}
-                style={{ ...nBox, textAlign: 'center', outline: 'none', MozAppearance: 'textfield', padding: 0 }}
+                className={`${nBoxClass} text-center outline-none! [-moz-appearance:textfield] p-0`}
                 onFocus={e => e.target.style.borderColor = 'var(--color-primary-dark)'}
                 onBlur={e  => e.target.style.borderColor = 'var(--accent)'}
               />
             ) : (
-              <div style={nBox}>{currentVal ?? maxVal ?? '—'}</div>
+              <div className={nBoxClass}>{currentVal ?? maxVal ?? '—'}</div>
             )}
           </div>
 
           {/* Optional third box (Insane for Sanity) */}
           {thirdLabel && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-              <span style={{ fontSize: '9px', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)' }}>{thirdLabel}</span>
-              <div style={mBox}>{thirdVal ?? '—'}</div>
+            <div className="flex flex-col items-center gap-0.75">
+              <span className="text-[9px] text-(--text-faint) font-sans">{thirdLabel}</span>
+              <div className={mBoxClass}>{thirdVal ?? '—'}</div>
             </div>
           )}
         </div>
@@ -100,41 +70,37 @@ function TrackedStat({ label, maxVal, currentVal, onChangeCurrent, thirdLabel, t
   // ── Vertical (original) layout ────────────────────────────────────
   return (
     <div className="flex flex-col items-start gap-1">
-      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--accent)' }}>
+      <span className="text-xs font-bold uppercase tracking-widest text-(--accent)">
         {label}
       </span>
       <div className="flex gap-2 items-end">
         <div className="flex flex-col items-center">
-          <span className="text-xs mb-0.5" style={{ color: 'var(--text-faint)', fontSize: '9px' }}>Max</span>
-          <div className="text-center font-bold rounded flex items-center justify-center"
-               style={{ width: '44px', height: '44px', fontSize: '1.1rem', background: 'var(--bg-input)', border: '1.5px solid var(--border-input)', color: 'var(--text-muted)' }}>
+          <span className="text-[9px] mb-0.5 text-(--text-faint)">Max</span>
+          <div className="text-center font-bold rounded flex items-center justify-center w-11 h-11 text-[1.1rem] bg-(--bg-input) border-[1.5px] border-(--border-input) text-(--text-muted)">
             {maxVal ?? '—'}
           </div>
         </div>
         <div className="flex flex-col items-center">
-          <span className="text-xs mb-0.5" style={{ color: 'var(--text-faint)', fontSize: '9px' }}>Current</span>
+          <span className="text-[9px] mb-0.5 text-(--text-faint)">Current</span>
           {editable ? (
             <input
               type="number"
               value={currentVal ?? maxVal ?? ''}
               onChange={e => onChangeCurrent && onChangeCurrent(e.target.value)}
-              className="text-center font-bold rounded outline-none"
-              style={{ width: '44px', height: '44px', fontSize: '1.1rem', background: 'var(--bg-input)', border: '2px solid var(--border-focus)', color: 'var(--text-primary)' }}
+              className="text-center font-bold rounded outline-none! w-11 h-11 text-[1.1rem] bg-(--bg-input) border-2 border-(--border-focus) text-(--text-primary)"
               onFocus={e => e.target.style.borderColor = 'var(--accent)'}
               onBlur={e  => e.target.style.borderColor = 'var(--border-focus)'}
             />
           ) : (
-            <div className="text-center font-bold rounded flex items-center justify-center"
-                 style={{ width: '44px', height: '44px', fontSize: '1.1rem', background: 'var(--bg-input)', border: '2px solid var(--border-focus)', color: 'var(--text-primary)' }}>
+            <div className="text-center font-bold rounded flex items-center justify-center w-11 h-11 text-[1.1rem] bg-(--bg-input) border-2 border-(--border-focus) text-(--text-primary)">
               {currentVal ?? maxVal ?? '—'}
             </div>
           )}
         </div>
         {thirdLabel && (
           <div className="flex flex-col items-center">
-            <span className="text-xs mb-0.5" style={{ color: 'var(--text-faint)', fontSize: '9px' }}>{thirdLabel}</span>
-            <div className="text-center font-bold rounded flex items-center justify-center"
-                 style={{ width: '44px', height: '44px', fontSize: '1.1rem', background: 'var(--bg-input)', border: '1.5px solid var(--border-input)', color: 'var(--text-muted)' }}>
+            <span className="text-[9px] mb-0.5 text-(--text-faint)">{thirdLabel}</span>
+            <div className="text-center font-bold rounded flex items-center justify-center w-11 h-11 text-[1.1rem] bg-(--bg-input) border-[1.5px] border-(--border-input) text-(--text-muted)">
               {thirdVal ?? '—'}
             </div>
           </div>
@@ -147,20 +113,12 @@ function TrackedStat({ label, maxVal, currentVal, onChangeCurrent, thirdLabel, t
 // ── Computed read-only badge ──────────────────────────────────────────
 function Badge({ label, value, color }) {
   return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{
-        fontSize: '11px', fontWeight: '600', textTransform: 'uppercase',
-        letterSpacing: '0.08em', color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-        marginBottom: '6px',
-      }}>
+    <div className="text-center">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--accent) font-sans mb-1.5">
         {label}
       </div>
-      <div style={{
-        fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: '700',
-        padding: '6px 18px', borderRadius: '8px',
-        background: 'var(--bg-input)', color,
-        border: '1px solid var(--border-main)',
-      }}>
+      {/* color stays inline — caller-supplied, not a fixed token */}
+      <div className="font-serif text-xl font-bold py-1.5 px-4.5 rounded-lg bg-(--bg-input) border border-(--border-main)" style={{ color }}>
         {value ?? '—'}
       </div>
     </div>
@@ -172,9 +130,10 @@ export function TrackedStats({ chars = {}, editable = false, onChangeCurrent, ho
   const set = (field) => editable && onChangeCurrent ? (v => onChangeCurrent(field, v)) : undefined;
 
   if (horizontal) {
+    // vdGap stays inline — passed through VDivider's style prop, its only customization channel; not converting to keep VDivider's prop interface unchanged
     const vdGap = compact ? '12px' : '20px';
     return (
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'wrap', gap: '0' }}>
+      <div className="flex items-start justify-center flex-wrap gap-0">
         <TrackedStat label="HP" horizontal compact={compact}
           maxVal={chars.HitPtsMax}   currentVal={chars.HitPts}
           editable={editable} onChangeCurrent={set('HitPts')} />
@@ -216,24 +175,12 @@ export function TrackedStats({ chars = {}, editable = false, onChangeCurrent, ho
 
 // ── Badge row: Damage Bonus / Build / Dodge / Move ───────────────────
 export function DerivedBadges({ chars = {}, inv, compact = false }) {
-  const badgeStyle = compact ? {
-    fontFamily: 'var(--font-serif)', fontSize: '15px', fontWeight: '700',
-    padding: '4px 12px', borderRadius: '6px',
-    background: 'var(--bg-input)', border: '1px solid var(--border-main)',
-  } : {
-    fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: '700',
-    padding: '6px 18px', borderRadius: '8px',
-    background: 'var(--bg-input)', border: '1px solid var(--border-main)',
-  };
-  const labelStyle = compact ? {
-    fontSize: '9px', fontWeight: '600', textTransform: 'uppercase',
-    letterSpacing: '0.08em', color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-    marginBottom: '4px',
-  } : {
-    fontSize: '11px', fontWeight: '600', textTransform: 'uppercase',
-    letterSpacing: '0.08em', color: 'var(--accent)', fontFamily: 'var(--font-sans)',
-    marginBottom: '6px',
-  };
+  const badgeClass = compact
+    ? 'font-serif text-[15px] font-bold py-1 px-3 rounded-md bg-(--bg-input) border border-(--border-main)'
+    : 'font-serif text-xl font-bold py-1.5 px-4.5 rounded-lg bg-(--bg-input) border border-(--border-main)';
+  const labelClass = compact
+    ? 'text-[9px] font-semibold uppercase tracking-[0.08em] text-(--accent) font-sans mb-1'
+    : 'text-[11px] font-semibold uppercase tracking-[0.08em] text-(--accent) font-sans mb-1.5';
 
   const items = [
     { label: 'Damage Bonus', value: chars.DamageBonus || 'None', color: 'var(--danger)' },
@@ -243,11 +190,12 @@ export function DerivedBadges({ chars = {}, inv, compact = false }) {
   ];
 
   return (
-    <div style={{ display: 'flex', gap: compact ? '16px' : '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+    <div className={`flex flex-wrap justify-center ${compact ? 'gap-4' : 'gap-6'}`}>
       {items.map(({ label, value, color }) => (
-        <div key={label} style={{ textAlign: 'center' }}>
-          <div style={labelStyle}>{label}</div>
-          <div style={{ ...badgeStyle, color }}>{value ?? '—'}</div>
+        <div key={label} className="text-center">
+          <div className={labelClass}>{label}</div>
+          {/* color stays inline — per-badge color varies by stat (danger/primary/hardcoded blue), not a fixed token */}
+          <div className={badgeClass} style={{ color }}>{value ?? '—'}</div>
         </div>
       ))}
     </div>
