@@ -2,7 +2,16 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import apiClient from '../../api/client';
-import CustomDropdown from '../ui/CustomDropdown';
+import Tooltip from '../ui/Tooltip';
+
+const SORT_OPTIONS = [
+  { value: 'date-desc',   label: 'Date added: newest' },
+  { value: 'date-asc',    label: 'Date added: oldest' },
+  { value: 'name-asc',    label: 'Name A–Z' },
+  { value: 'name-desc',   label: 'Name Z–A' },
+  { value: 'type-images', label: 'Type: images first' },
+  { value: 'type-text',   label: 'Type: text first' },
+];
 
 if (typeof document !== 'undefined' && !document.getElementById('khp-styles')) {
   const s = document.createElement('style');
@@ -280,6 +289,7 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
   const [sortBy,      setSortBy]      = useState(
     () => localStorage.getItem('handout-panel-sort') || 'date-desc'
   );
+  const [sortOpen,    setSortOpen]    = useState(false);
   const holdTimer = useRef(null);
 
   const applySortFn = (a, b) => {
@@ -390,31 +400,50 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
   return (
     <div className="p-3 flex flex-col gap-3.5">
 
-      {/* View toggle */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className={`${labelCss} mb-0`}>Handouts</span>
-        <div className="w-45 shrink-0">
-          <CustomDropdown
-            value={sortBy}
-            onChange={handleSortChange}
-            searchable={false}
-            options={[
-              { value: 'date-desc', label: 'Date added: newest' },
-              { value: 'date-asc', label: 'Date added: oldest' },
-              { value: 'name-asc', label: 'Name A–Z' },
-              { value: 'name-desc', label: 'Name Z–A' },
-              { value: 'type-images', label: 'Type: images first' },
-              { value: 'type-text', label: 'Type: text first' },
-            ]}
-          />
-        </div>
-        <div className="inline-flex gap-0.5 p-0.5 border border-(--border-main) rounded-[7px] bg-(--bg-card)">
-          <button className={viewToggleCss(view === 'list')} onClick={() => changeView('list')}>
-            <span className="material-symbols-outlined text-sm">list</span>
-          </button>
-          <button className={viewToggleCss(view === 'grid')} onClick={() => changeView('grid')}>
-            <span className="material-symbols-outlined text-sm">grid_view</span>
-          </button>
+      {/* Header: title + sort icon + view toggle */}
+      <div className="flex items-center justify-between flex-wrap gap-2 min-h-9">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) font-sans">Handouts</span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Sort — icon button + dropdown menu */}
+          <div className="relative">
+            <Tooltip content="Sort">
+            <button
+              onClick={() => setSortOpen(o => !o)}
+              className="p-1 rounded-[7px] border border-(--border-main) bg-(--bg-card) text-(--text-muted) cursor-pointer flex items-center [transition:color_0.1s,border-color_0.1s]"
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-main)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+            >
+              <span className="icon icon-sm">swap_vert</span>
+            </button>
+            </Tooltip>
+            {sortOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
+                <div className="absolute top-full right-0 mt-1 z-50 bg-(--bg-card) border border-(--border-main) rounded-lg shadow-(--shadow-dropdown) overflow-hidden py-1 min-w-44">
+                  {SORT_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { handleSortChange(opt.value); setSortOpen(false); }}
+                      className={`block w-full text-left py-1.5 px-3 text-[12px] font-sans cursor-pointer whitespace-nowrap [transition:background_0.1s] ${sortBy === opt.value ? 'text-(--accent) bg-(--accent-bg) font-medium' : 'text-(--text-primary) bg-transparent'}`}
+                      onMouseEnter={e => { if (sortBy !== opt.value) e.currentTarget.style.background = 'var(--bg-section-hd)'; }}
+                      onMouseLeave={e => { if (sortBy !== opt.value) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          {/* View toggle */}
+          <div className="inline-flex gap-0.5 p-0.5 border border-(--border-main) rounded-[7px] bg-(--bg-card)">
+            <button className={viewToggleCss(view === 'list')} onClick={() => changeView('list')}>
+              <span className="icon icon-sm">list</span>
+            </button>
+            <button className={viewToggleCss(view === 'grid')} onClick={() => changeView('grid')}>
+              <span className="icon icon-sm">grid_view</span>
+            </button>
+          </div>
         </div>
       </div>
 

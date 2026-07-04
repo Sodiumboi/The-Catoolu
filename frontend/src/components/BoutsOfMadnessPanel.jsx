@@ -47,17 +47,24 @@ export default function BoutsOfMadnessPanel() {
              :                         SAMPLE_MANIAS;
 
   return (
-    <div style={{ padding: '12px' }}>
+    <div style={{ padding: '12px 24px 12px 12px' }}>
       {/* Panel title */}
       <div style={{
-        fontSize:      '10px',
-        textTransform: 'uppercase',
-        letterSpacing: '0.08em',
-        color:         'var(--text-muted)',
-        fontFamily:    'var(--font-sans)',
-        marginBottom:  '8px',
+        display:      'flex',
+        alignItems:   'center',
+        minHeight:    '36px',
+        marginBottom: '8px',
       }}>
-        Madness Reference
+        <span style={{
+          fontSize:      '11px',
+          fontWeight:    600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          color:         'var(--text-muted)',
+          fontFamily:    'var(--font-sans)',
+        }}>
+          Madness Reference
+        </span>
       </div>
 
       {/* 4-way segmented pill control — matches RoomSubNav pill treatment */}
@@ -66,6 +73,7 @@ export default function BoutsOfMadnessPanel() {
         style={{
           position:     'relative',
           display:      'flex',
+          width:        'fit-content',
           alignItems:   'center',
           gap:          '4px',
           padding:      '3px',
@@ -113,8 +121,8 @@ export default function BoutsOfMadnessPanel() {
                 border:         '1.5px solid transparent',
                 color:          isActive ? 'var(--accent)' : 'var(--text-muted)',
                 fontFamily:     'var(--font-sans)',
-                fontSize:       '12px',
-                fontWeight:     isActive ? '600' : '400',
+                fontSize:       '13px',
+                fontWeight:     '500',
                 cursor:         'pointer',
                 transition:     'color 0.15s ease-in-out',
                 whiteSpace:     'nowrap',

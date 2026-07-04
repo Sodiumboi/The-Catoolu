@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import HandoutViewer from './HandoutViewer';
-import Tooltip from '../ui/Tooltip';
 
 const typeIcon = (type) =>
   type === 'image' ? 'image' : type === 'bundle' ? 'stacks' : 'text_fields';
@@ -186,24 +185,22 @@ export default function HandoutShareCard({ msg, isOwn, canDelete, onDelete }) {
             {/* Always in flow when canDelete — visibility toggled so no layout shift on hover */}
             {canDelete && (
               <div className={`relative shrink-0 ${(hovered || menuOpen) ? 'visible' : 'invisible'}`}>
-                <Tooltip content="Message actions">
                 <button
                   onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
-                  className="bg-(--bg-surface) border border-(--border-subtle) rounded-md cursor-pointer text-(--text-muted) py-px px-[3px] flex items-center justify-center"
+                  className="bg-(--bg-surface) rounded-md cursor-pointer text-(--text-muted) p-0.5 flex items-center justify-center"
                 >
-                  <span className="material-symbols-outlined text-sm">more_vert</span>
+                  <span className="material-symbols-outlined text-sm!">more_vert</span>
                 </button>
-                </Tooltip>
 
                 {menuOpen && (
-                  <div className={`absolute top-full mt-1 bg-(--bg-card) border border-(--border-subtle) rounded-lg shadow-(--shadow-dropdown) z-200 min-w-30 overflow-hidden ${isOwn ? 'right-0 left-auto' : 'right-auto left-0'}`}>
+                  <div className={`absolute top-full mt-1 bg-(--bg-card) rounded-md shadow-(--shadow-dropdown) z-200 min-w-0 overflow-hidden ${isOwn ? 'right-0 left-auto' : 'right-auto left-0'}`}>
                     <button
                       onClick={handleDelete}
-                      className="flex items-center gap-1.5 w-full py-2 px-3 bg-none border-none cursor-pointer text-[#dc2626] text-[13px] font-sans text-left"
+                      className="flex items-center gap-1 w-full py-1 px-2 bg-none border-none cursor-pointer text-[#dc2626] text-[11px] font-sans text-left"
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.08)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'none'}
                     >
-                      <span className="material-symbols-outlined text-[15px]">delete</span>
+                      <span className="material-symbols-outlined text-xs!">delete</span>
                       Delete
                     </button>
                   </div>

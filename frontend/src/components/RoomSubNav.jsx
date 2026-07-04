@@ -58,7 +58,7 @@ export default function RoomSubNav({ tabs, activeTab, onTabChange, rightSlot }) 
               key={tab.id}
               ref={el => { tabRefs.current[tab.id] = el; }}
               onClick={tab.comingSoon ? undefined : () => onTabChange(tab.id)}
-              className={`relative z-1 flex items-center gap-1.5 py-1.25 px-3.5 rounded-full bg-transparent border-[1.5px] border-transparent font-sans text-[13px] [transition:color_0.15s_ease-in-out] whitespace-nowrap ${tab.comingSoon ? 'text-(--text-faint) font-normal cursor-default opacity-55' : isActive ? 'text-(--accent) font-semibold cursor-pointer' : 'text-(--text-muted) font-normal cursor-pointer'}`}
+              className={`relative z-1 flex items-center gap-1.5 py-1.25 px-3.5 rounded-full bg-transparent border-[1.5px] border-transparent font-sans text-[13px] font-medium [transition:color_0.15s_ease-in-out] whitespace-nowrap ${tab.comingSoon ? 'text-(--text-faint) cursor-default opacity-55' : isActive ? 'text-(--accent) cursor-pointer' : 'text-(--text-muted) cursor-pointer'}`}
               onMouseEnter={e => {
                 if (!isActive && !tab.comingSoon)
                   e.currentTarget.style.color = 'var(--text-secondary)';

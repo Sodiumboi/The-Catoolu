@@ -1154,7 +1154,7 @@ export default function CampaignRoomPage() {
             <div className="min-w-120 shrink-0 flex flex-col bg-(--bg-page) overflow-hidden" style={{ width: leftWidth + 'px', '--sheet-font-scale': sheetFontScale }}>
 
               {/* Left panel header — campaign name + connection dot + AFK toggle */}
-              <div className="py-1.5 px-4 border-b border-(--border-main) bg-(--bg-nav) flex items-center justify-between shrink-0 gap-3">
+              <div className="py-2.5 px-4 border-b border-(--border-main) bg-(--bg-nav) flex items-center justify-between shrink-0 gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className={`w-2 h-2 rounded-full shrink-0 ${connected && inRoom ? 'bg-[#22c55e] animate-[dot-breathe-green_2.5s_ease-in-out_infinite]' : !connected ? 'bg-[#ef4444]' : 'bg-[#EAB308] animate-[dot-breathe-yellow_1.2s_ease-in-out_infinite]'}`} />
                   <h2 className="font-serif text-[15px] text-(--text-primary) m-0 truncate">
@@ -1269,8 +1269,8 @@ export default function CampaignRoomPage() {
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center justify-between mb-2.5">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.07em] text-(--text-muted) font-sans">
+                      <div className="flex items-center justify-between min-h-9 mb-2">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) font-sans">
                           Investigators ({members.filter(m => m.role === 'player').length})
                         </div>
                         {members.some(m => m.role === 'player' && m.character_uuid) && (

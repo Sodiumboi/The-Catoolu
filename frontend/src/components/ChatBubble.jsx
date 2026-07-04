@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import HandoutViewer from './handouts/HandoutViewer';
-import Tooltip from './ui/Tooltip';
 
 export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
   const [hovered,  setHovered]  = useState(false);
@@ -88,24 +87,22 @@ export default function ChatBubble({ msg, isOwn, canDelete, onDelete }) {
       {/* Three-dot action button */}
       {canDelete && (hovered || menuOpen) && (
         <div className="self-end shrink-0 relative">
-          <Tooltip content="Message actions">
           <button
             onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
-            className="bg-(--bg-card) border border-(--border-subtle) rounded-md cursor-pointer text-(--text-muted) py-0.5 px-1 flex items-center justify-center"
+            className="bg-(--bg-card) rounded-md cursor-pointer text-(--text-muted) p-0.5 flex items-center justify-center"
           >
-            <span className="material-symbols-outlined text-base">more_vert</span>
+            <span className="material-symbols-outlined text-sm!">more_vert</span>
           </button>
-          </Tooltip>
 
           {menuOpen && (
-            <div className={`absolute bottom-full mb-1 bg-(--bg-card) border border-(--border-subtle) rounded-lg shadow-(--shadow-dropdown) z-200 min-w-30 overflow-hidden ${isOwn ? 'right-0 left-auto' : 'right-auto left-0'}`}>
+            <div className={`absolute bottom-full mb-1 bg-(--bg-card) rounded-md shadow-(--shadow-dropdown) z-200 min-w-0 overflow-hidden ${isOwn ? 'right-0 left-auto' : 'right-auto left-0'}`}>
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-1.5 w-full py-2 px-3 bg-none border-none cursor-pointer text-[#dc2626] text-[13px] font-sans text-left"
+                className="flex items-center gap-1 w-full py-1 px-2 bg-none border-none cursor-pointer text-[#dc2626] text-[11px] font-sans text-left"
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.08)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'none'}
               >
-                <span className="material-symbols-outlined text-[15px]">delete</span>
+                <span className="material-symbols-outlined text-xs!">delete</span>
                 Delete
               </button>
             </div>
