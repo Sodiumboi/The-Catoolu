@@ -15,6 +15,9 @@ import { createPortal } from 'react-dom';
  *   variant      string  — 'danger' | 'warning' | 'default' (default 'danger')
  *   onConfirm    func     — called when user clicks confirm
  *   onCancel     func     — called on cancel, Escape, or backdrop click
+ *   tertiaryLabel    string  — optional third (primary/accent) action button text
+ *   onTertiary       func    — called when user clicks the tertiary action
+ *   tertiaryDisabled bool    — disables the tertiary button (e.g. while saving)
  */
 export default function ConfirmDialog({
   open,
@@ -25,6 +28,9 @@ export default function ConfirmDialog({
   variant = 'danger',
   onConfirm,
   onCancel,
+  tertiaryLabel,
+  onTertiary,
+  tertiaryDisabled = false,
 }) {
   // Escape key dismisses
   useEffect(() => {
@@ -151,6 +157,26 @@ export default function ConfirmDialog({
           >
             {confirmLabel}
           </button>
+          {tertiaryLabel && (
+            <button
+              type="button"
+              onClick={onTertiary}
+              disabled={tertiaryDisabled}
+              style={{
+                padding: '7px 16px',
+                borderRadius: 8,
+                border: 'none',
+                background: tertiaryDisabled ? 'var(--text-muted)' : 'var(--color-primary)',
+                color: '#fff',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: tertiaryDisabled ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {tertiaryLabel}
+            </button>
+          )}
         </div>
       </div>
     </div>

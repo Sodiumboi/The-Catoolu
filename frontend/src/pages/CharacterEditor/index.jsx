@@ -4,7 +4,7 @@ import NavBar from '../../components/NavBar';
 import Footer from '../../components/Footer';
 import useCharacterEditor from './useCharacterEditor';
 import { useTheme } from '../../context/ThemeContext';
-import UnsavedChangesModal from './components/UnsavedChangesModal';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import PersonalDetails     from './components/sections/PersonalDetails';
 import Characteristics     from './components/sections/Characteristics';
 import Skills              from './components/sections/Skills';
@@ -148,15 +148,19 @@ export default function CharacterEditorPage() {
     <div className="min-h-screen flex flex-col" style={{ '--sheet-font-scale': sheetFontScale }}>
 
       {/* Unsaved changes modal */}
-      {showWarning && (
-        <UnsavedChangesModal
-          changedSections={pendingChanges}
-          onCancel={handleWarnCancel}
-          onDiscard={handleWarnDiscard}
-          onSave={handleWarnSave}
-          saving={warnSaving}
-        />
-      )}
+      <ConfirmDialog
+        open={showWarning}
+        variant="danger"
+        title="Unsaved Changes"
+        message={`You have unsaved changes${pendingChanges.length ? ' to: ' + pendingChanges.join(', ') : ''}. What would you like to do?`}
+        cancelLabel="Cancel"
+        confirmLabel="Discard Changes"
+        onCancel={handleWarnCancel}
+        onConfirm={handleWarnDiscard}
+        tertiaryLabel={warnSaving ? 'Saving…' : 'Save & Leave'}
+        onTertiary={handleWarnSave}
+        tertiaryDisabled={warnSaving}
+      />
 
       {/* Shared nav */}
       <NavBar activeTab="investigators" />
@@ -166,7 +170,7 @@ export default function CharacterEditorPage() {
         {/* Left */}
         <div className="flex items-center gap-3">
           <button onClick={() => guardedNavigate('/dashboard')}
-                  className="inline-flex items-center gap-1.25 py-1 px-3 rounded-full border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap"
+                  className="inline-flex items-center gap-1.25 py-[5px] px-3.5 rounded-full border-[1.5px] border-(--border-main) bg-transparent text-(--text-muted) font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap"
                   onMouseEnter={e => {
                     e.currentTarget.style.borderColor = 'var(--accent)';
                     e.currentTarget.style.color = 'var(--accent)';
@@ -195,7 +199,7 @@ export default function CharacterEditorPage() {
           <Tooltip content="Toggle notes">
           <button
             onClick={handleNotesButton}
-            className={`flex items-center gap-1.25 py-1 px-3 rounded-full font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap ${notesState !== 'closed' ? 'border border-(--accent) bg-(--accent-bg) text-(--accent)' : 'border border-(--border-main) bg-transparent text-(--text-muted)'}`}
+            className={`flex items-center gap-1.25 py-[5px] px-3.5 rounded-full font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap ${notesState !== 'closed' ? 'border-[1.5px] border-(--accent) bg-(--accent-bg) text-(--accent)' : 'border-[1.5px] border-(--border-main) bg-transparent text-(--text-muted)'}`}
             onMouseEnter={e => {
               if (notesState === 'closed') {
                 e.currentTarget.style.borderColor = 'var(--accent)';
@@ -213,20 +217,20 @@ export default function CharacterEditorPage() {
             <span className="icon icon-sm">open_in_new</span>
           </button>
           </Tooltip>
+          <Tooltip content="Export JSON">
           <button onClick={handleExport}
-                  className="inline-flex items-center gap-1.25 py-1.5 px-3.5 rounded-lg text-[13px] border border-(--success) bg-transparent text-(--success) cursor-pointer"
+                  className="inline-flex items-center justify-center p-1.5 rounded-lg border border-(--success) bg-transparent text-(--success) cursor-pointer [transition:background_0.15s]"
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <span className="icon icon-sm">download</span>
-            Export JSON
           </button>
+          </Tooltip>
+          <Tooltip content={saving ? 'Saving…' : isDirty ? 'Save changes' : 'Saved'}>
           <button onClick={handleSave} disabled={saving}
-                  className={`py-1.5 px-3.5 rounded-lg text-[13px] font-medium [transition:all_0.2s] border-2 ${isDirty ? 'border-(--color-primary-dark)' : 'border-transparent'} ${saving ? 'bg-(--text-muted) text-white cursor-not-allowed' : isDirty ? 'bg-(--color-primary) text-white cursor-pointer' : 'bg-(--accent-bg) text-(--accent) cursor-pointer'}`}>
-            {saving ? 'Saving...' : isDirty
-              ? <><span className="icon icon-sm">save</span>{' '}Save*</>
-              : <><span className="icon icon-sm">check</span>{' '}Saved</>
-            }
+                  className={`inline-flex items-center justify-center p-1.5 rounded-lg [transition:all_0.2s] border-2 ${isDirty ? 'border-(--color-primary-dark)' : 'border-transparent'} ${saving ? 'bg-(--text-muted) text-white cursor-not-allowed' : isDirty ? 'bg-(--color-primary) text-white cursor-pointer' : 'bg-(--accent-bg) text-(--accent) cursor-pointer'}`}>
+            <span className="icon icon-sm">{saving ? 'progress_activity' : isDirty ? 'save' : 'check'}</span>
           </button>
+          </Tooltip>
         </div>
       </div>
 
