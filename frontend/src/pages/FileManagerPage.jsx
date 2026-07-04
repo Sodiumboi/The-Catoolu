@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import apiClient from '../api/client';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
@@ -6,6 +6,7 @@ import HandoutViewer from '../components/handouts/HandoutViewer';
 import ConfirmDialog from '../components/ConfirmDialog';
 import useConfirm from '../hooks/useConfirm';
 import Tooltip from '../components/ui/Tooltip';
+import Checkbox from '../components/ui/Checkbox';
 
 const KIND = {
   avatar:  { label: 'Avatar',         icon: 'person',       color: 'var(--accent)' },
@@ -38,7 +39,6 @@ export default function FileManagerPage() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selected,      setSelected]      = useState(new Set());
   const [bulkBusy,      setBulkBusy]      = useState(false);
-  const selectAllRef = useRef(null);
 
   useEffect(() => {
     apiClient.get('/profile/uploads')
@@ -128,14 +128,6 @@ export default function FileManagerPage() {
     setBulkBusy(false);
   };
 
-  // Set the select-all checkbox to indeterminate when a partial selection is active
-  useEffect(() => {
-    if (selectAllRef.current) {
-      selectAllRef.current.indeterminate =
-        selected.size > 0 && selected.size < selectableFiles.length;
-    }
-  }, [selected, selectableFiles.length]);
-
   const totalUsed  = quota?.totalUsed  ?? 0;
   const totalLimit = quota?.totalLimit ?? 200 * 1024 * 1024;
   const pct        = Math.min(100, Math.round((totalUsed / totalLimit) * 100));
@@ -195,13 +187,12 @@ export default function FileManagerPage() {
         {/* Bulk action toolbar */}
         {selectionMode && (
           <div className="bg-(--bg-card) border border-(--border-main) rounded-[10px] py-2.5 px-3.5 mb-4 flex items-center gap-3 flex-wrap">
-            <input
-              ref={selectAllRef}
-              type="checkbox"
+            <Checkbox
               checked={selected.size === selectableFiles.length && selectableFiles.length > 0}
+              indeterminate={selected.size > 0 && selected.size < selectableFiles.length}
               onChange={toggleSelectAll}
               disabled={selectableFiles.length === 0}
-              className={selectableFiles.length === 0 ? 'cursor-default' : 'cursor-pointer'}
+              ariaLabel="Select all files"
             />
             <span className="text-[13px] text-(--text-secondary)">
               {selected.size} of {selectableFiles.length} selected
@@ -254,11 +245,10 @@ export default function FileManagerPage() {
                         <span className="material-symbols-outlined text-lg text-(--text-faint) shrink-0 w-4.5 text-center">lock</span>
                       </Tooltip>
                     ) : (
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={isSel}
                         onChange={() => toggleSelection(f.id)}
-                        className="cursor-pointer shrink-0"
+                        ariaLabel="Select file"
                       />
                     )
                   )}

@@ -4,6 +4,7 @@ import apiClient from '../../api/client';
 import UploadProgressBar from '../UploadProgressBar';
 import CustomDropdown from '../ui/CustomDropdown';
 import FileDropZone from '../ui/FileDropZone';
+import Checkbox from '../ui/Checkbox';
 import ConfirmDialog from '../ConfirmDialog';
 import useConfirm from '../../hooks/useConfirm';
 
@@ -360,15 +361,21 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
 }
 
 // ─── HandoutCard ───────────────────────────────────────────────
-function HandoutCard({ handout, onEdit, onDelete }) {
+function HandoutCard({ handout, onEdit, onDelete, selectionMode = false, isSelected = false, onToggleSelect }) {
   const isImage = handout.type === 'image';
+  const handleClick = () => selectionMode ? onToggleSelect(handout) : onEdit(handout);
   return (
     <div
-      onClick={() => onEdit(handout)}
-      className="bg-(--bg-card) rounded-[10px] border border-(--border-main) overflow-hidden cursor-pointer [transition:border-color_0.12s]"
-      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-main)'}
+      onClick={handleClick}
+      className={`relative bg-(--bg-card) rounded-[10px] overflow-hidden cursor-pointer [transition:border-color_0.12s,box-shadow_0.12s] ${isSelected ? 'border-2 border-(--color-primary) shadow-[0_0_0_2px_var(--accent-bg)]' : 'border border-(--border-main)'}`}
+      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
+      onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = 'var(--border-main)'; }}
     >
+      {selectionMode && (
+        <div className={`absolute top-1 left-1 z-1 w-4 h-4 rounded-[5px] flex items-center justify-center border ${isSelected ? 'bg-(--color-primary) border-(--color-primary)' : 'bg-(--bg-card) border-(--border-main)'}`}>
+          {isSelected && <span className="material-symbols-outlined text-[10px]! leading-none text-white">check</span>}
+        </div>
+      )}
       <div className={`h-16 flex items-center justify-center overflow-hidden ${isImage ? 'bg-(--accent-bg)' : 'bg-(--bg-section-hd)'}`}>
         {isImage && handout.content ? (
           <img
@@ -386,14 +393,16 @@ function HandoutCard({ handout, onEdit, onDelete }) {
         <div className="text-[11px] font-medium text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap mb-1">
           {handout.title}
         </div>
-        <div className="flex gap-1">
-          <button
-            onClick={e => { e.stopPropagation(); onDelete(handout); }}
-            className={`${miniBtnCss} text-(--danger) border-(--danger)`}
-          >
-            delete
-          </button>
-        </div>
+        {!selectionMode && (
+          <div className="flex gap-1">
+            <button
+              onClick={e => { e.stopPropagation(); onDelete(handout); }}
+              className={`${miniBtnCss} text-(--danger) border-(--danger)`}
+            >
+              delete
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -638,8 +647,11 @@ export default function HandoutLibrary({ campaignUuid }) {
   const [staged,           setStaged]           = useState([]); // files awaiting upload review
   const [stagingUploading, setStagingUploading] = useState(false);
   const [addMenuOpen,      setAddMenuOpen]      = useState(false);
-  const fileInputRef = useRef(null);
-  const addTileRef   = useRef(null);
+  const [selectionMode,    setSelectionMode]    = useState(false);
+  const [selected,         setSelected]         = useState(new Set()); // uuids
+  const [bulkBusy,         setBulkBusy]         = useState(false);
+  const fileInputRef  = useRef(null);
+  const addTileRef    = useRef(null);
 
   // Revoke any outstanding object URLs on unmount
   const stagedRef = useRef(staged);
@@ -851,6 +863,55 @@ export default function HandoutLibrary({ campaignUuid }) {
     }
   };
 
+  // ── Bulk selection / delete (individual handouts only) ─────
+  const toggleSelect = (h) => {
+    setSelected(prev => {
+      const n = new Set(prev);
+      if (n.has(h.uuid)) n.delete(h.uuid); else n.add(h.uuid);
+      return n;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelected(prev =>
+      prev.size === individual.length
+        ? new Set()
+        : new Set(individual.map(h => h.uuid))
+    );
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelected(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (bulkBusy || selected.size === 0) return;
+    const count = selected.size;
+    const ok = await confirm({
+      title: `Delete ${count} handout${count !== 1 ? 's' : ''}?`,
+      message: `${count} handout${count !== 1 ? 's' : ''} will be permanently deleted. This cannot be undone.`,
+      variant: 'danger',
+      confirmLabel: `Delete ${count}`,
+    });
+    if (!ok) return;
+    setBulkBusy(true);
+    const uuids = [...selected];
+    const results = await Promise.allSettled(
+      uuids.map(u => apiClient.delete(`/campaigns/${campaignUuid}/handouts/${u}`))
+    );
+    const deleted = new Set(uuids.filter((_, i) => results[i].status === 'fulfilled'));
+    setHandouts(prev => prev.filter(h => !deleted.has(h.uuid)));
+    setBulkBusy(false);
+    if (deleted.size < uuids.length) {
+      // Keep failed ones selected so the user can retry; stay in selection mode
+      setSelected(new Set(uuids.filter(u => !deleted.has(u))));
+      alert('Some handouts could not be deleted. Please try again.');
+    } else {
+      exitSelectionMode();
+    }
+  };
+
   // ── Edit dispatch ──────────────────────────────────────────
   const handleEdit = (handout) => {
     setCreating(null);
@@ -903,21 +964,6 @@ export default function HandoutLibrary({ campaignUuid }) {
             <span className="material-symbols-outlined text-xs">public</span>
             {stats.imageCount} image{stats.imageCount !== 1 ? 's' : ''} across all campaigns
           </div>
-        </div>
-        <div className="w-47.5 shrink-0">
-          <CustomDropdown
-            value={sortBy}
-            onChange={handleSortChange}
-            searchable={false}
-            options={[
-              { value: 'date-desc', label: 'Date added: newest' },
-              { value: 'date-asc', label: 'Date added: oldest' },
-              { value: 'name-asc', label: 'Name A–Z' },
-              { value: 'name-desc', label: 'Name Z–A' },
-              { value: 'type-images', label: 'Type: images first' },
-              { value: 'type-text', label: 'Type: text first' },
-            ]}
-          />
         </div>
       </div>
 
@@ -1000,7 +1046,65 @@ export default function HandoutLibrary({ campaignUuid }) {
 
       {/* ── Individual handouts section ── */}
       <div>
-        <SectionHeading>Individual handouts</SectionHeading>
+        <div className="flex items-center gap-3 mb-2.5 min-h-6.5">
+          <div className="text-[11px] font-semibold text-(--text-muted) uppercase tracking-[0.08em]">
+            Individual handouts
+          </div>
+          {selectionMode ? (
+            <div className="flex items-center gap-2.5">
+              <label className="flex items-center gap-1.5 text-[11px] text-(--text-muted) cursor-pointer select-none">
+                <Checkbox
+                  checked={selected.size === individual.length && individual.length > 0}
+                  indeterminate={selected.size > 0 && selected.size < individual.length}
+                  onChange={toggleSelectAll}
+                  disabled={individual.length === 0 || bulkBusy}
+                  ariaLabel="Select all handouts"
+                />
+                {selected.size} selected
+              </label>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkBusy || selected.size === 0}
+                className={`py-1 px-2.5 rounded-[7px] border-none bg-(--danger) text-white font-sans text-[11px] font-medium ${(bulkBusy || selected.size === 0) ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
+              >
+                {bulkBusy ? 'Deleting…' : `Delete ${selected.size}`}
+              </button>
+              <button
+                onClick={exitSelectionMode}
+                disabled={bulkBusy}
+                className={`py-1 px-2.5 rounded-[7px] border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-[11px] ${bulkBusy ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2.5">
+              {individual.length > 0 && (
+                <button
+                  onClick={() => setSelectionMode(true)}
+                  className="py-1 px-2.5 rounded-[7px] border border-(--color-primary) bg-transparent text-(--color-primary) font-sans text-[11px] font-medium cursor-pointer"
+                >
+                  Select
+                </button>
+              )}
+              <div className="w-47.5 shrink-0">
+                <CustomDropdown
+                  value={sortBy}
+                  onChange={handleSortChange}
+                  searchable={false}
+                  options={[
+                    { value: 'date-desc', label: 'Date added: newest' },
+                    { value: 'date-asc', label: 'Date added: oldest' },
+                    { value: 'name-asc', label: 'Name A–Z' },
+                    { value: 'name-desc', label: 'Name Z–A' },
+                    { value: 'type-images', label: 'Type: images first' },
+                    { value: 'type-text', label: 'Type: text first' },
+                  ]}
+                />
+              </div>
+            </div>
+          )}
+        </div>
         <Grid>
           {individual.map(h => (
             <HandoutCard
@@ -1008,28 +1112,33 @@ export default function HandoutLibrary({ campaignUuid }) {
               handout={h}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              selectionMode={selectionMode}
+              isSelected={selected.has(h.uuid)}
+              onToggleSelect={toggleSelect}
             />
           ))}
           {Array.from({ length: uploadingCount }).map((_, i) => <LoadingCard key={`loading-${i}`} />)}
-          <div className="relative flex flex-col">
-            <CreateTile
-              innerRef={addTileRef}
-              icon="add"
-              label="Add handout"
-              chevron
-              hint="click, or drag & drop images"
-              style={{ flex: 1 }}
-              onClick={() => setAddMenuOpen(o => !o)}
-            />
-            {addMenuOpen && (
-              <AddMenu
-                anchorRef={addTileRef}
-                onImage={() => { setAddMenuOpen(false); fileInputRef.current?.click(); }}
-                onText={() => { setAddMenuOpen(false); setEditing(null); setCreating('text'); }}
-                onClose={() => setAddMenuOpen(false)}
+          {!selectionMode && (
+            <div className="relative flex flex-col">
+              <CreateTile
+                innerRef={addTileRef}
+                icon="add"
+                label="Add handout"
+                chevron
+                hint="click, or drag & drop images"
+                style={{ flex: 1 }}
+                onClick={() => setAddMenuOpen(o => !o)}
               />
-            )}
-          </div>
+              {addMenuOpen && (
+                <AddMenu
+                  anchorRef={addTileRef}
+                  onImage={() => { setAddMenuOpen(false); fileInputRef.current?.click(); }}
+                  onText={() => { setAddMenuOpen(false); setEditing(null); setCreating('text'); }}
+                  onClose={() => setAddMenuOpen(false)}
+                />
+              )}
+            </div>
+          )}
         </Grid>
       </div>
 
