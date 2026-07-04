@@ -106,15 +106,9 @@ export default function CampaignPage() {
             )}
             <button
               onClick={() => setModal('join')}
-              className="py-2 px-[18px] rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-[13px] cursor-pointer [transition:all_0.15s_ease]"
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'var(--accent)';
-                e.currentTarget.style.color       = 'var(--accent)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = 'var(--border-main)';
-                e.currentTarget.style.color       = 'var(--text-secondary)';
-              }}
+              className="py-2 px-[18px] rounded-lg border-none bg-(--color-primary) text-white font-sans text-[13px] font-medium cursor-pointer [transition:background_0.15s_ease]"
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-primary)'; }}
             >
               <span className="icon icon-sm">key</span>{' '}Join
             </button>
