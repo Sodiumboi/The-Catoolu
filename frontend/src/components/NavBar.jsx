@@ -238,15 +238,19 @@ export default function NavBar({ activeTab = 'investigators' }) {
           </div>
         </button>
         {/* ── Tabs — absolutely centered regardless of logo/avatar width ── */}
+        {/* Positioning wrapper: .pill-nav-container is position:relative (it
+            anchors the sliding indicator), so the absolute centering lives on
+            this outer div instead. */}
+        <div className="absolute left-1/2 -translate-x-1/2">
         <div
           ref={containerRef}
-          className="flex items-center gap-1 absolute left-1/2 -translate-x-1/2 p-[3px] rounded-full bg-(--bg-section-hd) border border-(--border-main)"
+          className="pill-nav-container"
         >
           {/* Single pill — slides across the container */}
           {pillBounds && (
             <div
               // left/width are runtime-measured (getBoundingClientRect) — stay inline
-              className="absolute top-[3px] bottom-[3px] rounded-full bg-(--accent-bg) border-[1.5px] border-(--color-primary) z-0 pointer-events-none [transition:left_0.3s_cubic-bezier(0.4,0,0.2,1),width_0.3s_cubic-bezier(0.4,0,0.2,1)]"
+              className="pill-nav-indicator"
               style={{ left: pillBounds.left, width: pillBounds.width }}
             />
           )}
@@ -266,7 +270,10 @@ export default function NavBar({ activeTab = 'investigators' }) {
                   onMouseLeave={() => {
                     setTooltip(null);
                   }}
-                  className={`flex items-center gap-1.5 py-[5px] px-3.5 rounded-full border-[1.5px] border-transparent bg-transparent font-sans text-[13px] whitespace-nowrap [transition:color_0.15s_ease] relative z-[1] ${isSoon ? 'cursor-default' : 'cursor-pointer'} ${isActive ? 'font-semibold' : 'font-normal'} ${isActive ? 'text-(--accent)' : isSoon ? 'text-(--text-faint)' : 'text-(--text-muted)'}`}
+                  className={`pill-nav-tab flex items-center gap-1.5 whitespace-nowrap ${isActive ? 'active' : ''}`}
+                  // 'soon' tabs override the shared class's muted colour + pointer
+                  // cursor (unlayered .pill-nav-tab wins over utilities, so inline)
+                  style={isSoon ? { color: 'var(--text-faint)', cursor: 'default' } : undefined}
                 >
                   {tab.label}
 
@@ -285,6 +292,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
             );
           })}
         </div>
+        </div>
 
         {/* ── Right side — pushed to far right with marginLeft auto ── */}
         <div className="flex items-center gap-2 flex-1 justify-end">
@@ -302,7 +310,20 @@ export default function NavBar({ activeTab = 'investigators' }) {
             >
               {/* Pill itself */}
               <div
-                className={`flex items-center rounded-full border-[1.5px] border-(--color-primary) font-sans text-xs font-medium overflow-hidden [transition:background_0.15s_ease,color_0.15s_ease] max-w-[220px] ${roomMenuOpen ? 'bg-(--color-primary)' : 'bg-(--accent-bg)'} ${roomMenuOpen ? 'text-white' : 'text-(--color-primary)'} ${roomMenuOpen ? 'animate-none' : 'animate-[pulse_2s_infinite]'}`}
+                // .pill-room supplies the frosted base. This is a COMPOUND control
+                // (nav button + morphing chevron), so padding/gap are zeroed to keep
+                // the inner buttons flush, and the open-state colour inversion is
+                // inline — it must override the unlayered .pill-room base colours.
+                className={`pill-room overflow-hidden max-w-[220px] ${roomMenuOpen ? 'animate-none' : 'animate-[pulse_2s_infinite]'}`}
+                style={{
+                  padding: 0,
+                  gap: 0,
+                  ...(roomMenuOpen && {
+                    background:  'var(--color-primary)',
+                    color:       '#fff',
+                    borderColor: 'var(--color-primary)',
+                  }),
+                }}
               >
                 {/* Left: navigate to room */}
                 <Tooltip content={'Return to ' + roomPill.data.name}>
@@ -445,7 +466,7 @@ function MaintPill({ pill }) {
       <div
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
-        className={`flex items-center gap-1.5 py-[5px] px-3.5 rounded-[20px] border-[1.5px] border-[var(--danger,#E24B4A)] bg-[var(--danger-bg,rgba(226,75,74,0.12))] text-[var(--danger,#E24B4A)] font-sans text-xs font-medium cursor-help select-none overflow-hidden max-w-[180px] [transition:opacity_0.3s_ease,transform_0.3s_ease] ${pill.visible ? 'animate-[pulse-danger_2s_infinite]' : 'animate-none'} ${pill.visible ? 'opacity-100' : 'opacity-0'} ${pill.visible ? '[transform:translateY(0)_scale(1)]' : '[transform:translateY(4px)_scale(0.95)]'} ${pill.visible ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        className={`pill-maintenance cursor-help select-none overflow-hidden max-w-[180px] [transition:opacity_0.3s_ease,transform_0.3s_ease] ${pill.visible ? 'animate-[pulse-danger_2s_infinite]' : 'animate-none'} ${pill.visible ? 'opacity-100' : 'opacity-0'} ${pill.visible ? '[transform:translateY(0)_scale(1)]' : '[transform:translateY(4px)_scale(0.95)]'} ${pill.visible ? 'pointer-events-auto' : 'pointer-events-none'}`}
       >
         <span className="icon icon-sm shrink-0">warning</span>
         <span className="truncate">

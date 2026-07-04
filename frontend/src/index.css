@@ -137,6 +137,7 @@
 
   /* Primary — Catoolu Green (works on parchment background) */
   --color-primary:       #3B6D11;
+  --color-primary-rgb:   59,109,17;
   --color-primary-dark:  #2D4A1E;
   --color-primary-light: #EAF3DE;
   --color-primary-mid:   #C0DD97;
@@ -201,6 +202,7 @@
 
   /* Primary — lighter greens for dark backgrounds */
   --color-primary:       #639922;
+  --color-primary-rgb:   99,153,34;
   --color-primary-dark:  #97C459;
   --color-primary-light: #173404;
   --color-primary-mid:   #3B6D11;
@@ -574,6 +576,7 @@ input[type='number'] {
 /* ── Farmilia Dark (Mud) ──────────────────────────────── */
 [data-theme="mud"] {
   --color-primary:       #C6A549;
+  --color-primary-rgb:   198,165,73;
   --color-primary-dark:  #A8871A;
   --color-primary-light: #2A2515;
   --color-primary-mid:   #4B4530;
@@ -639,6 +642,7 @@ input[type='number'] {
 /* ── Marsh (Mr. Cho's Green) ─────────────────────────── */
 [data-theme="marsh"] {
   --color-primary:       #75B875;
+  --color-primary-rgb:   117,184,117;
   --color-primary-dark:  #5B8257;
   --color-primary-light: #1E2E1C;
   --color-primary-mid:   #3A4D37;
@@ -703,6 +707,7 @@ input[type='number'] {
 /* ── Archive (Sienna) ────────────────────────────────── */
 [data-theme="sienna"] {
   --color-primary:       #A84B1D;
+  --color-primary-rgb:   168,75,29;
   --color-primary-dark:  #782117;
   --color-primary-light: #EDE5CC;
   --color-primary-mid:   #D1B88D;
@@ -767,6 +772,7 @@ input[type='number'] {
 /* ── Cosmic Void (Arcane) ────────────────────────────── */
 [data-theme="arcane"] {
   --color-primary:       #7A58F3;
+  --color-primary-rgb:   122,88,243;
   --color-primary-dark:  #5A38D3;
   --color-primary-light: #1E1840;
   --color-primary-mid:   #332C60;
@@ -902,6 +908,318 @@ input[type='number'] {
 .icon-sm { font-size: 16px; }
 .icon-md { font-size: 20px; }
 .icon-lg { font-size: 24px; }
+
+/* ── Frosted Gem Design Language ──────────────────────────── */
+/* Canonical spec: .claude/skills/ui_standards.md → "Frosted Gem
+   Design Language". Solid colour cores under a frosted-glass surface.
+   Single source of truth for buttons and pills — do not hand-roll
+   inline styling for these elements per component. */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: 1.5px solid rgba(var(--color-primary-rgb), 0.5);
+  color: #fff;
+  background:
+    linear-gradient(160deg,
+      rgba(255,255,255,0.18) 0%,
+      rgba(255,255,255,0.04) 50%,
+      rgba(0,0,0,0.06) 100%),
+    var(--color-primary);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.28),
+    inset 0 -1px 0 rgba(0,0,0,0.15),
+    0 2px 8px color-mix(in srgb, var(--color-primary) 40%, transparent),
+    0 1px 2px rgba(0,0,0,0.12);
+  transition: background 0.15s ease, box-shadow 0.15s ease,
+              transform 0.15s ease;
+}
+.btn-primary:hover {
+  background:
+    linear-gradient(160deg,
+      rgba(255,255,255,0.22) 0%,
+      rgba(255,255,255,0.06) 50%,
+      rgba(0,0,0,0.04) 100%),
+    var(--color-primary-dark);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.32),
+    inset 0 -1px 0 rgba(0,0,0,0.18),
+    0 4px 14px color-mix(in srgb, var(--color-primary) 45%, transparent),
+    0 1px 3px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.18);
+  border: 1.5px solid rgba(255,255,255,0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    0 1px 3px rgba(0,0,0,0.07);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.28);
+  border-color: rgba(255,255,255,0.6);
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px 7px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.14);
+  border: 1.5px solid rgba(255,255,255,0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.btn-back:hover {
+  background: rgba(255,255,255,0.24);
+  color: var(--text-primary);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.2);
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: 1.5px solid color-mix(in srgb, var(--danger) 50%, transparent);
+  color: #fff;
+  background:
+    linear-gradient(160deg,
+      rgba(255,255,255,0.15) 0%,
+      rgba(255,255,255,0.03) 50%,
+      rgba(0,0,0,0.06) 100%),
+    var(--danger);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.22),
+    inset 0 -1px 0 rgba(0,0,0,0.15),
+    0 2px 8px color-mix(in srgb, var(--danger) 35%, transparent),
+    0 1px 2px rgba(0,0,0,0.12);
+  transition: background 0.15s ease, box-shadow 0.15s ease,
+              transform 0.15s ease;
+}
+.btn-danger:hover {
+  background:
+    linear-gradient(160deg,
+      rgba(255,255,255,0.2) 0%,
+      rgba(255,255,255,0.05) 50%,
+      rgba(0,0,0,0.04) 100%),
+    color-mix(in srgb, var(--danger) 85%, black);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.26),
+    inset 0 -1px 0 rgba(0,0,0,0.18),
+    0 4px 14px color-mix(in srgb, var(--danger) 40%, transparent),
+    0 1px 3px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+.btn-danger:active { transform: translateY(0); }
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.14);
+  border: 1.5px solid rgba(255,255,255,0.32);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+  transition: background 0.15s ease, color 0.15s ease;
+  padding: 0;
+}
+.btn-icon:hover {
+  background: rgba(255,255,255,0.26);
+  color: var(--text-primary);
+}
+.btn-icon.btn-icon-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.pill-nav-container {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,0.18);
+  border: 1.5px solid rgba(255,255,255,0.42);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 2px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    0 2px 6px rgba(0,0,0,0.06);
+  position: relative;
+}
+
+.pill-nav-tab {
+  padding: 5px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+  transition: color 0.22s ease;
+  background: transparent;
+  border: none;
+}
+.pill-nav-tab.active {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+/* Dark themes: the frosted indicator is a light surface, so the bright
+   --color-primary fails contrast against it. Use the darker (inverted)
+   --color-primary-light for the active tab on the 4 dark themes only.
+   Light + sienna are light themes and keep --color-primary via the base
+   rule above. */
+[data-theme="dark"]  .pill-nav-tab.active,
+[data-theme="mud"]   .pill-nav-tab.active,
+[data-theme="marsh"] .pill-nav-tab.active,
+[data-theme="arcane"] .pill-nav-tab.active {
+  color: var(--color-primary-light);
+}
+
+.pill-nav-indicator {
+  position: absolute;
+  top: 4px;
+  height: calc(100% - 8px);
+  border-radius: 999px;
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.46) 0%,
+    color-mix(in srgb, var(--color-primary-light) 18%, rgba(255,255,255,0.3)) 100%
+  );
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.72),
+    0 0 10px color-mix(in srgb, var(--color-primary) 15%, transparent),
+    0 1px 4px rgba(0,0,0,0.08),
+    0 0 0 2.5px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  transition:
+    left 0.35s cubic-bezier(0.34, 1.15, 0.64, 1),
+    width 0.35s cubic-bezier(0.34, 1.15, 0.64, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+/* Dark themes only: more accent punch on the active pill via a stronger
+   accent glow + border + ring. These sit outside the pill body, so the
+   readable --color-primary-light text is unaffected. The fill gradient is
+   inherited from the base rule (not overridden). Light + sienna keep the
+   subtler base treatment. */
+[data-theme="dark"]  .pill-nav-indicator,
+[data-theme="mud"]   .pill-nav-indicator,
+[data-theme="marsh"] .pill-nav-indicator,
+[data-theme="arcane"] .pill-nav-indicator {
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 60%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.72),
+    0 0 16px color-mix(in srgb, var(--color-primary) 30%, transparent),
+    0 1px 4px rgba(0,0,0,0.08),
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.pill-room {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  background: rgba(255,255,255,0.18);
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+  color: var(--color-primary);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    0 1px 4px rgba(0,0,0,0.07),
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 8%, transparent);
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pill-maintenance {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 13px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  color: var(--danger);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.35),
+    0 1px 3px color-mix(in srgb, var(--danger) 12%, transparent);
+}
 
 /* ── iOS-style custom slider (.cat-slider) ──────────────────────
    Used by frontend/src/components/ui/Slider.jsx.

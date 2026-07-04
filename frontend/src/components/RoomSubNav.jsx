@@ -40,13 +40,13 @@ export default function RoomSubNav({ tabs, activeTab, onTabChange, rightSlot }) 
       {/* Segmented pill container */}
       <div
         ref={containerRef}
-        className="relative flex items-center gap-1 p-[3px] rounded-full bg-(--bg-section-hd) border border-(--border-main)"
+        className="pill-nav-container"
       >
         {/* Single sliding pill — morphs behind the active segment */}
         {pillBounds && (
           <div
             // left/width are runtime-measured (offsetLeft/offsetWidth) — stay inline
-            className="absolute top-[3px] bottom-[3px] rounded-full bg-(--accent-bg) border-[1.5px] border-(--color-primary) z-0 pointer-events-none [transition:left_0.3s_cubic-bezier(0.4,0,0.2,1),width_0.3s_cubic-bezier(0.4,0,0.2,1)]"
+            className="pill-nav-indicator"
             style={{ left: pillBounds.left, width: pillBounds.width }}
           />
         )}
@@ -58,15 +58,10 @@ export default function RoomSubNav({ tabs, activeTab, onTabChange, rightSlot }) 
               key={tab.id}
               ref={el => { tabRefs.current[tab.id] = el; }}
               onClick={tab.comingSoon ? undefined : () => onTabChange(tab.id)}
-              className={`relative z-1 flex items-center gap-1.5 py-1.25 px-3.5 rounded-full bg-transparent border-[1.5px] border-transparent font-sans text-[13px] font-medium [transition:color_0.15s_ease-in-out] whitespace-nowrap ${tab.comingSoon ? 'text-(--text-faint) cursor-default opacity-55' : isActive ? 'text-(--accent) cursor-pointer' : 'text-(--text-muted) cursor-pointer'}`}
-              onMouseEnter={e => {
-                if (!isActive && !tab.comingSoon)
-                  e.currentTarget.style.color = 'var(--text-secondary)';
-              }}
-              onMouseLeave={e => {
-                if (!isActive && !tab.comingSoon)
-                  e.currentTarget.style.color = 'var(--text-muted)';
-              }}
+              className={`pill-nav-tab flex items-center gap-1.5 whitespace-nowrap ${isActive ? 'active' : ''} ${tab.comingSoon ? 'opacity-55' : ''}`}
+              // 'soon' tabs override the shared class's muted colour + pointer
+              // cursor (unlayered .pill-nav-tab wins over utilities, so inline)
+              style={tab.comingSoon ? { color: 'var(--text-faint)', cursor: 'default' } : undefined}
             >
               {tab.label}
               {tab.badge > 0 && (
