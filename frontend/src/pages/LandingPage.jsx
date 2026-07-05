@@ -159,9 +159,7 @@ export default function LandingPage() {
               {user ? (
                 <button
                   onClick={() => navigate(homePath)}
-                  className="py-[0.7rem] px-[1.8rem] rounded-[10px] border-none bg-(--color-primary) text-white font-sans text-[0.95rem] font-semibold cursor-pointer [transition:background_0.15s]"
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-primary)'; }}
+                  className="btn-primary"
                 >
                   {homeLabel}
                 </button>
@@ -169,9 +167,7 @@ export default function LandingPage() {
                 <>
                   <button
                     onClick={() => navigate('/register')}
-                    className="py-[0.7rem] px-[1.8rem] rounded-[10px] border-none bg-(--color-primary) text-white font-sans text-[0.95rem] font-semibold cursor-pointer [transition:background_0.15s]"
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-primary)'; }}
+                    className="btn-primary"
                   >
                     Get Started
                   </button>

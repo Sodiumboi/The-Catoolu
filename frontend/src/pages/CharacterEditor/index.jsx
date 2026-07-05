@@ -115,7 +115,7 @@ export default function CharacterEditorPage() {
         <div className="text-center">
           <p className="text-(--danger)">{error}</p>
           <button onClick={() => guardedNavigate('/dashboard')}
-                  className="mt-4 px-4 py-2 rounded text-sm bg-(--accent) text-(--bg-page)">
+                  className="btn-primary mt-4">
             Back to Dashboard
           </button>
         </div>

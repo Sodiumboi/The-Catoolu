@@ -118,7 +118,7 @@ export default function CharacterCreationPage() {
             <div className="flex gap-[0.6rem]">
               <button
                 onClick={dismissResume}
-                className="py-2 px-[1.1rem] rounded-[7px] border-none bg-(--color-primary) text-white font-sans text-[0.85rem] font-semibold cursor-pointer"
+                className="btn-primary"
               >
                 Continue
               </button>
@@ -163,7 +163,7 @@ export default function CharacterCreationPage() {
             <button
               onClick={handleNext}
               disabled={!canProceed()}
-              className={`py-[0.6rem] px-[1.4rem] rounded-[7px] border-none font-sans text-[0.9rem] font-semibold [transition:background_0.15s] ${canProceed() ? 'bg-(--color-primary) text-white cursor-pointer' : 'bg-(--border-main) text-(--text-muted) cursor-not-allowed'}`}
+              className={`btn-primary ${!canProceed() ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               Next →
             </button>
@@ -171,7 +171,7 @@ export default function CharacterCreationPage() {
             <button
               onClick={handleCreate}
               disabled={saving}
-              className={`py-[0.6rem] px-[1.4rem] rounded-[7px] border-none font-sans text-[0.9rem] font-semibold ${saving ? 'bg-(--border-main) text-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) text-white cursor-pointer'}`}
+              className={`btn-primary ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {saving ? 'Saving…' : 'Create Investigator ✓'}
             </button>

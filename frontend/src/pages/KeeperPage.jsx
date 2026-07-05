@@ -128,7 +128,7 @@ export default function KeeperPage() {
             )}
             <button
               onClick={() => setShowCreate(true)}
-              className="py-2 px-[18px] rounded-lg border-none bg-(--color-primary) text-white font-sans text-[13px] font-medium cursor-pointer"
+              className="btn-primary"
             >
               + Create Campaign
             </button>

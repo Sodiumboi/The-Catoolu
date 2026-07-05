@@ -92,7 +92,7 @@ export default function BugReportModal({ onClose }) {
             </p>
             <button
               onClick={onClose}
-              className="mt-5 py-2 px-7 bg-(--color-primary) text-white border-none rounded-lg cursor-pointer font-sans text-[13px] font-medium"
+              className="btn-primary mt-5"
             >Close</button>
           </div>
         ) : (
@@ -180,7 +180,7 @@ export default function BugReportModal({ onClose }) {
               <button
                 type="submit"
                 disabled={submitting}
-                className={`py-2 px-6 text-white border-none rounded-lg font-sans text-[13px] font-medium ${submitting ? 'bg-(--text-faint) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
+                className={`btn-primary ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
               >{submitting ? 'Sending…' : 'Submit Report'}</button>
             </div>
 

@@ -131,7 +131,7 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
           <button
             onClick={handleSave}
             disabled={saving || !completedCrop}
-            className={`py-2.25 px-5 rounded-lg border-none text-white font-sans text-[13px] font-medium ${saving ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
+            className={`btn-primary ${(saving || !completedCrop) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {saving ? 'Saving...' : 'Save Photo'}
           </button>

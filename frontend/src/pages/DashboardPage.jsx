@@ -232,7 +232,7 @@ export default function DashboardPage() {
             </p>
             <button
               onClick={openCreateImport}
-              className="px-6 py-3 rounded font-medium transition-all duration-150 bg-(--accent) text-(--bg-input)">
+              className="btn-primary">
               <span className="icon icon-sm">add</span>{' '}Create or Import Investigator
             </button>
           </div>

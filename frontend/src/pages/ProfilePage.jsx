@@ -54,9 +54,7 @@ function SaveButton({ onClick, saving, label = 'Save Changes' }) {
     <button
       onClick={onClick}
       disabled={saving}
-      className={`py-2.25 px-5 rounded-lg border-none text-white font-sans text-[13px] font-medium [transition:background_0.15s_ease] ${saving ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
-      onMouseEnter={e => { if (!saving) e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
-      onMouseLeave={e => { if (!saving) e.currentTarget.style.background = 'var(--color-primary)'; }}
+      className={`btn-primary ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {saving ? 'Saving...' : label}
     </button>
