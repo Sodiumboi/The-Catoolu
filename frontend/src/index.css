@@ -968,18 +968,17 @@ input[type='number'] {
   font-family: var(--font-sans);
   cursor: pointer;
   color: var(--text-primary);
-  background: rgba(255,255,255,0.18);
-  border: 1.5px solid rgba(255,255,255,0.45);
+  background: color-mix(in srgb, var(--bg-input) 85%, transparent);
+  border: 1.5px solid var(--border-input);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.5),
-    0 1px 3px rgba(0,0,0,0.07);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15),
+              0 1px 3px rgba(0,0,0,0.07);
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 .btn-secondary:hover {
-  background: rgba(255,255,255,0.28);
-  border-color: rgba(255,255,255,0.6);
+  background: color-mix(in srgb, var(--row-hover) 90%, transparent);
+  border-color: var(--border-focus);
 }
 
 .btn-back {
@@ -993,15 +992,15 @@ input[type='number'] {
   font-family: var(--font-sans);
   cursor: pointer;
   color: var(--text-secondary);
-  background: rgba(255,255,255,0.14);
-  border: 1.5px solid rgba(255,255,255,0.35);
+  background: color-mix(in srgb, var(--bg-input) 85%, transparent);
+  border: 1.5px solid var(--border-main);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
   transition: background 0.15s ease, color 0.15s ease;
 }
 .btn-back:hover {
-  background: rgba(255,255,255,0.24);
+  background: color-mix(in srgb, var(--row-hover) 90%, transparent);
   color: var(--text-primary);
 }
 
@@ -1076,16 +1075,16 @@ input[type='number'] {
   border-radius: 8px;
   cursor: pointer;
   color: var(--text-secondary);
-  background: rgba(255,255,255,0.14);
-  border: 1.5px solid rgba(255,255,255,0.32);
+  background: color-mix(in srgb, var(--bg-input) 85%, transparent);
+  border: 1.5px solid var(--border-main);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
   transition: background 0.15s ease, color 0.15s ease;
   padding: 0;
 }
 .btn-icon:hover {
-  background: rgba(255,255,255,0.26);
+  background: color-mix(in srgb, var(--row-hover) 90%, transparent);
   color: var(--text-primary);
 }
 .btn-icon.btn-icon-sm {

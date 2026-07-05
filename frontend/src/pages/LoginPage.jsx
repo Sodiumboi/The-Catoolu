@@ -181,13 +181,7 @@ export default function LoginPage({ initialMode = 'login' }) {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-2.75 rounded-[10px] border-none font-sans text-sm font-medium tracking-[0.03em] [transition:background_0.15s_ease,transform_0.1s_ease] mt-1 text-white ${loading ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
-              onMouseEnter={e => {
-                if (!loading) e.currentTarget.style.background = 'var(--color-primary-dark)';
-              }}
-              onMouseLeave={e => {
-                if (!loading) e.currentTarget.style.background = 'var(--color-primary)';
-              }}
+              className={`btn-primary w-full justify-center mt-1 tracking-[0.03em] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {loading
                 ? 'Consulting the Ancient Tomes...'

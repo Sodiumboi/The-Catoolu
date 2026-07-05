@@ -124,9 +124,7 @@ export function SubmitBtn({ onClick, loading, label }) {
     <button
       onClick={onClick}
       disabled={loading}
-      className={`py-[9px] px-5 rounded-lg border-none text-white font-sans text-[13px] font-medium [transition:background_0.15s_ease] ${loading ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
-      onMouseEnter={e => { if (!loading) e.currentTarget.style.background = 'var(--color-primary-dark)'; }}
-      onMouseLeave={e => { if (!loading) e.currentTarget.style.background = loading ? 'var(--text-muted)' : 'var(--color-primary)'; }}
+      className={`btn-primary ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {loading ? 'Saving...' : label}
     </button>

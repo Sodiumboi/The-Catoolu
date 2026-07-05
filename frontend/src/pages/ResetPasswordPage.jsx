@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading || !token}
-                  className={`w-full p-[11px] rounded-[10px] border-none text-white font-sans text-sm font-medium ${loading ? 'bg-(--text-muted) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
+                  className={`btn-primary w-full justify-center ${(loading || !token) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {loading ? 'Saving...' : 'Set New Password'}
                 </button>
