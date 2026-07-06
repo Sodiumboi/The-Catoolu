@@ -74,7 +74,6 @@ export default function CharacterCard({ character, onDelete, onOpen }) {
           <ActionButton
             label="Delete"
             onClick={() => onDelete(uuid, name)}
-            color="#E24B4A"
           />
         </div>
       </div>
@@ -101,26 +100,14 @@ function StatPill({ label, value, color }) {
   );
 }
 
-function ActionButton({ label, onClick, color }) {
+function ActionButton({ label, onClick }) {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      className="text-xs font-medium transition-all duration-150 bg-transparent rounded-md py-0.5 px-2.5 cursor-pointer leading-[1.6]"
-      /* color + border are data-driven (button color prop) — stay inline */
-      style={{
-        color:  color,
-        border: `1px solid ${color}`,
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.background = color;
-        e.currentTarget.style.color      = '#ffffff';
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.background = 'transparent';
-        e.currentTarget.style.color      = color;
-      }}
+      aria-label={label}
+      className="btn-danger-soft btn-danger-sm"
     >
-      {label}
+      <span className="icon icon-sm">delete</span>
     </button>
   );
 }

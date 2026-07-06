@@ -1083,6 +1083,47 @@ input[type='number'] {
   gap: 5px;
 }
 
+/* Soft destructive — the frosted-gem look in danger: a translucent danger
+   tint (not a solid fill) with a danger border, red text, gem sheen + soft
+   danger shadow. Lighter than filled .btn-danger, for in-card / per-row
+   delete actions. Pairs with .btn-danger-sm for the compact size. */
+.btn-danger-soft {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  color: var(--danger);
+  background:
+    linear-gradient(160deg,
+      color-mix(in srgb, var(--danger) 16%, transparent) 0%,
+      color-mix(in srgb, var(--danger) 7%, transparent) 100%);
+  border: 1.5px solid color-mix(in srgb, var(--danger) 45%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    0 1px 3px color-mix(in srgb, var(--danger) 15%, transparent);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn-danger-soft:hover {
+  background:
+    linear-gradient(160deg,
+      color-mix(in srgb, var(--danger) 40%, transparent) 0%,
+      color-mix(in srgb, var(--danger) 24%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--danger) 75%, transparent);
+}
+.btn-danger-soft.btn-danger-sm {
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+  gap: 5px;
+}
+
 .btn-icon {
   display: inline-flex;
   align-items: center;
