@@ -446,18 +446,14 @@ function ConnectedRow({ icon, label, connected, connectHref, onDisconnect }) {
       {connected ? (
         <button
           onClick={onDisconnect}
-          className="py-1 px-2.5 rounded-md border border-(--border-input) bg-transparent text-(--text-muted) font-sans text-[11px] cursor-pointer [transition:border-color_0.15s,color_0.15s]"
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--danger)'; e.currentTarget.style.color = 'var(--danger)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+          className="btn-danger-soft btn-danger-sm"
         >
           Disconnect
         </button>
       ) : (
         <a
           href={connectHref}
-          className="py-1 px-2.5 rounded-md border border-(--border-input) bg-transparent text-(--color-primary) font-sans text-[11px] no-underline font-medium [transition:border-color_0.15s,background_0.15s]"
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--accent-bg)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; e.currentTarget.style.background = 'transparent'; }}
+          className="btn-secondary btn-secondary-sm no-underline"
         >
           Connect
         </a>

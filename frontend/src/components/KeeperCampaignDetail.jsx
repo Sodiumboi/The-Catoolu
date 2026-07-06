@@ -191,24 +191,7 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
         <div style={{ padding:'14px 12px 14px' }}>
           <button
             onClick={() => navigate('/campaign/' + campaign.uuid)}
-            style={{
-              width:'100%', padding:'9px 0',
-              borderRadius:'9999px', /* pill — per guideline: nav/link actions are pills */
-              /* FIX 2: solid primary fill — no transparency, no backdropFilter */
-              background:'var(--color-primary)',
-              border:'none',
-              color:'#ffffff',
-              fontFamily:'var(--font-sans)', fontSize:'13px',
-              fontWeight:'600', cursor:'pointer',
-              letterSpacing:'0.01em',
-              transition:'filter 0.14s ease-in-out',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.filter = 'brightness(1.13)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.filter = '';
-            }}
+            className="btn-primary w-full justify-center"
           >
             Enter Room →
           </button>
