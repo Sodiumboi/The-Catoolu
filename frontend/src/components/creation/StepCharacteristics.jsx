@@ -125,7 +125,7 @@ export default function StepCharacteristics({ state, setStat }) {
             </div>
             <button
               onClick={resetAll}
-              className="ml-auto py-[0.35rem] px-[0.8rem] rounded-md border border-(--border-input) bg-transparent text-(--text-muted) font-sans text-[0.78rem] cursor-pointer"
+              className="ml-auto btn-secondary btn-secondary-sm"
             >
               Reset
             </button>

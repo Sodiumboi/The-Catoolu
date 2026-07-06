@@ -60,14 +60,14 @@ export default function InboxPage() {
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  className="py-1.5 px-3.5 rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-xs cursor-pointer"
+                  className="btn-secondary btn-secondary-sm"
                 >
                   Mark all read
                 </button>
               )}
               <button
                 onClick={handleClear}
-                className="py-1.5 px-3.5 rounded-lg border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-xs cursor-pointer"
+                className="btn-secondary btn-secondary-sm"
               >
                 Clear all
               </button>

@@ -980,6 +980,15 @@ input[type='number'] {
   background: color-mix(in srgb, var(--row-hover) 90%, transparent);
   border-color: var(--border-focus);
 }
+/* Compact modifier for toolbar / inline micro-actions — geometry only,
+   inherits the glass fill/border/hover from .btn-secondary.
+   Use as className="btn-secondary btn-secondary-sm". */
+.btn-secondary.btn-secondary-sm {
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+  gap: 5px;
+}
 
 .btn-back {
   display: inline-flex;
