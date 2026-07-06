@@ -26,8 +26,6 @@ const fmtDate = (iso) => {
 };
 const mb = (b) => { const m = b / (1024 * 1024); return m >= 10 ? Math.round(m) : Math.round(m * 10) / 10; };
 
-const iconBtnClass = "shrink-0 w-7.5 h-7.5 rounded-[7px] border-none bg-transparent cursor-pointer flex items-center justify-center no-underline";
-
 export default function FileManagerPage() {
   const [files,     setFiles]     = useState([]);
   const [quota,     setQuota]     = useState(null);
@@ -150,14 +148,14 @@ export default function FileManagerPage() {
             selectionMode ? (
               <button
                 onClick={exitSelectionMode}
-                className="py-1.5 px-3.5 rounded-lg text-[13px] font-medium font-sans cursor-pointer bg-transparent text-(--text-muted) border border-(--text-muted)"
+                className="btn-secondary btn-secondary-sm"
               >
                 Cancel
               </button>
             ) : (
               <button
                 onClick={() => setSelectionMode(true)}
-                className="py-1.5 px-3.5 rounded-lg text-[13px] font-medium font-sans cursor-pointer bg-transparent text-(--color-primary) border border-(--color-primary)"
+                className="btn-secondary btn-secondary-sm"
               >
                 Select
               </button>
@@ -282,20 +280,20 @@ export default function FileManagerPage() {
 
                   {/* Actions */}
                   <Tooltip content="Open raw file">
-                  <a href={f.url} target="_blank" rel="noreferrer" className={`${iconBtnClass} text-(--text-muted)`}>
+                  <a href={f.url} target="_blank" rel="noreferrer" aria-label="Open raw file" className="btn-icon-ghost btn-icon-sm no-underline">
                     <span className="material-symbols-outlined text-lg">open_in_new</span>
                   </a>
                   </Tooltip>
                   {!selectionMode && (
                     locked ? (
                       <Tooltip content="Current profile picture — can't be deleted">
-                        <span className={`${iconBtnClass} text-(--text-faint) cursor-default`}>
+                        <span className="shrink-0 w-7 h-7 flex items-center justify-center text-(--text-faint)">
                           <span className="material-symbols-outlined text-lg">lock</span>
                         </span>
                       </Tooltip>
                     ) : (
                       <Tooltip content="Delete">
-                      <button onClick={() => requestDelete(f)} disabled={busy} className={`${iconBtnClass} text-(--danger)`}>
+                      <button onClick={() => requestDelete(f)} disabled={busy} aria-label="Delete" className="btn-icon-ghost btn-icon-sm btn-icon-danger">
                         <span className="material-symbols-outlined text-lg">{busy ? 'hourglass_empty' : 'delete'}</span>
                       </button>
                       </Tooltip>

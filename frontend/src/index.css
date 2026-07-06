@@ -1318,6 +1318,18 @@ input[type='number'] {
   border-color: var(--accent);
 }
 
+/* Danger colour modifier for .btn-icon / .btn-icon-ghost — red icon + soft
+   danger hover tint. Use as className="btn-icon-ghost btn-icon-danger". */
+.btn-icon.btn-icon-danger,
+.btn-icon-ghost.btn-icon-danger {
+  color: var(--danger);
+}
+.btn-icon.btn-icon-danger:hover,
+.btn-icon-ghost.btn-icon-danger:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+
 .pill-nav-container {
   display: inline-flex;
   align-items: center;
