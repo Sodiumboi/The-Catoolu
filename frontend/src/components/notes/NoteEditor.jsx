@@ -151,21 +151,7 @@ function ToolbarBtn({ onClick, active, children, title }) {
     <Tooltip content={title}>
     <button
       onMouseDown={e => { e.preventDefault(); onClick(); }}
-      style={{
-        padding:      '3px 7px',
-        borderRadius: '4px',
-        border:       'none',
-        background:   active ? 'var(--accent-bg)' : 'transparent',
-        color:        active ? 'var(--accent)' : 'var(--text-muted)',
-        fontFamily:   'var(--font-sans)',
-        fontSize:     '13px',
-        fontWeight:   700,
-        cursor:       'pointer',
-        lineHeight:   1.4,
-        transition:   'background 0.1s',
-      }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--row-hover)'; }}
-      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+      className={`btn-tool ${active ? 'active' : ''}`}
     >
       {children}
     </button>
@@ -349,18 +335,17 @@ export default function NoteEditor({ noteUuid, onBack, onNoteUpdated, onNoteDele
           {confirmDel ? (
             <>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', flexShrink: 0 }}>Delete?</span>
-              <button onClick={handleDelete} style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'var(--danger)', color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-sans)', flexShrink: 0 }}>Yes</button>
-              <button onClick={() => setConfirmDel(false)} style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '5px', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font-sans)', flexShrink: 0 }}>No</button>
+              <button onClick={handleDelete} className="btn-danger btn-danger-sm shrink-0">Yes</button>
+              <button onClick={() => setConfirmDel(false)} className="btn-secondary btn-secondary-sm shrink-0">No</button>
             </>
           ) : (
             <Tooltip content="Delete note">
             <button
               onClick={() => setConfirmDel(true)}
-              style={{ padding: '3px 6px', borderRadius: '5px', border: 'none', background: 'transparent', color: 'var(--text-faint)', cursor: 'pointer', flexShrink: 0 }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+              aria-label="Delete note"
+              className="btn-icon-ghost btn-icon-sm btn-icon-danger shrink-0"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px', display: 'block' }}>delete</span>
+              <span className="material-symbols-outlined text-base">delete</span>
             </button>
             </Tooltip>
           )}

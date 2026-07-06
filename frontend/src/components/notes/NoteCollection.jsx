@@ -33,18 +33,10 @@ export default function NoteCollection({ notes, loading, contextTagType, context
             <Tooltip key={mode} content={mode === 'grid' ? 'Grid view' : 'List view'}>
             <button
               onClick={() => toggleView(mode)}
-              style={{
-                padding:    '4px 7px',
-                borderRadius: '5px',
-                border:     'none',
-                background:  viewMode === mode ? 'var(--accent-bg)' : 'transparent',
-                color:       viewMode === mode ? 'var(--accent)' : 'var(--text-faint)',
-                cursor:      'pointer',
-                fontSize:    '14px',
-                lineHeight:  1,
-              }}
+              aria-label={mode === 'grid' ? 'Grid view' : 'List view'}
+              className={`btn-tool ${viewMode === mode ? 'active' : ''}`}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px', display: 'block' }}>
+              <span className="material-symbols-outlined text-base">
                 {mode === 'grid' ? 'grid_view' : 'view_list'}
               </span>
             </button>
@@ -81,24 +73,7 @@ export default function NoteCollection({ notes, loading, contextTagType, context
         {/* New note */}
         <button
           onClick={onNewNote}
-          style={{
-            display:      'flex',
-            alignItems:   'center',
-            gap:          '4px',
-            padding:      '5px 10px',
-            borderRadius: '6px',
-            border:       'none',
-            background:   'var(--accent)',
-            color:        '#fff',
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '12px',
-            fontWeight:   600,
-            cursor:       'pointer',
-            whiteSpace:   'nowrap',
-            flexShrink:   0,
-          }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          className="btn-primary shrink-0"
         >
           <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>
           New

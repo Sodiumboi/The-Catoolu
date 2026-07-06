@@ -1253,6 +1253,37 @@ input[type='number'] {
   border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
 }
 
+/* Toolbar toggle — compact, flexible-width text/icon button for rich-text
+   toolbars (B/I/U, lists…). Bare when off, accent glass when .active. */
+.btn-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.btn-tool:not(.active):hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--row-hover) 90%, transparent);
+}
+.btn-tool.active {
+  color: var(--color-primary);
+  background:
+    linear-gradient(160deg,
+      color-mix(in srgb, var(--color-primary) 20%, transparent) 0%,
+      color-mix(in srgb, var(--color-primary) 10%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
 .btn-icon {
   display: inline-flex;
   align-items: center;

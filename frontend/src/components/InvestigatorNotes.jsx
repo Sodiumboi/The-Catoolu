@@ -23,23 +23,7 @@ function ToolBtn({ title, onClick, children, active }) {
     <button
       type="button"
       onMouseDown={e => { e.preventDefault(); onClick(); }}
-      className="px-2 py-1 rounded text-xs font-bold transition-all duration-150"
-      style={{
-        background: active ? 'var(--accent)' : 'var(--accent-bg)',
-        color:      active ? 'var(--bg-page)' : 'var(--accent)',
-        border:     '1px solid var(--border-main)',
-        minWidth:   '28px',
-        cursor:     'pointer',
-        boxShadow:  active ? 'inset 0 2px 4px rgba(0,0,0,0.2)' : 'none',
-      }}
-      onMouseEnter={e => {
-        if (!active) e.currentTarget.style.background = 'var(--accent-hover)';
-        e.currentTarget.style.transform = 'translateY(-1px)';
-      }}
-      onMouseLeave={e => {
-        if (!active) e.currentTarget.style.background = 'var(--accent-bg)';
-        e.currentTarget.style.transform = 'translateY(0)';
-      }}
+      className={`btn-tool ${active ? 'active' : ''}`}
     >
       {children}
     </button>
@@ -331,12 +315,7 @@ export default function InvestigatorNotes({ characterId, initialNotes, onSave })
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-4 py-1.5 rounded text-xs font-bold transition-all"
-          style={{
-            background: saving ? 'var(--text-muted)' : 'var(--accent)',
-            color:      'var(--bg-page)',
-            cursor:     saving ? 'not-allowed' : 'pointer',
-          }}>
+          className="btn-primary">
           {saving ? 'Saving...' : <><span className="icon icon-sm">save</span>{' '}Save Notes</>}
         </button>
         {saved && <span className="text-xs" style={{ color: 'var(--success)', display:'inline-flex', alignItems:'center', gap:'3px' }}><span className="icon icon-sm">check</span>Notes saved!</span>}
