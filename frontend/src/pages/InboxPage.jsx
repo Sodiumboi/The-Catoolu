@@ -215,7 +215,8 @@ function NotifCard({ notif, onDismiss, onClick }) {
       {/* Dismiss */}
       <button
         onClick={e => { e.stopPropagation(); onDismiss(); }}
-        className="bg-transparent border-none cursor-pointer text-(--text-faint) text-sm p-0 leading-none shrink-0"
+        aria-label="Dismiss"
+        className="btn-icon-ghost btn-icon-sm shrink-0"
       >
         <span className="icon icon-sm">close</span>
       </button>

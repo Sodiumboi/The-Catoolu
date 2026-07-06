@@ -726,10 +726,8 @@ function InfoTab({
               <Tooltip content="Close">
               <button
                 onClick={() => setSelectedSheet(null)}
-                style={{
-                  background:'none', border:'none', cursor:'pointer',
-                  color:'var(--text-muted)', padding:'2px', flexShrink:0,
-                }}
+                aria-label="Close"
+                className="btn-icon-ghost shrink-0"
               >
                 <span className="icon icon-md">close</span>
               </button>

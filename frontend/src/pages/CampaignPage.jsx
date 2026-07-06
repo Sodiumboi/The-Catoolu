@@ -236,15 +236,7 @@ function CampaignCard({ campaign, onEnter }) {
             <button
               onClick={e => { e.stopPropagation(); navigate('/keeper', { state: { openCampaignUuid: campaign.uuid } }); }}
               aria-label="Manage in Keeper tab"
-              className="inline-flex items-center justify-center w-[30px] h-[30px] rounded-[7px] border border-(--border-main) bg-transparent text-(--accent) cursor-pointer [transition:all_0.15s_ease]"
-              onMouseEnter={e => {
-                e.currentTarget.style.background  = 'color-mix(in srgb, var(--accent) 12%, transparent)';
-                e.currentTarget.style.borderColor = 'var(--accent)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background  = 'transparent';
-                e.currentTarget.style.borderColor = 'var(--border-main)';
-              }}
+              className="btn-icon btn-icon-accent"
             >
               <span className="icon icon-sm">settings</span>
             </button>

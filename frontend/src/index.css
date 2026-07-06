@@ -1102,6 +1102,44 @@ input[type='number'] {
   border-radius: 6px;
 }
 
+/* Ghost icon button — borderless/transparent, hover-tint only. For bare
+   icon actions (modal ✕ closes, inline icons) that shouldn't carry a tile.
+   Same square geometry as .btn-icon; pair with .btn-icon-sm for 28px. */
+.btn-icon-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  transition: background 0.15s ease, color 0.15s ease;
+  padding: 0;
+}
+.btn-icon-ghost:hover {
+  background: color-mix(in srgb, var(--row-hover) 90%, transparent);
+  color: var(--text-primary);
+}
+.btn-icon-ghost.btn-icon-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+/* Accent colour modifier for .btn-icon — keeps the glass tile, tints the
+   icon + hover to --accent. Use as className="btn-icon btn-icon-accent". */
+.btn-icon.btn-icon-accent {
+  color: var(--accent);
+}
+.btn-icon.btn-icon-accent:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: var(--accent);
+}
+
 .pill-nav-container {
   display: inline-flex;
   align-items: center;

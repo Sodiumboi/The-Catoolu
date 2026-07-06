@@ -75,15 +75,7 @@ export default function WhatsNewModal({ onClose }) {
           <button
             onClick={onClose}
             aria-label="Close"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 20,
-              color: 'var(--text-muted)',
-              lineHeight: 1,
-              padding: '4px 6px',
-            }}
+            className="btn-icon-ghost text-xl"
           >
             ×
           </button>

@@ -77,7 +77,7 @@ export default function CreateOrImportModal({ open, onClose, onCreate, onImport,
           <Tooltip content="Close">
           <button
             onClick={onClose}
-            className="bg-transparent border-none cursor-pointer text-(--text-muted) p-0.5 leading-none"
+            className="btn-icon-ghost"
           >
             <span className="icon icon-md">close</span>
           </button>
