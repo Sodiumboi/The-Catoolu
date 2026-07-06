@@ -175,7 +175,7 @@ export default function BugReportModal({ onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="py-2 px-5 bg-transparent border border-(--border-main) rounded-lg cursor-pointer text-(--text-secondary) font-sans text-[13px]"
+                className="btn-secondary"
               >Cancel</button>
               <button
                 type="submit"

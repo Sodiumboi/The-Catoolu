@@ -124,7 +124,7 @@ export default function CharacterCreationPage() {
               </button>
               <button
                 onClick={startFresh}
-                className="py-2 px-[1.1rem] rounded-[7px] border border-(--border-input) bg-transparent text-(--text-secondary) font-sans text-[0.85rem] cursor-pointer"
+                className="btn-secondary"
               >
                 Start Fresh
               </button>

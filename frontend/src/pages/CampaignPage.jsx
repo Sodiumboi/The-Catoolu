@@ -146,7 +146,7 @@ export default function CampaignPage() {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => setModal('join')}
-                className="py-2.5 px-6 rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-sm cursor-pointer"
+                className="btn-secondary"
               >
                 <span className="icon icon-sm">key</span>{' '}Join with Code
               </button>

@@ -112,7 +112,7 @@ export function CancelBtn({ onClick }) {
   return (
     <button
       onClick={onClick}
-      className="py-[9px] px-5 rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-[13px] cursor-pointer"
+      className="btn-secondary"
     >
       Cancel
     </button>

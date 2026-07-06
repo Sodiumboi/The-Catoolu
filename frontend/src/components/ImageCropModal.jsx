@@ -124,7 +124,7 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
         <div className="flex gap-2.5 justify-end">
           <button
             onClick={onClose}
-            className="py-2.25 px-5 rounded-lg border border-(--border-main) bg-transparent text-(--text-secondary) font-sans text-[13px] cursor-pointer"
+            className="btn-secondary"
           >
             Cancel
           </button>

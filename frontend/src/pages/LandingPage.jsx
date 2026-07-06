@@ -173,9 +173,7 @@ export default function LandingPage() {
                   </button>
                   <button
                     onClick={() => navigate('/login')}
-                    className="py-[0.7rem] px-[1.8rem] rounded-[10px] border border-(--border-input) bg-transparent text-(--text-secondary) font-sans text-[0.95rem] cursor-pointer [transition:border-color_0.15s,color_0.15s]"
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-input)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                    className="btn-secondary"
                   >
                     Sign In
                   </button>
