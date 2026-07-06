@@ -170,15 +170,7 @@ export default function CharacterEditorPage() {
         {/* Left */}
         <div className="flex items-center gap-3">
           <button onClick={() => guardedNavigate('/dashboard')}
-                  className="inline-flex items-center gap-1.25 py-[5px] px-3.5 rounded-full border-[1.5px] border-(--border-main) bg-transparent text-(--text-muted) font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap"
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = 'var(--accent)';
-                    e.currentTarget.style.color = 'var(--accent)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = 'var(--border-main)';
-                    e.currentTarget.style.color = 'var(--text-muted)';
-                  }}>
+                  className="btn-back">
             <span className="icon icon-sm">arrow_back</span>
             Dashboard
           </button>

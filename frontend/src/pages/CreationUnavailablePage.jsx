@@ -19,9 +19,9 @@ export default function CreationUnavailablePage() {
       </p>
       <Link
         to="/dashboard"
-        className="inline-block mt-6 py-2.5 px-5 bg-(--accent) text-[var(--accent-contrast,#fff)] rounded-lg font-sans text-sm font-medium no-underline"
+        className="btn-primary mt-6 no-underline"
       >
-        ← Back to Dashboard
+        Back to Dashboard
       </Link>
     </div>
   );

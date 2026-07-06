@@ -68,28 +68,9 @@ export default function ComingSoon({ tab, version, description, icon }) {
         {/* Back to dashboard */}
         <button
           onClick={() => navigate('/dashboard')}
-          style={{
-            fontFamily:   'var(--font-sans)',
-            fontSize:     '13px',
-            fontWeight:   '500',
-            padding:      '8px 20px',
-            borderRadius: '8px',
-            border:       '1px solid var(--border-main)',
-            background:   'transparent',
-            color:        'var(--text-secondary)',
-            cursor:       'pointer',
-            transition:   'all 0.15s ease',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.borderColor = 'var(--accent)';
-            e.currentTarget.style.color       = 'var(--accent)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.borderColor = 'var(--border-main)';
-            e.currentTarget.style.color       = 'var(--text-secondary)';
-          }}
+          className="btn-back"
         >
-          ← Back to Investigators
+          <span className="icon icon-sm">arrow_back</span>Back to Investigators
         </button>
       </div>
     </div>

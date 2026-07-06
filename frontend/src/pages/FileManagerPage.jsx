@@ -27,7 +27,6 @@ const fmtDate = (iso) => {
 const mb = (b) => { const m = b / (1024 * 1024); return m >= 10 ? Math.round(m) : Math.round(m * 10) / 10; };
 
 const iconBtnClass = "shrink-0 w-7.5 h-7.5 rounded-[7px] border-none bg-transparent cursor-pointer flex items-center justify-center no-underline";
-const btnClass = "py-1.25 px-2.75 rounded-[7px] text-xs font-medium font-sans cursor-pointer whitespace-nowrap";
 
 export default function FileManagerPage() {
   const [files,     setFiles]     = useState([]);
@@ -200,14 +199,14 @@ export default function FileManagerPage() {
             <button
               onClick={handleBulkDelete}
               disabled={bulkBusy || selected.size === 0}
-              className={`${btnClass} bg-(--danger) text-white border-none ml-auto ${(bulkBusy || selected.size === 0) ? 'opacity-60 cursor-default' : 'opacity-100 cursor-pointer'}`}
+              className={`btn-danger btn-danger-sm ml-auto ${(bulkBusy || selected.size === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {bulkBusy ? 'Deleting…' : `Delete ${selected.size} file${selected.size !== 1 ? 's' : ''}`}
             </button>
             <button
               onClick={exitSelectionMode}
               disabled={bulkBusy}
-              className={`${btnClass} bg-transparent text-(--text-muted) border border-(--border-main)`}
+              className="btn-secondary btn-secondary-sm"
             >
               Cancel
             </button>

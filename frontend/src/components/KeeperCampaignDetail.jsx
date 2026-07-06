@@ -84,25 +84,7 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
         {/* Back button row */}
         <button
           onClick={onBack}
-          style={{
-            display:'flex', alignItems:'center', gap:'6px',
-            padding:'7px 12px',
-            margin:'0 8px 4px',
-            borderRadius:'8px',
-            background:'none', border:'none', cursor:'pointer',
-            fontSize:'13px', color:'var(--text-muted)',
-            fontFamily:'var(--font-sans)',
-            transition:'background 0.12s ease-in-out, color 0.12s ease-in-out',
-            textAlign:'left',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-page) 55%, transparent)';
-            e.currentTarget.style.color = 'var(--text-secondary)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'none';
-            e.currentTarget.style.color = 'var(--text-muted)';
-          }}
+          className="btn-back mx-2 mb-1"
         >
           <span className="icon icon-sm">arrow_back</span>{' '}Back
         </button>

@@ -143,9 +143,9 @@ export default function CharacterCreationPage() {
           <button
             onClick={prevStep}
             disabled={currentStep === 1 || saving}
-            className={`py-[0.6rem] px-[1.4rem] rounded-[7px] border border-(--border-input) bg-transparent text-(--text-secondary) font-sans text-[0.9rem] ${currentStep === 1 || saving ? 'cursor-not-allowed opacity-40' : 'cursor-pointer opacity-100'}`}
+            className={`btn-back ${currentStep === 1 || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            ← Back
+            <span className="icon icon-sm">arrow_back</span>Back
           </button>
 
           <div className="flex flex-col items-center gap-1">

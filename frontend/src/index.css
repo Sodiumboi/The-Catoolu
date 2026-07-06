@@ -1074,6 +1074,14 @@ input[type='number'] {
   transform: translateY(-1px);
 }
 .btn-danger:active { transform: translateY(0); }
+/* Compact modifier for .btn-danger — toolbar/inline destructive actions.
+   Geometry only; use as className="btn-danger btn-danger-sm". */
+.btn-danger.btn-danger-sm {
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+  gap: 5px;
+}
 
 .btn-icon {
   display: inline-flex;
