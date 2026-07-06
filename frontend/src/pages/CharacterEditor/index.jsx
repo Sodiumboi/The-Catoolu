@@ -191,19 +191,7 @@ export default function CharacterEditorPage() {
           <Tooltip content="Toggle notes">
           <button
             onClick={handleNotesButton}
-            className={`flex items-center gap-1.25 py-[5px] px-3.5 rounded-full font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap ${notesState !== 'closed' ? 'border-[1.5px] border-(--accent) bg-(--accent-bg) text-(--accent)' : 'border-[1.5px] border-(--border-main) bg-transparent text-(--text-muted)'}`}
-            onMouseEnter={e => {
-              if (notesState === 'closed') {
-                e.currentTarget.style.borderColor = 'var(--accent)';
-                e.currentTarget.style.color = 'var(--accent)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (notesState === 'closed') {
-                e.currentTarget.style.borderColor = 'var(--border-main)';
-                e.currentTarget.style.color = 'var(--text-muted)';
-              }
-            }}
+            className={`btn-toggle ${notesState !== 'closed' ? 'active' : ''}`}
           >
             Notes
             <span className="icon icon-sm">open_in_new</span>

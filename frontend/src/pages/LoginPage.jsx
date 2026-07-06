@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/vault-logo.png';
@@ -12,19 +12,6 @@ export default function LoginPage({ initialMode = 'login' }) {
   const [mode,     setMode]     = useState(initialMode);
   const [legalDoc, setLegalDoc] = useState(null); // null | 'tos' | 'privacy'
 
-  // Sliding pill animation — mirrors NavBar approach
-  const modeContainerRef = useRef(null);
-  const modeButtonRefs   = useRef({});
-  const [modePill, setModePill] = useState(null);
-
-  useEffect(() => {
-    const el        = modeButtonRefs.current[mode];
-    const container = modeContainerRef.current;
-    if (!el || !container) return;
-    const r = el.getBoundingClientRect();
-    const c = container.getBoundingClientRect();
-    setModePill({ left: r.left - c.left, width: r.width });
-  }, [mode]);
   const [username,   setUsername]   = useState('');
   const [identifier, setIdentifier] = useState('');
   const [email,      setEmail]      = useState('');
@@ -75,35 +62,21 @@ export default function LoginPage({ initialMode = 'login' }) {
         {/* ── Card ── */}
         <div className="bg-(--bg-card) border border-(--border-main) rounded-2xl shadow-(--shadow-card) pt-7 px-7 pb-6">
 
-          {/* ── Pill mode toggle ── */}
-          <div
-            ref={modeContainerRef}
-            className="flex relative bg-(--bg-section-hd) rounded-[10px] p-0.75 mb-6"
-          >
-            {/* Sliding pill */}
-            {modePill && (
-              <div
-                className="absolute top-0.75 bottom-0.75 rounded-lg bg-(--bg-card) shadow-[0_1px_3px_rgba(0,0,0,0.1)] pointer-events-none [transition:left_0.25s_cubic-bezier(0.4,0,0.2,1),width_0.25s_cubic-bezier(0.4,0,0.2,1)]"
-                style={{ left: modePill.left, width: modePill.width }}
-              />
-            )}
+          {/* ── Mode toggle ── */}
+          <div className="seg w-full mb-6">
             {[
               { value: 'login',    label: 'Sign In'        },
               { value: 'register', label: 'Create Account' },
-            ].map(opt => {
-              const isActive = mode === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  ref={el => { modeButtonRefs.current[opt.value] = el; }}
-                  type="button"
-                  onClick={() => { setMode(opt.value); setError(''); }}
-                  className={`flex-1 py-1.75 px-3 rounded-lg border-none bg-transparent font-sans text-[13px] relative z-1 [transition:color_0.2s_ease] ${isActive ? 'text-(--text-primary) font-medium cursor-default' : 'text-(--text-muted) font-normal cursor-pointer'}`}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
+            ].map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => { setMode(opt.value); setError(''); }}
+                className={`seg-tab flex-1 ${mode === opt.value ? 'active' : ''}`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
 
           {/* ── Form ── */}
