@@ -121,7 +121,7 @@ export default function LegalModal({ initialDoc = 'tos', onClose }) {
         <div className="pt-3.5 px-4.5 pb-3 border-b border-(--border-main) bg-(--bg-card) shrink-0">
           {/* Top row: tabs + close */}
           <div className="flex items-center gap-2 mb-2.5">
-            <div className="flex gap-1.25 flex-1">
+            <div className="seg flex-1">
               {[
                 { id: 'tos',     label: 'Terms of Service' },
                 { id: 'privacy', label: 'Privacy Policy'   },
@@ -129,7 +129,7 @@ export default function LegalModal({ initialDoc = 'tos', onClose }) {
                 <button
                   key={tab.id}
                   onClick={() => setDoc(tab.id)}
-                  className={`py-1.25 px-3.25 rounded-full font-sans text-[0.8rem] font-semibold whitespace-nowrap [transition:background_0.15s,color_0.15s] ${doc === tab.id ? 'border-none bg-(--color-primary) text-white cursor-default' : 'border border-(--border-input) bg-transparent text-(--text-muted) cursor-pointer'}`}
+                  className={`seg-tab flex-1 ${doc === tab.id ? 'active' : ''}`}
                 >
                   {tab.label}
                 </button>
@@ -149,12 +149,12 @@ export default function LegalModal({ initialDoc = 'tos', onClose }) {
 
           {/* Language switcher */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-0.5 bg-(--bg-section-hd) border border-(--border-input) rounded-full p-0.5">
+            <div className="seg">
               {[{ id: 'en', label: 'EN' }, { id: 'th', label: 'ภาษาไทย' }].map(l => (
                 <button
                   key={l.id}
                   onClick={() => setLang(l.id)}
-                  className={`py-0.5 px-2.75 rounded-full border-none font-sans text-[0.72rem] font-semibold whitespace-nowrap [transition:background_0.15s,color_0.15s] ${lang === l.id ? 'bg-(--color-primary) text-white cursor-default' : 'bg-transparent text-(--text-muted) cursor-pointer'}`}
+                  className={`seg-tab ${lang === l.id ? 'active' : ''}`}
                 >
                   {l.label}
                 </button>

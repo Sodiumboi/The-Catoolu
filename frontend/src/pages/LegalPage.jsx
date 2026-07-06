@@ -118,7 +118,7 @@ function DocTab({ label, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`py-1.5 px-4 rounded-[20px] font-sans text-[0.85rem] font-semibold [transition:background_0.15s,color_0.15s] whitespace-nowrap ${active ? 'border-none bg-(--color-primary) text-white cursor-default' : 'border border-(--border-input) bg-transparent text-(--text-muted) cursor-pointer'}`}
+      className={`seg-tab ${active ? 'active' : ''}`}
     >
       {label}
     </button>
@@ -127,12 +127,12 @@ function DocTab({ label, active, onClick }) {
 
 function LangPill({ lang, setLang }) {
   return (
-    <div className="flex items-center gap-[2px] bg-(--bg-section-hd) border border-(--border-input) rounded-[20px] p-[2px] shrink-0">
+    <div className="seg shrink-0">
       {[{ id: 'en', label: 'EN' }, { id: 'th', label: 'ภาษาไทย' }].map(l => (
         <button
           key={l.id}
           onClick={() => setLang(l.id)}
-          className={`py-[3px] px-3 rounded-[20px] border-none font-sans text-xs font-semibold [transition:background_0.15s,color_0.15s] whitespace-nowrap ${lang === l.id ? 'bg-(--color-primary) text-white cursor-default' : 'bg-transparent text-(--text-muted) cursor-pointer'}`}
+          className={`seg-tab ${lang === l.id ? 'active' : ''}`}
         >
           {l.label}
         </button>
@@ -159,7 +159,7 @@ export default function LegalPage() {
       <div className="sticky top-14 z-40 bg-(--bg-page) border-b border-(--border-main) py-2.5 px-6">
         <div className="max-w-[760px] mx-auto flex items-center justify-between gap-3 flex-wrap">
           {/* Document tabs */}
-          <div className="flex gap-1.5">
+          <div className="seg">
             <DocTab
               label="Terms of Service"
               active={doc === 'tos'}

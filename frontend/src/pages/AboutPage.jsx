@@ -129,12 +129,12 @@ function GitHubIcon() {
 
 function LangSwitcher({ lang, setLang }) {
   return (
-    <div className="flex items-center gap-0.5 bg-(--bg-section-hd) border border-(--border-input) rounded-full p-0.5">
+    <div className="seg">
       {['en', 'th'].map(l => (
         <button
           key={l}
           onClick={() => setLang(l)}
-          className={`py-0.75 px-3 rounded-full border-none font-sans text-[0.72rem] font-semibold tracking-wider uppercase [transition:background_0.15s,color_0.15s] ${lang === l ? 'bg-(--color-primary) text-white cursor-default' : 'bg-transparent text-(--text-muted) cursor-pointer'}`}
+          className={`seg-tab uppercase tracking-wider ${lang === l ? 'active' : ''}`}
         >
           {l}
         </button>
