@@ -54,20 +54,10 @@ export default function ConfirmDialog({
 
   if (!open) return null;
 
-  let confirmBg;
-  let confirmColor;
-  let confirmBorder = 'none';
-  if (variant === 'danger') {
-    confirmBg = 'var(--danger)';
-    confirmColor = '#fff';
-  } else if (variant === 'warning') {
-    confirmBg = 'var(--warning)';
-    confirmColor = '#fff';
-  } else {
-    confirmBg = 'var(--bg-card)';
-    confirmColor = 'var(--text-primary)';
-    confirmBorder = '1px solid var(--border-main)';
-  }
+  const confirmClass =
+    variant === 'danger'    ? 'btn-danger'
+    : variant === 'warning' ? 'btn-warning'
+    : 'btn-secondary';
 
   const dialog = (
     <div
@@ -127,33 +117,14 @@ export default function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            style={{
-              padding: '7px 16px',
-              borderRadius: 8,
-              border: '1px solid var(--border-main)',
-              background: 'var(--bg-input)',
-              color: 'var(--text-muted)',
-              fontFamily: 'var(--font-sans)',
-              fontSize: 13,
-              cursor: 'pointer',
-            }}
+            className="btn-secondary"
           >
             {cancelLabel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            style={{
-              padding: '7px 16px',
-              borderRadius: 8,
-              border: confirmBorder,
-              background: confirmBg,
-              color: confirmColor,
-              fontFamily: 'var(--font-sans)',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className={confirmClass}
           >
             {confirmLabel}
           </button>
@@ -162,17 +133,7 @@ export default function ConfirmDialog({
               type="button"
               onClick={onTertiary}
               disabled={tertiaryDisabled}
-              style={{
-                padding: '7px 16px',
-                borderRadius: 8,
-                border: 'none',
-                background: tertiaryDisabled ? 'var(--text-muted)' : 'var(--color-primary)',
-                color: '#fff',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: tertiaryDisabled ? 'not-allowed' : 'pointer',
-              }}
+              className="btn-primary"
             >
               {tertiaryLabel}
             </button>

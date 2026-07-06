@@ -1074,6 +1074,60 @@ input[type='number'] {
   transform: translateY(-1px);
 }
 .btn-danger:active { transform: translateY(0); }
+
+/* Warning action — same gem treatment as .btn-danger in the --warning colour
+   (used by ConfirmDialog's warning variant). */
+.btn-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: 1.5px solid color-mix(in srgb, var(--warning) 50%, transparent);
+  color: #fff;
+  background:
+    linear-gradient(160deg,
+      rgba(255,255,255,0.15) 0%,
+      rgba(255,255,255,0.03) 50%,
+      rgba(0,0,0,0.06) 100%),
+    var(--warning);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,0.22),
+    inset 0 -1px 0 rgba(0,0,0,0.15),
+    0 2px 8px color-mix(in srgb, var(--warning) 35%, transparent),
+    0 1px 2px rgba(0,0,0,0.12);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.btn-warning:hover {
+  background:
+    linear-gradient(160deg,
+      rgba(255,255,255,0.2) 0%,
+      rgba(255,255,255,0.05) 50%,
+      rgba(0,0,0,0.04) 100%),
+    color-mix(in srgb, var(--warning) 85%, black);
+  transform: translateY(-1px);
+}
+.btn-warning:active { transform: translateY(0); }
+
+/* Disabled state for gem action buttons — native :disabled so cursor + dim
+   apply regardless of Tailwind utility layering. */
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-back:disabled,
+.btn-ghost:disabled,
+.btn-danger:disabled,
+.btn-danger-soft:disabled,
+.btn-warning:disabled,
+.btn-icon:disabled,
+.btn-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
 /* Compact modifier for .btn-danger — toolbar/inline destructive actions.
    Geometry only; use as className="btn-danger btn-danger-sm". */
 .btn-danger.btn-danger-sm {
