@@ -352,7 +352,8 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
         <div className={`absolute bottom-0 ${isOwn ? 'right-full mr-2' : 'left-full ml-2'}`}>
           <button
             onClick={(e) => { e.stopPropagation(); setMenuOpen(m => !m); }}
-            className="bg-(--bg-card) rounded-md cursor-pointer text-(--text-muted) p-0.5 flex items-center justify-center"
+            aria-label="Message actions"
+            className="btn-icon btn-icon-xs"
           >
             <span className="material-symbols-outlined text-sm!">more_vert</span>
           </button>
@@ -361,9 +362,7 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
             <div className={`absolute bottom-full mb-1 bg-(--bg-card) rounded-md shadow-(--shadow-dropdown) z-200 min-w-0 overflow-hidden ${isOwn ? 'left-0 right-auto' : 'right-0 left-auto'}`}>
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-1 w-full py-1 px-2 bg-none border-none cursor-pointer text-[#dc2626] text-[11px] font-sans text-left"
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.08)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                className="flex items-center gap-1 w-full py-1 px-2 bg-none border-none cursor-pointer text-(--danger) text-[11px] font-sans text-left hover:bg-[color-mix(in_srgb,var(--danger)_10%,transparent)]"
               >
                 <span className="material-symbols-outlined text-xs!">delete</span>
                 Delete

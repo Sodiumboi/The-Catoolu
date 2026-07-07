@@ -208,7 +208,8 @@ export default function RollFeed({
       {showJump && (
         <button
           onClick={handleJump}
-          className="animate-pop absolute bottom-3.5 left-0 right-0 mx-auto w-fit flex items-center gap-1.25 py-1.5 px-3.5 rounded-[20px] border-none bg-(--accent) text-white font-sans text-xs font-semibold cursor-pointer shadow-(--shadow-dropdown) z-5"
+          className="btn-primary animate-pop absolute bottom-3.5 left-0 right-0 mx-auto w-fit z-5"
+          style={{ borderRadius: '999px' }}
         >
           <span className="icon icon-sm">arrow_downward</span>
           Jump to present
