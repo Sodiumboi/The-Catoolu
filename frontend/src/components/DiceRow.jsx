@@ -28,19 +28,7 @@ export default function DiceRow({
           <button
             onClick={e => handleDie(sides, e.shiftKey)}
             disabled={isRolling}
-            className={`py-1 px-2.25 rounded-md font-sans text-xs font-normal [transition:all_0.1s] ${isRolling ? 'cursor-not-allowed' : 'cursor-pointer'} ${isRolling && !isThisDie ? 'opacity-50' : 'opacity-100'} ${isThisDie ? 'border border-(--accent) bg-(--accent-bg) text-(--accent) [animation:pulse-accent_2s_ease-in-out_infinite]' : 'border border-(--border-main) bg-(--bg-card) text-(--text-secondary)'}`}
-            onMouseEnter={e => {
-              if (isRolling) return;
-              e.currentTarget.style.background   = 'var(--accent-bg)';
-              e.currentTarget.style.borderColor  = 'var(--accent)';
-              e.currentTarget.style.color        = 'var(--accent)';
-            }}
-            onMouseLeave={e => {
-              if (isRolling) return;
-              e.currentTarget.style.background  = 'var(--bg-card)';
-              e.currentTarget.style.borderColor = 'var(--border-main)';
-              e.currentTarget.style.color       = 'var(--text-secondary)';
-            }}
+            className={`btn-die ${isThisDie ? 'active [animation:pulse-accent_2s_ease-in-out_infinite]' : ''}`}
           >
             D{sides}
           </button>
@@ -52,13 +40,13 @@ export default function DiceRow({
 
       {/* Adv */}
       <button onClick={onToggleAdv}
-        className={`py-1 px-2.25 rounded-md font-sans text-[11px] cursor-pointer [transition:all_0.1s] ${advMode ? 'font-semibold border border-(--accent) bg-(--accent-bg) text-(--accent)' : 'font-normal border border-(--border-main) bg-(--bg-card) text-(--text-faint)'}`}>
+        className={`btn-die ${advMode ? 'active' : ''}`}>
         <span className="icon icon-sm mr-0.5">trending_down</span>Adv
       </button>
 
       {/* Dis */}
       <button onClick={onToggleDis}
-        className={`py-1 px-2.25 rounded-md font-sans text-[11px] cursor-pointer [transition:all_0.1s] ${disMode ? 'font-semibold border border-(--danger) bg-(--danger-bg) text-(--danger)' : 'font-normal border border-(--border-main) bg-(--bg-card) text-(--text-faint)'}`}>
+        className={`btn-die ${disMode ? 'is-danger' : ''}`}>
         <span className="icon icon-sm mr-0.5">trending_up</span>Dis
       </button>
 
@@ -71,7 +59,7 @@ export default function DiceRow({
         : 'Rolls only visible to you — click for Everyone'}>
       <button
         onClick={onToggleVisibility}
-        className={`py-1 px-2.25 rounded-md font-sans text-[11px] cursor-pointer [transition:all_0.15s] whitespace-nowrap ${rollVisibility === 'only_me' ? 'font-semibold border border-(--warning) text-(--warning) bg-[rgba(186,117,23,0.1)]' : 'font-normal border border-(--border-main) text-(--text-faint) bg-(--bg-card)'}`}
+        className={`btn-die ${rollVisibility === 'only_me' ? 'is-warning' : ''}`}
       >
         {rollVisibility === 'only_me'
           ? <><span className="icon icon-sm">lock</span>{' '}Only Me</>

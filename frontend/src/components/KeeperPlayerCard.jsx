@@ -22,9 +22,8 @@ export default function KeeperPlayerCard({
           <button
             ref={rollBtnRef}
             onClick={e => { e.stopPropagation(); onRequestRoll(member, rollBtnRef.current?.getBoundingClientRect()); }}
-            className="bg-none border-none cursor-pointer text-(--text-faint) flex items-center p-0.5 rounded-sm [transition:color_0.1s]"
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+            aria-label="Request a roll"
+            className="bg-none border-none cursor-pointer text-(--text-faint) flex items-center p-0.5 rounded-sm [transition:color_0.1s] hover:text-(--accent)"
           >
             <span className="icon icon-sm">casino</span>
           </button>
@@ -34,9 +33,8 @@ export default function KeeperPlayerCard({
           <Tooltip content="View character sheet">
           <button
             onClick={e => { e.stopPropagation(); onOpenSheet(member); }}
-            className="bg-none border-none cursor-pointer text-(--text-faint) flex items-center p-0.5 rounded-sm [transition:color_0.1s]"
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+            aria-label="View character sheet"
+            className="bg-none border-none cursor-pointer text-(--text-faint) flex items-center p-0.5 rounded-sm [transition:color_0.1s] hover:text-(--accent)"
           >
             <span className="icon icon-sm">open_in_new</span>
           </button>
@@ -100,7 +98,8 @@ export default function KeeperPlayerCard({
               <Tooltip content="Cancel request">
               <button
                 onClick={() => onCancelRequest(requestId)}
-                className="bg-none border-none cursor-pointer text-(--accent) py-0 px-0.5 flex items-center leading-none text-sm"
+                aria-label="Cancel request"
+                className="bg-none border-none cursor-pointer text-(--accent) py-0 px-0.5 flex items-center leading-none text-sm hover:opacity-70"
               >
                 ✕
               </button>
