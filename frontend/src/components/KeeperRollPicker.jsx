@@ -4,13 +4,10 @@ import { createPortal } from 'react-dom';
 const STAT_KEYS = ['STR', 'CON', 'DEX', 'INT', 'SIZ', 'POW', 'APP', 'EDU', 'Luck', 'Sanity'];
 
 function PickerRow({ label, value, onClick }) {
-  const [hover, setHover] = useState(false);
   return (
     <button
       onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className={`flex w-full justify-between items-center py-1.25 px-3 border-none cursor-pointer text-(--text-primary) font-sans text-[13px] text-left box-border ${hover ? 'bg-(--accent-bg)' : 'bg-none'}`}
+      className="flex w-full justify-between items-center py-1.25 px-3 border-none cursor-pointer text-(--text-primary) font-sans text-[13px] text-left box-border bg-none hover:bg-(--accent-bg)"
     >
       <span>{label}</span>
       {value != null && (

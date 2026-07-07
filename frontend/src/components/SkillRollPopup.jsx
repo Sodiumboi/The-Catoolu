@@ -75,35 +75,11 @@ export default function SkillRollPopup({
               <button
                 key={mode.key}
                 onClick={() => { onRoll(mode.key); onClose(); }}
-                style={{
-                  flex:         1,
-                  padding:      '6px 4px',
-                  borderRadius: '7px',
-                  border:       isDefault
-                    ? '1.5px solid var(--color-primary)'
-                    : '1px solid var(--border-main)',
-                  background:   isDefault
-                    ? 'var(--accent-bg)'
-                    : 'transparent',
-                  color:        isDefault
-                    ? 'var(--color-primary)'
-                    : 'var(--text-secondary)',
-                  fontFamily:   'var(--font-sans)',
-                  fontSize:     '12px',
-                  fontWeight:   isDefault ? '600' : '400',
-                  cursor:       'pointer',
-                  transition:   'all 0.1s ease',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'var(--accent-bg)';
-                  e.currentTarget.style.borderColor = 'var(--accent)';
-                  e.currentTarget.style.color = 'var(--accent)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = isDefault ? 'var(--accent-bg)' : 'transparent';
-                  e.currentTarget.style.borderColor = isDefault ? 'var(--color-primary)' : 'var(--border-main)';
-                  e.currentTarget.style.color = isDefault ? 'var(--color-primary)' : 'var(--text-secondary)';
-                }}
+                className={`flex-1 py-1.5 px-1 rounded-[7px] font-sans text-xs cursor-pointer transition-colors hover:bg-(--accent-bg) hover:border-(--accent) hover:text-(--accent) ${
+                  isDefault
+                    ? 'border-[1.5px] border-(--color-primary) bg-(--accent-bg) text-(--color-primary) font-semibold'
+                    : 'border border-(--border-main) bg-transparent text-(--text-secondary) font-normal'
+                }`}
               >
                 {mode.label}
               </button>
