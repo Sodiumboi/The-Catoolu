@@ -141,6 +141,7 @@ export default function ChatInput({
               <Tooltip content="Remove">
               <button
                 onClick={() => onClearAttachment?.(index)}
+                aria-label="Remove"
                 className="w-4 h-4 bg-(--danger) border-none rounded-full text-white text-[10px] flex items-center justify-center cursor-pointer p-0 shrink-0"
               >
                 ×
@@ -160,7 +161,8 @@ export default function ChatInput({
           <Tooltip content="Dismiss">
           <button
             onClick={() => onClearUploadError?.()}
-            className="bg-none border-none cursor-pointer text-(--danger) p-0 flex items-center shrink-0"
+            aria-label="Dismiss"
+            className="btn-icon-ghost btn-icon-danger btn-icon-xs shrink-0"
           >
             <span className="material-symbols-outlined text-base">close</span>
           </button>
@@ -176,17 +178,8 @@ export default function ChatInput({
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled}
-            className={`w-9 h-9 border border-(--border-input) rounded-lg bg-transparent flex items-center justify-center text-(--text-muted) shrink-0 [transition:border-color_0.15s,color_0.15s] ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-            onMouseEnter={e => {
-              if (!disabled) {
-                e.currentTarget.style.borderColor = 'var(--accent)';
-                e.currentTarget.style.color = 'var(--accent)';
-              }
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = 'var(--border-input)';
-              e.currentTarget.style.color = 'var(--text-muted)';
-            }}
+            aria-label="Attach image"
+            className="btn-icon shrink-0"
           >
             <span className="material-symbols-outlined text-lg">attach_file</span>
           </button>
@@ -224,15 +217,9 @@ export default function ChatInput({
         <button
           onClick={e => handleSend(e.shiftKey)}
           disabled={!canSend}
-          className={`py-2.5 px-5 rounded-[10px] border-none text-white font-sans text-sm font-medium [transition:background_0.15s] shrink-0 ${!canSend ? 'bg-(--text-faint) cursor-not-allowed' : 'bg-(--color-primary) cursor-pointer'}`}
-          onMouseEnter={e => {
-            if (canSend) e.currentTarget.style.background = 'var(--color-primary-dark)';
-          }}
-          onMouseLeave={e => {
-            if (canSend) e.currentTarget.style.background = 'var(--color-primary)';
-          }}
+          className="btn-primary shrink-0"
         >
-          {isSending ? 'Sending…' : isRoll ? <><span className="icon icon-sm">casino</span>{' '}Roll</> : 'Send'}
+          {isSending ? 'Sending…' : isRoll ? <><span className="icon icon-sm">casino</span>Roll</> : 'Send'}
         </button>
       </div>
     </div>
