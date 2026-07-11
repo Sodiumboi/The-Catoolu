@@ -28,15 +28,15 @@ export default function NoteCollection({ notes, loading, contextTagType, context
         flexShrink:   0,
       }}>
         {/* View toggle */}
-        <div style={{ display: 'flex', gap: '2px' }}>
+        <div className="view-toggle">
           {['grid', 'list'].map(mode => (
             <Tooltip key={mode} content={mode === 'grid' ? 'Grid view' : 'List view'}>
             <button
               onClick={() => toggleView(mode)}
               aria-label={mode === 'grid' ? 'Grid view' : 'List view'}
-              className={`btn-tool btn-tool-sm ${viewMode === mode ? 'active' : ''}`}
+              className={`view-toggle-btn ${viewMode === mode ? 'active' : ''}`}
             >
-              <span className="material-symbols-outlined text-sm">
+              <span className="icon icon-sm">
                 {mode === 'grid' ? 'grid_view' : 'view_list'}
               </span>
             </button>

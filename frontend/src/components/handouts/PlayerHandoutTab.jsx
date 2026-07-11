@@ -271,9 +271,6 @@ export default function PlayerHandoutTab({ sharedHandouts, onView }) {
     return next;
   });
 
-  const viewToggleCss = (active) =>
-    `py-0.75 px-1.75 border-none rounded [transition:background_0.1s,color_0.1s] cursor-pointer flex items-center ${active ? 'bg-(--accent-bg) text-(--color-primary)' : 'bg-transparent text-(--text-faint)'}`;
-
   // Player only ever sees handouts shared to them; dedupe the share
   // history down to unique handouts (latest share wins) to mirror the
   // keeper's library view.
@@ -308,12 +305,12 @@ export default function PlayerHandoutTab({ sharedHandouts, onView }) {
         <span className={labelCss}>
           Received ({handouts.length} item{handouts.length !== 1 ? 's' : ''})
         </span>
-        <div className="inline-flex gap-0.5 p-0.5 border border-(--border-main) rounded-[7px] bg-(--bg-card)">
-          <button className={viewToggleCss(view === 'list')} onClick={() => changeView('list')}>
-            <span className="material-symbols-outlined text-sm">list</span>
+        <div className="view-toggle">
+          <button className={`view-toggle-btn ${view === 'list' ? 'active' : ''}`} onClick={() => changeView('list')} aria-label="List view">
+            <span className="icon icon-sm">list</span>
           </button>
-          <button className={viewToggleCss(view === 'grid')} onClick={() => changeView('grid')}>
-            <span className="material-symbols-outlined text-sm">grid_view</span>
+          <button className={`view-toggle-btn ${view === 'grid' ? 'active' : ''}`} onClick={() => changeView('grid')} aria-label="Grid view">
+            <span className="icon icon-sm">grid_view</span>
           </button>
         </div>
       </div>

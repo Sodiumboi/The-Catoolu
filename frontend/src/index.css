@@ -1291,12 +1291,33 @@ input[type='number'] {
       color-mix(in srgb, var(--color-primary) 10%, transparent) 100%);
   border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
 }
-/* Compact modifier for .btn-tool — tight toolbars (e.g. notes grid/list
-   toggle). Geometry only; use as className="btn-tool btn-tool-sm". */
-.btn-tool.btn-tool-sm {
-  min-width: 24px;
-  padding: 3px 6px;
-  border-radius: 6px;
+/* View toggle (list/grid switch) — small flat segmented control shared across
+   the app (notes toolbar, handout panels). Bordered container + flat buttons;
+   the active button is a flat accent-bg fill (no border/glass). */
+.view-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border-main);
+  border-radius: 7px;
+  background: var(--bg-card);
+}
+.view-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-faint);
+  background: transparent;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+.view-toggle-btn.active {
+  background: var(--accent-bg);
+  color: var(--color-primary);
 }
 
 .btn-icon {
