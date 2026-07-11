@@ -275,14 +275,8 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
                 <Tooltip content="Minimise">
                 <button
                   onClick={handleMinimise}
-                  style={{
-                    background: 'transparent', border: 'none',
-                    color:      'var(--text-faint)', cursor: 'pointer',
-                    padding:    '1px 8px', borderRadius: '4px',
-                    fontFamily: 'var(--font-sans)', fontSize: '16px', fontWeight: 700, lineHeight: 1.2,
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+                  aria-label="Minimise"
+                  className="btn-icon-ghost btn-icon-xs text-base font-bold leading-none"
                 >
                   &#8212;
                 </button>
@@ -290,15 +284,10 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
                 <Tooltip content="Close">
                 <button
                   onClick={() => changeState('closed')}
-                  style={{
-                    background: 'transparent', border: 'none',
-                    color:      'var(--text-faint)', cursor: 'pointer',
-                    padding:    '2px 5px', borderRadius: '4px', lineHeight: 1,
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-faint)'}
+                  aria-label="Close"
+                  className="btn-icon-ghost btn-icon-danger btn-icon-xs"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px', display: 'block' }}>close</span>
+                  <span className="material-symbols-outlined text-base">close</span>
                 </button>
                 </Tooltip>
               </div>
@@ -364,15 +353,7 @@ export default function NotesWindow({ windowState, onWindowStateChange, contextT
 
                   <button
                     onClick={dismissGuide}
-                    style={{
-                      width: '100%', padding: '8px',
-                      borderRadius: '8px', border: 'none',
-                      background: 'var(--accent)', color: '#fff',
-                      fontFamily: 'var(--font-sans)', fontSize: '13px',
-                      fontWeight: '600', cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                    className="btn-primary w-full justify-center"
                   >
                     Got it!
                   </button>
