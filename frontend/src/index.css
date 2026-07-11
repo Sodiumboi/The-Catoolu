@@ -956,6 +956,14 @@ input[type='number'] {
   transform: translateY(-1px);
 }
 .btn-primary:active { transform: translateY(0); }
+/* Compact modifier for .btn-primary — toolbar/inline primary CTAs.
+   Geometry only; use as className="btn-primary btn-primary-sm". */
+.btn-primary.btn-primary-sm {
+  padding: 4px 13px;
+  font-size: 12px;
+  border-radius: 6px;
+  gap: 5px;
+}
 
 .btn-secondary {
   display: inline-flex;
@@ -1282,6 +1290,13 @@ input[type='number'] {
       color-mix(in srgb, var(--color-primary) 20%, transparent) 0%,
       color-mix(in srgb, var(--color-primary) 10%, transparent) 100%);
   border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+/* Compact modifier for .btn-tool — tight toolbars (e.g. notes grid/list
+   toggle). Geometry only; use as className="btn-tool btn-tool-sm". */
+.btn-tool.btn-tool-sm {
+  min-width: 24px;
+  padding: 3px 6px;
+  border-radius: 6px;
 }
 
 .btn-icon {

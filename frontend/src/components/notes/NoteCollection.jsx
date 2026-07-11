@@ -34,9 +34,9 @@ export default function NoteCollection({ notes, loading, contextTagType, context
             <button
               onClick={() => toggleView(mode)}
               aria-label={mode === 'grid' ? 'Grid view' : 'List view'}
-              className={`btn-tool ${viewMode === mode ? 'active' : ''}`}
+              className={`btn-tool btn-tool-sm ${viewMode === mode ? 'active' : ''}`}
             >
-              <span className="material-symbols-outlined text-base">
+              <span className="material-symbols-outlined text-sm">
                 {mode === 'grid' ? 'grid_view' : 'view_list'}
               </span>
             </button>
@@ -73,7 +73,7 @@ export default function NoteCollection({ notes, loading, contextTagType, context
         {/* New note */}
         <button
           onClick={onNewNote}
-          className="btn-primary shrink-0"
+          className="btn-primary btn-primary-sm shrink-0"
         >
           <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>
           New
