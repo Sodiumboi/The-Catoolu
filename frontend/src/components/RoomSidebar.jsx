@@ -62,15 +62,8 @@ export default function RoomSidebar({
           <Tooltip key={tab.id} content={tab.label} placement="left">
           <button
             onClick={() => onTabChange(tab.id)}
-            className={`w-9 h-9 rounded-lg border-none cursor-pointer text-base flex items-center justify-center [transition:background_0.1s] ${activeTab === tab.id && tab.hasPanel ? 'bg-(--accent-bg) outline-[1.5px] outline-(--accent)' : 'bg-transparent outline-none'}`}
-            onMouseEnter={e => {
-              if (!(activeTab === tab.id && tab.hasPanel))
-                e.currentTarget.style.background = 'var(--row-hover)';
-            }}
-            onMouseLeave={e => {
-              if (!(activeTab === tab.id && tab.hasPanel))
-                e.currentTarget.style.background = 'transparent';
-            }}
+            aria-label={tab.label}
+            className={`w-9 h-9 rounded-lg border-none cursor-pointer text-base flex items-center justify-center [transition:background_0.1s] ${activeTab === tab.id && tab.hasPanel ? 'bg-(--accent-bg) outline-[1.5px] outline-(--accent)' : 'bg-transparent outline-none hover:bg-(--row-hover)'}`}
           >
             <span className="icon icon-md">{tab.icon}</span>
           </button>
@@ -82,9 +75,7 @@ export default function RoomSidebar({
           <Tooltip content="Disconnect from Room" placement="left">
             <button
               onClick={handleLeaveIconClick}
-              className="w-9 h-11.5 rounded-lg border-none bg-transparent text-(--danger) cursor-pointer flex flex-col items-center justify-center gap-0.5 [transition:background_0.12s]"
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              className="w-9 h-11.5 rounded-lg border-none bg-transparent text-(--danger) cursor-pointer flex flex-col items-center justify-center gap-0.5 [transition:background_0.12s] hover:bg-(--danger-bg)"
             >
               <span className="icon icon-md">logout</span>
               <span className="text-[8px] font-sans font-semibold tracking-[0.04em] leading-none">EXIT</span>
@@ -93,7 +84,8 @@ export default function RoomSidebar({
           <Tooltip content="Help" placement="left">
           <button
             onClick={() => onTabChange('help')}
-            className={`w-9 h-9 rounded-lg border-none cursor-pointer flex items-center justify-center ${activeTab === 'help' ? 'bg-(--accent-bg)' : 'bg-transparent'}`}
+            aria-label="Help"
+            className={`w-9 h-9 rounded-lg border-none cursor-pointer flex items-center justify-center ${activeTab === 'help' ? 'bg-(--accent-bg)' : 'bg-transparent hover:bg-(--row-hover)'}`}
           >
             <span className="icon icon-md">help</span>
           </button>
@@ -187,9 +179,7 @@ function PlayersPanel({ members, onlineUsers, myRole, myCharacter, myCharacters,
         <div className="border-t border-(--border-main) pt-3 mt-3">
           <button
             onClick={onLeaveCampaign}
-            className="w-full py-2 px-3 rounded-lg border border-(--danger) bg-transparent text-(--danger) text-[13px] font-sans cursor-pointer flex items-center gap-2 [transition:background_0.12s]"
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            className="btn-danger-soft w-full justify-center"
           >
             <span className="icon icon-sm">exit_to_app</span>
             Quit Campaign
