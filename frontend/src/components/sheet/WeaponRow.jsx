@@ -66,9 +66,8 @@ export default function WeaponRow({ weapon, index, onChange, onDelete, editable 
           <Tooltip content="Delete weapon">
           <button
             onClick={() => onDelete(index)}
-            className="text-xs px-1.5 py-0.5 rounded transition-all text-(--danger) border-[1px_solid_var(--danger)33]"
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--danger)22'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            aria-label="Delete weapon"
+            className="btn-icon-ghost btn-icon-danger btn-icon-xs">
             <span className="icon icon-sm">close</span>
           </button>
           </Tooltip>
