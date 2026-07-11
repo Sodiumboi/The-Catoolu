@@ -144,7 +144,7 @@ export default function HandoutViewer({ handout, onClose }) {
         >
           {viewStack.length > 1 && (
             <Tooltip content="Back">
-            <button onClick={() => setViewStack(prev => prev.slice(0, -1))} className={toolbarBtnCss}>
+            <button onClick={() => setViewStack(prev => prev.slice(0, -1))} aria-label="Back" className={toolbarBtnCss}>
               <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
             </Tooltip>
@@ -154,12 +154,12 @@ export default function HandoutViewer({ handout, onClose }) {
             {current.title}
           </span>
           <Tooltip content="Save to device">
-          <button onClick={handleDownload} className={toolbarBtnCss}>
+          <button onClick={handleDownload} aria-label="Save to device" className={toolbarBtnCss}>
             <span className="material-symbols-outlined text-xl">download</span>
           </button>
           </Tooltip>
           <Tooltip content="Close (Esc)">
-          <button onClick={onClose} className={toolbarBtnCss}>
+          <button onClick={onClose} aria-label="Close" className={toolbarBtnCss}>
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
           </Tooltip>
@@ -210,7 +210,8 @@ export default function HandoutViewer({ handout, onClose }) {
           {viewStack.length > 1 && (
             <button
               onClick={() => setViewStack(prev => prev.slice(0, -1))}
-              className="bg-none border-none cursor-pointer text-(--text-muted) p-0 shrink-0"
+              aria-label="Back"
+              className="btn-icon-ghost btn-icon-sm shrink-0"
             >
               <span className="material-symbols-outlined text-lg">arrow_back</span>
             </button>
@@ -223,7 +224,8 @@ export default function HandoutViewer({ handout, onClose }) {
           </span>
           <button
             onClick={onClose}
-            className="bg-none border-none cursor-pointer text-(--text-muted) p-0.5 shrink-0"
+            aria-label="Close"
+            className="btn-icon-ghost btn-icon-sm shrink-0"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
