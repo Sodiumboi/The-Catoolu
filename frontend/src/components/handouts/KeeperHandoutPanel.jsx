@@ -406,9 +406,8 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
             <Tooltip content="Sort">
             <button
               onClick={() => setSortOpen(o => !o)}
-              className="p-1 rounded-[7px] border border-(--border-main) bg-(--bg-card) text-(--text-muted) cursor-pointer flex items-center [transition:color_0.1s,border-color_0.1s]"
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-main)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+              aria-label="Sort"
+              className="p-1 rounded-[7px] border border-(--border-main) bg-(--bg-card) text-(--text-muted) cursor-pointer flex items-center [transition:color_0.1s,border-color_0.1s] hover:border-(--accent) hover:text-(--accent)"
             >
               <span className="icon icon-sm">swap_vert</span>
             </button>
@@ -421,9 +420,7 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
                     <button
                       key={opt.value}
                       onClick={() => { handleSortChange(opt.value); setSortOpen(false); }}
-                      className={`block w-full text-left py-1.5 px-3 text-[12px] font-sans cursor-pointer whitespace-nowrap [transition:background_0.1s] ${sortBy === opt.value ? 'text-(--accent) bg-(--accent-bg) font-medium' : 'text-(--text-primary) bg-transparent'}`}
-                      onMouseEnter={e => { if (sortBy !== opt.value) e.currentTarget.style.background = 'var(--bg-section-hd)'; }}
-                      onMouseLeave={e => { if (sortBy !== opt.value) e.currentTarget.style.background = 'transparent'; }}
+                      className={`block w-full text-left py-1.5 px-3 text-[12px] font-sans cursor-pointer whitespace-nowrap [transition:background_0.1s] ${sortBy === opt.value ? 'text-(--accent) bg-(--accent-bg) font-medium' : 'text-(--text-primary) bg-transparent hover:bg-(--bg-section-hd)'}`}
                     >
                       {opt.label}
                     </button>
@@ -525,15 +522,7 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
       {/* Manage link */}
       <button
         onClick={() => navigate('/keeper', { state: { openCampaignUuid: campaignUuid, openTab: 'handouts', returnTo: `/campaign/${campaignUuid}` } })}
-        className="w-full py-2 px-3 border border-dashed border-(--border-main) rounded-lg bg-transparent text-(--text-muted) font-sans text-xs cursor-pointer flex items-center justify-center gap-1.25"
-        onMouseEnter={e => {
-          e.currentTarget.style.borderColor = 'var(--accent)';
-          e.currentTarget.style.color = 'var(--accent)';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.borderColor = 'var(--border-main)';
-          e.currentTarget.style.color = 'var(--text-muted)';
-        }}
+        className="w-full py-2 px-3 border border-dashed border-(--border-main) rounded-lg bg-transparent text-(--text-muted) font-sans text-xs cursor-pointer flex items-center justify-center gap-1.25 hover:border-(--accent) hover:text-(--accent)"
       >
         <span className="material-symbols-outlined text-sm">library_books</span>
         Manage handout library
