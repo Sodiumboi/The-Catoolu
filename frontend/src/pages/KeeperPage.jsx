@@ -70,7 +70,7 @@ export default function KeeperPage() {
   // If a campaign is selected, show the detail view
   if (selected) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="h-screen flex flex-col">
         <NavBar activeTab="keeper" />
         <KeeperCampaignDetail
           campaign={selected}
