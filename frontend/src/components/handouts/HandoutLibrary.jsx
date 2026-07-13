@@ -36,9 +36,9 @@ const typeIcon = (type) =>
 // ─── shared classNames ────────────────────────────────────────
 const inputCss = 'w-full py-2 px-2.75 rounded-lg border border-(--border-input) bg-(--bg-input) text-(--text-primary) font-sans text-[13px] outline-none! box-border block';
 
-const primaryBtnCss = 'py-1.5 px-4 rounded-[7px] border-none bg-(--color-primary) text-white font-sans text-xs font-medium cursor-pointer';
+const primaryBtnCss = 'btn-primary btn-primary-sm';
 
-const cancelBtnCss = 'py-1.5 px-4 rounded-[7px] border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-xs cursor-pointer';
+const cancelBtnCss = 'btn-secondary btn-secondary-sm';
 
 const miniBtnCss = 'py-0.5 px-1.75 rounded border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-[10px] cursor-pointer';
 
@@ -259,10 +259,10 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
                 <div className="py-0.75 px-1.25 text-[10px] font-sans text-(--text-primary) overflow-hidden text-ellipsis whitespace-nowrap bg-(--bg-card)">
                   {h.title}
                 </div>
-                {/* Selected checkmark */}
+                {/* Selected checkmark — matches the shared Checkbox / HandoutCard style */}
                 {isSel && (
-                  <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-(--color-primary) flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[11px] text-white">check</span>
+                  <div className="absolute top-1 right-1 w-4 h-4 rounded-[5px] bg-(--color-primary) flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[10px]! leading-none text-white">check</span>
                   </div>
                 )}
               </div>
@@ -300,7 +300,8 @@ function BundleForm({ initial, allHandouts, onSave, onCancel, saving }) {
                   </span>
                   <button
                     onClick={() => toggleItem(uuid)}
-                    className="bg-none border-none cursor-pointer text-(--text-faint) py-0 px-0.5 text-base leading-none"
+                    aria-label="Remove"
+                    className="bg-none border-none cursor-pointer text-(--text-faint) py-0 px-0.5 text-base leading-none hover:text-(--danger)"
                   >
                     ×
                   </button>
@@ -367,9 +368,7 @@ function HandoutCard({ handout, onEdit, onDelete, selectionMode = false, isSelec
   return (
     <div
       onClick={handleClick}
-      className={`relative bg-(--bg-card) rounded-[10px] overflow-hidden cursor-pointer [transition:border-color_0.12s,box-shadow_0.12s] ${isSelected ? 'border-2 border-(--color-primary) shadow-[0_0_0_2px_var(--accent-bg)]' : 'border border-(--border-main)'}`}
-      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
-      onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = 'var(--border-main)'; }}
+      className={`relative bg-(--bg-card) rounded-[10px] overflow-hidden cursor-pointer [transition:border-color_0.12s,box-shadow_0.12s] ${isSelected ? 'border-2 border-(--color-primary) shadow-[0_0_0_2px_var(--accent-bg)]' : 'border border-(--border-main) hover:border-(--color-primary)'}`}
     >
       {selectionMode && (
         <div className={`absolute top-1 left-1 z-1 w-4 h-4 rounded-[5px] flex items-center justify-center border ${isSelected ? 'bg-(--color-primary) border-(--color-primary)' : 'bg-(--bg-card) border-(--border-main)'}`}>
@@ -397,7 +396,7 @@ function HandoutCard({ handout, onEdit, onDelete, selectionMode = false, isSelec
           <div className="flex gap-1">
             <button
               onClick={e => { e.stopPropagation(); onDelete(handout); }}
-              className={`${miniBtnCss} text-(--danger) border-(--danger)`}
+              className={`${miniBtnCss} text-(--danger) border-(--danger) hover:bg-[color-mix(in_srgb,var(--danger)_12%,transparent)]`}
             >
               delete
             </button>
@@ -422,9 +421,7 @@ function BundleCard({ bundle, onEdit, onDelete }) {
       {/* Main card */}
       <div
         onClick={() => onEdit(bundle)}
-        className="relative z-2 bg-(--bg-card) border-[0.5px] border-(--color-primary-mid) rounded-[10px] overflow-hidden cursor-pointer [transition:border-color_0.12s]"
-        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-primary-mid)'}
+        className="relative z-2 bg-(--bg-card) border-[0.5px] border-(--color-primary-mid) rounded-[10px] overflow-hidden cursor-pointer [transition:border-color_0.12s] hover:border-(--color-primary)"
       >
         {/* Preview */}
         <div className="h-16 bg-(--accent-bg) flex items-center justify-center gap-2">
@@ -456,7 +453,7 @@ function BundleCard({ bundle, onEdit, onDelete }) {
           </div>
           <button
             onClick={e => { e.stopPropagation(); onDelete(bundle); }}
-            className={`${miniBtnCss} text-(--danger) border-(--danger) shrink-0`}
+            className={`${miniBtnCss} text-(--danger) border-(--danger) shrink-0 hover:bg-[color-mix(in_srgb,var(--danger)_12%,transparent)]`}
           >
             delete
           </button>
@@ -508,10 +505,8 @@ function CreateTile({ icon, label, hint, chevron, innerRef, onClick, style }) {
     <button
       ref={innerRef}
       onClick={onClick}
-      className="bg-transparent border-2 border-dashed border-(--border-main) rounded-[var(--radius-squircle,12px)] text-(--text-muted) cursor-pointer w-full h-full min-h-20 box-border p-2.5 flex flex-col items-center justify-center gap-1 font-sans [transition:border-color_0.15s,color_0.15s]"
+      className="bg-transparent border-2 border-dashed border-(--border-main) rounded-[var(--radius-squircle,12px)] text-(--text-muted) cursor-pointer w-full h-full min-h-20 box-border p-2.5 flex flex-col items-center justify-center gap-1 font-sans [transition:border-color_0.15s,color_0.15s] hover:border-(--border-focus) hover:text-(--accent)"
       style={style}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-focus)'; e.currentTarget.style.color = 'var(--accent)'; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-main)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
     >
       <span className="flex items-center gap-1.25">
         <span className="material-symbols-outlined text-[22px]">{icon}</span>
@@ -545,27 +540,19 @@ function AddMenu({ anchorRef, onImage, onText, onClose }) {
     };
   }, [anchorRef, onClose]);
 
-  const itemCss = 'flex items-center gap-2 w-full py-2 px-3 text-[13px] text-(--text-primary) font-sans cursor-pointer bg-transparent border-none text-left';
+  const itemCss = 'flex items-center gap-2 w-full py-2 px-3 text-[13px] text-(--text-primary) font-sans cursor-pointer bg-transparent border-none text-left hover:bg-(--accent-bg)';
 
   return (
     <div
       ref={menuRef}
       className="absolute top-[calc(100%+6px)] left-0 z-60 min-w-42 bg-(--bg-card) border border-(--border-main) rounded-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.18)] overflow-hidden [animation:hl-form-in_0.12s_ease]"
     >
-      <button
-        className={itemCss} onClick={onImage}
-        onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-      >
+      <button className={itemCss} onClick={onImage}>
         <span className="material-symbols-outlined text-lg text-(--accent)">image</span>
         <span className="flex-1">Image</span>
         <span className="text-[10px] text-(--text-faint)">upload</span>
       </button>
-      <button
-        className={itemCss} onClick={onText}
-        onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-      >
+      <button className={itemCss} onClick={onText}>
         <span className="material-symbols-outlined text-lg text-(--accent)">text_fields</span>
         <span className="flex-1">Text</span>
       </button>
@@ -608,7 +595,8 @@ function StagingModal({ items, onRemove, onCancel, onUpload, uploading }) {
               <button
                 onClick={() => onRemove(it.id)}
                 disabled={uploading}
-                className="bg-none border-none cursor-pointer text-(--text-faint) text-lg leading-none py-0 px-0.5"
+                aria-label="Remove"
+                className="bg-none border-none cursor-pointer text-(--text-faint) text-lg leading-none py-0 px-0.5 hover:text-(--danger)"
               >
                 ×
               </button>
@@ -619,7 +607,7 @@ function StagingModal({ items, onRemove, onCancel, onUpload, uploading }) {
           <button
             onClick={onUpload}
             disabled={uploading || validCount === 0}
-            className={`${primaryBtnCss} ${validCount === 0 ? 'opacity-50' : 'opacity-100'}`}
+            className={primaryBtnCss}
           >
             {uploading ? 'Uploading…' : `Upload ${validCount} file${validCount !== 1 ? 's' : ''}`}
           </button>
@@ -1065,14 +1053,14 @@ export default function HandoutLibrary({ campaignUuid }) {
               <button
                 onClick={handleBulkDelete}
                 disabled={bulkBusy || selected.size === 0}
-                className={`py-1 px-2.5 rounded-[7px] border-none bg-(--danger) text-white font-sans text-[11px] font-medium ${(bulkBusy || selected.size === 0) ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
+                className="btn-danger btn-danger-sm"
               >
                 {bulkBusy ? 'Deleting…' : `Delete ${selected.size}`}
               </button>
               <button
                 onClick={exitSelectionMode}
                 disabled={bulkBusy}
-                className={`py-1 px-2.5 rounded-[7px] border border-(--border-main) bg-transparent text-(--text-muted) font-sans text-[11px] ${bulkBusy ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
+                className="btn-secondary btn-secondary-sm"
               >
                 Cancel
               </button>
