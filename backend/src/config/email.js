@@ -131,7 +131,7 @@ async function sendPasswordResetEmail(toEmail, resetToken, username) {
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
 
   await transporter.sendMail({
-    from:    `"The Catoolu" <${process.env.EMAIL_FROM}>`,
+    from:    'The Catoolu <noreply@catoolu.quest>',
     to:      toEmail,
     subject: 'Reset your The Catoolu password',
     html:    buildResetEmailHtml(username, resetUrl),
