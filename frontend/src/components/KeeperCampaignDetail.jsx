@@ -198,11 +198,15 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
         </div>
       </div>
 
-      {/* Right content */}
+      {/* Right content — transparent so the fixed BackgroundArt shows through
+          AROUND the opaque content cards (per BackgroundArt occlusion rule,
+          all-context #13). The bottom edge fades out so the scroll end
+          dissolves into the footer instead of a hard cut. */}
       <div style={{
         flex:1, overflowY:'auto', overscrollBehavior:'contain',
         padding:'28px 32px',
-        background:'var(--bg-page)',
+        WebkitMaskImage: 'linear-gradient(to bottom, #000 calc(100% - 48px), transparent 100%)',
+        maskImage:       'linear-gradient(to bottom, #000 calc(100% - 48px), transparent 100%)',
       }}>
 
         {/* ── INFO TAB ── */}
