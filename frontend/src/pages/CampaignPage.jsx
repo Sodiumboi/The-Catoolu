@@ -234,7 +234,7 @@ function CampaignCard({ campaign, onEnter }) {
           {isKeeper && (
             <Tooltip content="Manage in Keeper tab">
             <button
-              onClick={e => { e.stopPropagation(); navigate('/keeper', { state: { openCampaignUuid: campaign.uuid } }); }}
+              onClick={e => { e.stopPropagation(); navigate('/keeper', { state: { openCampaignUuid: campaign.uuid, returnTo: '/campaign' } }); }}
               aria-label="Manage in Keeper tab"
               className="btn-icon btn-icon-accent"
             >
