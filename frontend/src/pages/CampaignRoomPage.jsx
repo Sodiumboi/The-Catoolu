@@ -1056,7 +1056,7 @@ export default function CampaignRoomPage() {
     <div className="min-h-screen bg-(--bg-page) flex flex-col items-center justify-center gap-4 font-sans">
       <p className="text-(--danger)">{error}</p>
       <button onClick={() => navigate('/campaign')}
-              className="text-(--accent) bg-none border-none cursor-pointer">
+              className="btn-back">
         ← Back to Campaigns
       </button>
     </div>
@@ -1168,7 +1168,8 @@ export default function CampaignRoomPage() {
                 </div>
                 <button
                   onClick={handleToggleAfk}
-                  className={`py-1 px-3 rounded-lg border border-(--border-main) font-sans text-xs cursor-pointer [transition:all_0.15s] shrink-0 ${afk ? 'bg-(--bg-section-hd) text-[#EAB308]' : 'bg-transparent text-(--text-muted)'}`}
+                  className={`btn-toggle ${afk ? 'active' : ''}`}
+                  style={afk ? { color: '#EAB308' } : undefined}
                 >
                   {afk ? "I'm Here" : "I'm Not Here"}
                 </button>
@@ -1189,22 +1190,11 @@ export default function CampaignRoomPage() {
                       else if (notesState === 'bubble') setNotesState('full');
                       else setNotesState('bubble');
                     }}
-                    className={`flex items-center gap-1.25 py-1 px-3 rounded-full font-sans text-xs font-medium cursor-pointer [transition:all_0.15s] whitespace-nowrap ${notesState !== 'closed' ? 'border border-(--accent) bg-(--accent-bg) text-(--accent)' : 'border border-(--border-main) bg-transparent text-(--text-muted)'}`}
-                    onMouseEnter={e => {
-                      if (notesState === 'closed') {
-                        e.currentTarget.style.borderColor = 'var(--accent)';
-                        e.currentTarget.style.color = 'var(--accent)';
-                      }
-                    }}
-                    onMouseLeave={e => {
-                      if (notesState === 'closed') {
-                        e.currentTarget.style.borderColor = 'var(--border-main)';
-                        e.currentTarget.style.color = 'var(--text-muted)';
-                      }
-                    }}
+                    className={`btn-toggle ${notesState !== 'closed' ? 'active' : ''}`}
+                    style={notesState !== 'closed' ? { background: 'color-mix(in srgb, var(--color-primary) 15%, transparent)' } : undefined}
                   >
                     Notes
-                    <span className="material-symbols-outlined text-[15px]">open_in_new</span>
+                    <span className="icon icon-sm">open_in_new</span>
                   </button>
                   </Tooltip>
                 }
@@ -1250,9 +1240,7 @@ export default function CampaignRoomPage() {
                     <>
                       <button
                         onClick={() => setKeeperSheetModal(null)}
-                        className="sticky top-0 z-10 flex items-center gap-1 w-full bg-(--bg-page) border-none border-b border-(--border-main) cursor-pointer text-(--text-muted) font-sans text-xs py-2.5 px-3 box-border"
-                        onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                        className="btn-ghost sticky top-0 z-10 w-full bg-(--bg-page)! border-b! border-(--border-main) box-border"
                       >
                         <span className="icon icon-sm">arrow_back</span>
                         Back to Investigators
@@ -1277,9 +1265,7 @@ export default function CampaignRoomPage() {
                           <Tooltip content="Request a roll from all players">
                           <button
                             onClick={e => handleOpenAllRollPicker(e.currentTarget.getBoundingClientRect())}
-                            className="flex items-center gap-1 py-0.75 px-2 rounded-md border border-(--border-main) bg-none text-(--text-muted) font-sans text-[11px] cursor-pointer [transition:all_0.1s]"
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-main)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                            className="btn-secondary btn-secondary-sm"
                           >
                             <span className="icon icon-sm">casino</span>
                             Request All
