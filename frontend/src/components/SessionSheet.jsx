@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import SessionTrackedStat from './SessionTrackedStat';
 import SessionSkillRow    from './SessionSkillRow';
 import SkillRollPopup     from './SkillRollPopup';
@@ -24,15 +25,7 @@ function StatButton({ label, value, sublabel, advMode, disMode, onRoll }) {
       <button
         ref={buttonRef}
         onClick={handleClick}
-        className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg border border-(--border-main) bg-(--bg-input) cursor-pointer [transition:all_0.1s] min-w-13"
-        onMouseEnter={e => {
-          e.currentTarget.style.background  = 'var(--accent-bg)';
-          e.currentTarget.style.borderColor = 'var(--accent)';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.background  = 'var(--bg-input)';
-          e.currentTarget.style.borderColor = 'var(--border-main)';
-        }}
+        className="flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg border border-(--border-main) bg-(--bg-input) cursor-pointer [transition:all_0.1s] min-w-13 hover:bg-(--accent-bg) hover:border-(--accent)"
       >
         {/* accentLabel stays as style={accentLabel} — imported plain style object from tokens.js, which stays untouched per the Batch 5b decision */}
         <span style={accentLabel}>
@@ -428,15 +421,7 @@ function WeaponButton({ weapon, skills, advMode, disMode, onAttack }) {
       <button
         ref={buttonRef}
         onClick={() => { setButtonRect(buttonRef.current?.getBoundingClientRect() ?? null); setShowPopup(true); }}
-        className="w-full flex items-center justify-between py-1.5 px-2 rounded-md border border-(--border-main) bg-(--bg-input) cursor-pointer font-sans [transition:all_0.1s] text-left"
-        onMouseEnter={e => {
-          e.currentTarget.style.background  = 'var(--accent-bg)';
-          e.currentTarget.style.borderColor = 'var(--accent)';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.background  = 'var(--bg-input)';
-          e.currentTarget.style.borderColor = 'var(--border-main)';
-        }}
+        className="w-full flex items-center justify-between py-1.5 px-2 rounded-md border border-(--border-main) bg-(--bg-input) cursor-pointer font-sans [transition:all_0.1s] text-left hover:bg-(--accent-bg) hover:border-(--accent)"
       >
         <div>
           <div className="text-xs text-(--text-primary) font-medium">
@@ -482,6 +467,7 @@ const btnCssBase = 'w-8 h-8 rounded-lg border border-(--border-main) bg-(--bg-in
 
 // ── Money Field ────────────────────────────────────────────────
 const MONEY_POPUP_W = 160;
+const MONEY_POPUP_ESTIMATED_H = 160; // approx rendered height (label + value + input + step row + padding)
 const stripDollar = v => String(v || '').replace(/^\$+/, '').trim();
 
 function MoneyField({ label, value, onSave }) {
@@ -510,9 +496,15 @@ function MoneyField({ label, value, onSave }) {
     setStep('');
   };
 
+  const spaceBelow = btnRect ? window.innerHeight - btnRect.bottom - 8 : 0;
+  const spaceAbove = btnRect ? btnRect.top - 8 : 0;
+  const openAbove  = btnRect && spaceBelow < MONEY_POPUP_ESTIMATED_H && spaceAbove > spaceBelow;
+
   const popupStyle = btnRect ? {
     position:  'fixed',
-    top:       btnRect.bottom + 6,
+    top:       openAbove
+      ? Math.max(8, btnRect.top - 8 - MONEY_POPUP_ESTIMATED_H)
+      : Math.min(btnRect.bottom + 6, window.innerHeight - MONEY_POPUP_ESTIMATED_H - 8),
     left:      Math.max(
       MONEY_POPUP_W / 2 + 8,
       Math.min(window.innerWidth - MONEY_POPUP_W / 2 - 8, btnRect.left + btnRect.width / 2)
@@ -530,14 +522,12 @@ function MoneyField({ label, value, onSave }) {
       <button
         ref={btnRef}
         onClick={handleOpen}
-        className="min-w-22.5 py-1.25 px-2 rounded-md border-2 border-(--border-focus) bg-(--bg-input) text-(--text-primary) font-sans text-xs text-center cursor-pointer [transition:border-color_0.15s] whitespace-nowrap"
-        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
-        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-focus)'}
+        className="min-w-22.5 py-1.25 px-2 rounded-md border-2 border-(--border-focus) bg-(--bg-input) text-(--text-primary) font-sans text-xs text-center cursor-pointer [transition:border-color_0.15s] whitespace-nowrap hover:border-(--accent)"
       >
         {current ? '$' + current : '—'}
       </button>
 
-      {showPopup && (
+      {showPopup && createPortal(
         <>
           <div className="fixed inset-0 z-90" onClick={handleClose} />
           {/* This whole block stays inline — popupStyle is runtime DOM-measured geometry (btnRect/window.innerWidth), merged into one style object with the rest of the popup's visual properties; not splitting it apart to keep the geometry exception isolated and unambiguous */}
@@ -578,19 +568,18 @@ function MoneyField({ label, value, onSave }) {
             {/* − + */}
             <div className="flex gap-1.5 items-center">
               {/* color stays inline — btnCssBase's only data-driven parameter, everything else is static */}
-              <button onClick={() => applyStep(-1)} className={btnCssBase} style={{ color: 'var(--danger)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
+              <button onClick={() => applyStep(-1)} className={`${btnCssBase} hover:bg-(--danger-bg)`} style={{ color: 'var(--danger)' }}
+                aria-label={`Decrease ${label}`}>
                 <span className="icon icon-sm">remove</span>
               </button>
-              <button onClick={() => applyStep(+1)} className={btnCssBase} style={{ color: 'var(--success)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-bg)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
+              <button onClick={() => applyStep(+1)} className={`${btnCssBase} hover:bg-(--accent-bg)`} style={{ color: 'var(--success)' }}
+                aria-label={`Increase ${label}`}>
                 <span className="icon icon-sm">add</span>
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
