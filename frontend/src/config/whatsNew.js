@@ -6,7 +6,7 @@ export const WHATS_NEW = [
   {
     version: '1.6e',
     codename: 'Nakamaru',
-    date: 'June 2026',
+    date: 'July 2026',
     sections: [
       {
         heading: 'Room Connection Persistence',

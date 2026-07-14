@@ -25,3 +25,5 @@ process/
 .vc-installed-files
 AGENTS.md
 CLAUDE.md
+graphify-out/
+.claudeignore
