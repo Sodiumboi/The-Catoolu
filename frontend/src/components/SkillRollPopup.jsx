@@ -17,10 +17,19 @@ export default function SkillRollPopup({
     ? Math.max(POPUP_W / 2 + 8, Math.min(window.innerWidth - POPUP_W / 2 - 8, rawCenter))
     : 0;
 
-  const POPUP_ESTIMATED_H = 100; // approx rendered height (label + buttons + padding)
+  const POPUP_ESTIMATED_H = 80; // measured: 20 padding + ~26 label row + ~34 button row
   const spaceBelow = buttonRect ? window.innerHeight - buttonRect.bottom - 8 : 0;
   const spaceAbove = buttonRect ? buttonRect.top - 8 : 0;
-  const openAbove  = buttonRect && spaceBelow < POPUP_ESTIMATED_H && spaceAbove > spaceBelow;
+  // Flip above only when there's both insufficient room below AND genuinely enough
+  // room above (spaceAbove >= estimated height) to fit the popup. Without the
+  // second check, a button near the top of the viewport (e.g. an early skill row
+  // in a scrolled list) could satisfy "more room above than below" while still not
+  // having enough absolute room above — the Math.max(8, ...) floor below would then
+  // snap the popup to the literal viewport top, far from the clicked row.
+  const openAbove  = buttonRect
+    && spaceBelow < POPUP_ESTIMATED_H
+    && spaceAbove > spaceBelow
+    && spaceAbove >= POPUP_ESTIMATED_H;
 
   const fixedStyle = buttonRect ? {
     position:  'fixed',
