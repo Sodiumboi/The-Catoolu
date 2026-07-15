@@ -6,8 +6,7 @@ export default function StepAgeUpdates({ state, initStep4, useEduRoll, applyAgeD
   const { eduRolls, deductionTotal, eligibleStats, eduPenalty } = getAgeUpdates(age);
 
   // Local state for the current pending d100 roll result
-  const [rollResult, setRollResult]   = useState(null); // { d100, passed, eduAtRoll }
-  const [rollPoints, setRollPoints]   = useState(1);
+  const [rollResult, setRollResult]   = useState(null); // { d100, passed, eduAtRoll, eduGain }
 
   useEffect(() => { initStep4(); }, []);
 
@@ -15,14 +14,14 @@ export default function StepAgeUpdates({ state, initStep4, useEduRoll, applyAgeD
   const deductRemaining = deductionTotal - ageDeductionSpent;
 
   function doRoll() {
-    const d100   = Math.floor(Math.random() * 100) + 1;
-    const passed = d100 > stats.EDU;
-    setRollResult({ d100, passed, eduAtRoll: stats.EDU });
-    setRollPoints(1);
+    const d100    = Math.floor(Math.random() * 100) + 1;
+    const passed  = d100 > stats.EDU;
+    const eduGain = passed ? Math.floor(Math.random() * 10) + 1 : 0;
+    setRollResult({ d100, passed, eduAtRoll: stats.EDU, eduGain });
   }
 
   function commitRoll() {
-    useEduRoll(rollResult.passed ? rollPoints : 0);
+    useEduRoll(rollResult.eduGain);
     setRollResult(null);
   }
 
@@ -110,13 +109,8 @@ export default function StepAgeUpdates({ state, initStep4, useEduRoll, applyAgeD
                 {rollResult.passed && (
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="font-sans text-[0.85rem] text-(--text-secondary)">
-                      Points to add (1–10):
+                      1d10 improvement roll: <strong>+{rollResult.eduGain}</strong>
                     </span>
-                    <div className="flex items-center gap-[0.4rem]">
-                      <button className={btn(rollPoints <= 1)} onClick={() => setRollPoints(p => Math.max(1, p - 1))}>−1</button>
-                      <span className="min-w-8 text-center font-serif text-[1.2rem] font-bold">{rollPoints}</span>
-                      <button className={btn(rollPoints >= 10)} onClick={() => setRollPoints(p => Math.min(10, p + 1))}>+1</button>
-                    </div>
                     <button className={btn(false, 'primary')} onClick={commitRoll}>Apply</button>
                   </div>
                 )}

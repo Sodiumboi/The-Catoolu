@@ -1,4 +1,6 @@
 import { getSkillBase } from '../../utils/skillBases';
+import { calcDamageBonusAndBuild, calcMove } from '../../utils/cocCalculations';
+import { getAgeUpdates } from '../../hooks/useCharacterCreation';
 import ALL_SKILLS from '../../utils/allSkills';
 
 const ERA_LABELS = {
@@ -53,7 +55,7 @@ export default function StepReview({ state }) {
 
   // Occupation skills — always shown (compulsory + specialty picks)
   const occSkillRows = occSkillSet.map(skill => {
-    const base         = getSkillBase(skill, edu);
+    const base         = getSkillBase(skill, edu, stats.DEX);
     const occAbove     = occupationSkills?.[skill] ?? 0;
     const personalAbove = personalSkills?.[skill] ?? 0;
     return { skill, base, occAbove, personalAbove, total: base + occAbove + personalAbove };
@@ -64,7 +66,7 @@ export default function StepReview({ state }) {
   const personalSimpleRows = simpleNames
     .filter(s => !occSkillSet.includes(s) && (personalSkills?.[s] ?? 0) > 0)
     .map(s => {
-      const base = getSkillBase(s, edu);
+      const base = getSkillBase(s, edu, stats.DEX);
       return { skill: s, base, total: base + personalSkills[s] };
     });
 
@@ -83,17 +85,9 @@ export default function StepReview({ state }) {
   const hp     = Math.floor((stats.CON + stats.SIZ) / 10);
   const mp     = Math.floor(stats.POW / 5);
   const sanity = stats.POW;
-  const move   = stats.DEX < stats.SIZ && stats.STR < stats.SIZ ? 7
-               : stats.DEX > stats.SIZ && stats.STR > stats.SIZ ? 9
-               : 8;
-  const dbBuild = (() => {
-    const sum = stats.STR + stats.SIZ;
-    if (sum <= 64)  return { db: '-2',   build: -2 };
-    if (sum <= 84)  return { db: '-1',   build: -1 };
-    if (sum <= 124) return { db: 'None', build:  0 };
-    if (sum <= 164) return { db: '+1D4', build:  1 };
-    return             { db: '+1D6',   build:  2 };
-  })();
+  const { movePenalty } = getAgeUpdates(age);
+  const move   = Math.max(1, calcMove(stats.STR, stats.DEX, stats.SIZ) - movePenalty);
+  const dbBuild = calcDamageBonusAndBuild(stats.STR, stats.SIZ);
 
   const cardClass = "bg-(--bg-card) border border-(--border-main) rounded-[10px] py-5 px-6 mb-5";
 
@@ -159,7 +153,7 @@ export default function StepReview({ state }) {
               { label: 'MP',           value: mp },
               { label: 'Sanity',       value: sanity },
               { label: 'Move',         value: move },
-              { label: 'Damage Bonus', value: dbBuild.db },
+              { label: 'Damage Bonus', value: dbBuild.damageBonus },
               { label: 'Build',        value: dbBuild.build },
               { label: 'Dodge',        value: Math.floor(stats.DEX / 2) },
             ].map(({ label, value }) => (

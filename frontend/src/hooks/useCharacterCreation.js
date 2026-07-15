@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import apiClient from '../api/client';
 import { getSkillBase } from '../utils/skillBases';
+import { calcDamageBonusAndBuild, calcMove } from '../utils/cocCalculations';
 import ALL_SKILLS from '../utils/allSkills';
 import OCCUPATIONS from '../utils/occupations';
 
@@ -24,6 +25,8 @@ const INITIAL_STATE = {
     CON: 15, APP: 15, POW: 15,
     SIZ: 40, EDU: 40,
   },
+  luck: null,
+  luckInitialized: false,
 
   // Step 4 — Age Updates
   step4Initialized: false,
@@ -37,13 +40,13 @@ const INITIAL_STATE = {
 
 // ── Age rules helper (exported so step component can use it) ──
 export function getAgeUpdates(age) {
-  if (age <= 19) return { eduRolls: 0, deductionTotal: 5,  eligibleStats: ['STR', 'SIZ'],              eduPenalty: 5  };
-  if (age <= 39) return { eduRolls: 1, deductionTotal: 0,  eligibleStats: [],                          eduPenalty: 0  };
-  if (age <= 49) return { eduRolls: 2, deductionTotal: 5,  eligibleStats: ['STR', 'CON', 'DEX', 'APP'], eduPenalty: 0  };
-  if (age <= 59) return { eduRolls: 3, deductionTotal: 10, eligibleStats: ['STR', 'CON', 'DEX', 'APP'], eduPenalty: 0  };
-  if (age <= 69) return { eduRolls: 4, deductionTotal: 20, eligibleStats: ['STR', 'CON', 'DEX', 'APP'], eduPenalty: 0  };
-  if (age <= 79) return { eduRolls: 4, deductionTotal: 40, eligibleStats: ['STR', 'CON', 'DEX', 'APP'], eduPenalty: 0  };
-  return             { eduRolls: 4, deductionTotal: 80, eligibleStats: ['STR', 'CON', 'DEX', 'APP'], eduPenalty: 0  };
+  if (age <= 19) return { eduRolls: 0, deductionTotal: 5,  eligibleStats: ['STR', 'SIZ'],        eduPenalty: 5, appReduction: 0,  movePenalty: 0 };
+  if (age <= 39) return { eduRolls: 1, deductionTotal: 0,  eligibleStats: [],                     eduPenalty: 0, appReduction: 0,  movePenalty: 0 };
+  if (age <= 49) return { eduRolls: 2, deductionTotal: 5,  eligibleStats: ['STR', 'CON', 'DEX'],  eduPenalty: 0, appReduction: 5,  movePenalty: 1 };
+  if (age <= 59) return { eduRolls: 3, deductionTotal: 10, eligibleStats: ['STR', 'CON', 'DEX'],  eduPenalty: 0, appReduction: 10, movePenalty: 2 };
+  if (age <= 69) return { eduRolls: 4, deductionTotal: 20, eligibleStats: ['STR', 'CON', 'DEX'],  eduPenalty: 0, appReduction: 15, movePenalty: 3 };
+  if (age <= 79) return { eduRolls: 4, deductionTotal: 40, eligibleStats: ['STR', 'CON', 'DEX'],  eduPenalty: 0, appReduction: 20, movePenalty: 4 };
+  return              { eduRolls: 4, deductionTotal: 80, eligibleStats: ['STR', 'CON', 'DEX'],  eduPenalty: 0, appReduction: 25, movePenalty: 5 };
 }
 
 // ── Validation per step ────────────────────────────────────
@@ -153,13 +156,24 @@ export default function useCharacterCreation() {
   const initStep4 = useCallback(() => {
     setState(s => {
       if (s.step4Initialized) return s;
-      const { eduPenalty } = getAgeUpdates(s.age);
-      const newEDU = eduPenalty > 0 ? Math.max(1, s.stats.EDU - eduPenalty) : s.stats.EDU;
+      const { eduPenalty, appReduction } = getAgeUpdates(s.age);
+      const newEDU = eduPenalty   > 0 ? Math.max(1, s.stats.EDU - eduPenalty)   : s.stats.EDU;
+      const newAPP = appReduction > 0 ? Math.max(0, s.stats.APP - appReduction) : s.stats.APP;
       return {
         ...s,
         step4Initialized: true,
-        stats: { ...s.stats, EDU: newEDU },
+        stats: { ...s.stats, EDU: newEDU, APP: newAPP },
       };
+    });
+  }, []);
+
+  // Called once when step 3 mounts — rolls Luck (3d6×5), independent of Sanity
+  const initLuck = useCallback(() => {
+    setState(s => {
+      if (s.luckInitialized) return s;
+      const roll3d6 = () => Math.floor(Math.random() * 6) + 1;
+      const luck = (roll3d6() + roll3d6() + roll3d6()) * 5;
+      return { ...s, luckInitialized: true, luck };
     });
   }, []);
 
@@ -273,11 +287,11 @@ export default function useCharacterCreation() {
       const crAbove = occupationSkills?.['Credit Rating'] ?? 0;
       totals['Credit Rating'] = selectedOccupation.creditRating.min + crAbove;
       allOccSkills.forEach(skill => {
-        totals[skill] = getSkillBase(skill, edu) + (occupationSkills?.[skill] ?? 0);
+        totals[skill] = getSkillBase(skill, edu, stats.DEX) + (occupationSkills?.[skill] ?? 0);
       });
     }
     Object.entries(personalSkills ?? {}).forEach(([k, v]) => {
-      const total = getSkillBase(k, edu) + v;
+      const total = getSkillBase(k, edu, stats.DEX) + v;
       totals[k] = Math.max(totals[k] ?? 0, total);
     });
     Object.entries(personalSkillSlots ?? {}).forEach(([group, slots]) => {
@@ -321,7 +335,7 @@ export default function useCharacterCreation() {
 
     ALL_SKILLS.forEach(entry => {
       if (typeof entry === 'string') {
-        const v = totals[entry] ?? getSkillBase(entry, edu);
+        const v = totals[entry] ?? getSkillBase(entry, edu, stats.DEX);
         skillRows.push(mkRow(entry, undefined, v, occSkillNames.has(entry)));
         addedKeys.add(entry);
       } else {
@@ -364,11 +378,9 @@ export default function useCharacterCreation() {
     const mp    = Math.floor(stats.POW / 5);
     const san   = stats.POW;
     const dodge = Math.floor(stats.DEX / 2);
-    const sum   = stats.STR + stats.SIZ;
-    const db    = sum <= 64  ? '-2'   : sum <= 84  ? '-1'   : sum <= 124 ? 'None' : sum <= 164 ? '+1D4' : '+1D6';
-    const build = sum <= 64  ? -2     : sum <= 84  ? -1     : sum <= 124 ? 0      : sum <= 164 ? 1      : 2;
-    const move  = stats.STR < stats.SIZ && stats.DEX < stats.SIZ ? 7
-                : stats.STR > stats.SIZ && stats.DEX > stats.SIZ ? 9 : 8;
+    const { damageBonus: db, build } = calcDamageBonusAndBuild(stats.STR, stats.SIZ);
+    const { movePenalty } = getAgeUpdates(state.age);
+    const move  = Math.max(1, calcMove(stats.STR, stats.DEX, stats.SIZ) - movePenalty);
     const occPts  = selectedOccupation?.skillPointsCalc(stats) ?? 0;
     const persPts = 2 * stats.INT;
 
@@ -407,8 +419,8 @@ export default function useCharacterCreation() {
           CON: String(stats.CON), APP: String(stats.APP), POW: String(stats.POW),
           SIZ: String(stats.SIZ), EDU: String(stats.EDU),
           Move:                       String(move),
-          Luck:                       String(san),
-          LuckMax:                    String(san),
+          Luck:                       String(state.luck),
+          LuckMax:                    String(state.luck),
           Sanity:                     String(san),
           SanityStart:                String(san),
           SanityMax:                  '99',
@@ -452,6 +464,7 @@ export default function useCharacterCreation() {
     setField,
     setStat,
     initStep4,
+    initLuck,
     useEduRoll,
     applyAgeDeduction,
     setOccupation,

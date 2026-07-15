@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import {
   calcMaxHP, calcMaxMP, calcDamageBonusAndBuild,
   calcDodge, calcMove, calcHalf, calcFifth,
 } from '../../utils/cocCalculations';
+import { getAgeUpdates } from '../../hooks/useCharacterCreation';
 
 const STAT_MINS = { STR: 15, DEX: 15, INT: 40, CON: 15, APP: 15, POW: 15, SIZ: 40, EDU: 40 };
 const STAT_MAX  = 90;
@@ -75,8 +77,10 @@ function DerivedRow({ label, value }) {
   );
 }
 
-export default function StepCharacteristics({ state, setStat }) {
+export default function StepCharacteristics({ state, setStat, initLuck }) {
   const { stats } = state;
+
+  useEffect(() => { initLuck(); }, []);
 
   const used    = pointsUsed(stats);
   const balance = POOL - used;
@@ -85,7 +89,8 @@ export default function StepCharacteristics({ state, setStat }) {
   const mp   = calcMaxMP(stats.POW);
   const { damageBonus, build } = calcDamageBonusAndBuild(stats.STR, stats.SIZ);
   const dodge = calcDodge(stats.DEX);
-  const move  = calcMove(stats.STR, stats.DEX, stats.SIZ);
+  const { movePenalty } = getAgeUpdates(state.age);
+  const move  = Math.max(1, calcMove(stats.STR, stats.DEX, stats.SIZ) - movePenalty);
 
   function resetAll() {
     Object.keys(STAT_MINS).forEach(k => setStat(k, STAT_MINS[k]));

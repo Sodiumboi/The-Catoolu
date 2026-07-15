@@ -2,6 +2,8 @@
 // occupationSkills and personalSkills store points ABOVE base.
 // Actual displayed value = base + allocated.
 
+import { calcDodge } from './cocCalculations';
+
 const BASES = {
   'Cthulhu Mythos': 0,
   'Accounting': 5,
@@ -55,16 +57,22 @@ const BASES = {
 };
 
 // Any skill not in BASES gets 1% base, except Own Language = EDU.
-export function getSkillBase(skillName, edu) {
+export function getSkillBase(skillName, edu, dex) {
+  if (skillName === 'Dodge') return calcDodge(dex);
   if (/^Language \(Own\)/.test(skillName) || skillName === 'Own Language' || skillName === 'Language Own') return edu;
   if (BASES[skillName] !== undefined) return BASES[skillName];
   // Pattern matches for generic names
   if (/^Art\/Craft/.test(skillName))       return 5;
   if (/^Fighting/.test(skillName))         return 25;
   if (/^Firearms/.test(skillName))         return 20;
+  if (/^Survival/.test(skillName))         return 10;
   if (/^Pilot/.test(skillName))            return 1;
   if (/^Science/.test(skillName))          return 1;
   if (/^Other Language/.test(skillName))   return 1;
   if (/^Language/.test(skillName))         return 1;
   return 1;
 }
+
+// Weapon skills that come pre-filled at their base value for the player
+// (no allocation needed to reach base). Used to render a "pre-filled" badge.
+export const PREFILLED_WEAPON_SKILLS = ['Fighting (Brawl)', 'Firearms (Handgun)', 'Firearms (Rifle/Shotgun)'];

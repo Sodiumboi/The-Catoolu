@@ -12,6 +12,7 @@ const ALL_SKILLS = [
   'Climb',
   'Cthulhu Mythos',
   'Disguise',
+  'Dodge',
   'Drive Auto',
   'Electrical Repair',
   'Fast Talk',

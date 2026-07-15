@@ -1,5 +1,5 @@
 import ALL_SKILLS from '../../utils/allSkills';
-import { getSkillBase } from '../../utils/skillBases';
+import { getSkillBase, PREFILLED_WEAPON_SKILLS } from '../../utils/skillBases';
 
 // ── Shared sub-components ────────────────────────────────────────────────────
 function Btns({ atMin, atMax, onAdjust }) {
@@ -99,6 +99,9 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
                 ({base}%)
               </span>
               <span className="ml-[0.4rem] text-[0.63rem] font-sans font-bold uppercase tracking-[0.04em] text-(--color-primary-dark) bg-(--color-primary-light) py-[0.05rem] px-[0.3rem] rounded-full">{occAbove > 0 ? `occ +${occAbove}` : 'occ'}</span>
+              {PREFILLED_WEAPON_SKILLS.includes(skill) && (
+                <span className="ml-[0.3rem] text-[0.63rem] font-sans font-bold uppercase tracking-[0.04em] text-(--color-primary-dark) bg-(--color-primary-light) py-[0.05rem] px-[0.3rem] rounded-full">pre-filled</span>
+              )}
             </div>
             <Btns atMin={personalAbove <= 0} atMax={personalAbove >= maxPersonal} onAdjust={adjust} />
             <Val total={total} />
@@ -243,13 +246,6 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
           )}
         </div>
 
-        {/* Dodge — auto-calculated, read-only */}
-        <SimpleRow
-          name="Dodge" base={Math.floor(stats.DEX / 2)}
-          occAbove={0} personalAbove={0} cap={skillsCap}
-          onChange={() => {}} isOcc={false} readOnly
-        />
-
         {/* Unified display list */}
         {displayList.map((entry, i) => {
           if (typeof entry === 'object') {
@@ -273,7 +269,7 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
 
           const skill         = entry;
           const isOcc         = occSkillSet.includes(skill);
-          const base          = getSkillBase(skill, edu);
+          const base          = getSkillBase(skill, edu, stats.DEX);
           const occAbove      = isOcc ? (occupationSkills?.[skill] ?? 0) : 0;
           const personalAbove = personalSkills?.[skill] ?? 0;
 

@@ -1,6 +1,6 @@
-import { getSkillBase } from '../../utils/skillBases';
+import { getSkillBase, PREFILLED_WEAPON_SKILLS } from '../../utils/skillBases';
 
-function SkillRow({ name, base, aboveBase, cap, onChange, isSpecialty, baseLabel }) {
+function SkillRow({ name, base, aboveBase, cap, onChange, isSpecialty, baseLabel, isPrefilled }) {
   const total    = base + aboveBase;
   const half     = Math.floor(total / 2);
   const fifth    = Math.floor(total / 5);
@@ -25,6 +25,9 @@ function SkillRow({ name, base, aboveBase, cap, onChange, isSpecialty, baseLabel
         </span>
         {isSpecialty && (
           <span className="ml-[0.4rem] text-[0.68rem] text-(--color-primary) font-sans font-bold uppercase tracking-[0.04em]">specialty</span>
+        )}
+        {isPrefilled && (
+          <span className="ml-[0.4rem] text-[0.68rem] text-(--color-primary) font-sans font-bold uppercase tracking-[0.04em]">pre-filled</span>
         )}
       </div>
 
@@ -189,9 +192,10 @@ export default function StepOccupationSkills({
             onChange={v => setOccupationSkillValue('Credit Rating', v)}
           />
           {skillSet.map(skill => {
-            const base     = getSkillBase(skill, edu);
+            const base     = getSkillBase(skill, edu, stats.DEX);
             const aboveBase = occupationSkills[skill] ?? 0;
             const isSpecialty = chosenSpecialties.includes(skill);
+            const isPrefilled = PREFILLED_WEAPON_SKILLS.includes(skill);
             return (
               <SkillRow
                 key={skill}
@@ -200,6 +204,7 @@ export default function StepOccupationSkills({
                 aboveBase={aboveBase}
                 cap={skillsCap}
                 isSpecialty={isSpecialty}
+                isPrefilled={isPrefilled}
                 onChange={v => setOccupationSkillValue(skill, v)}
               />
             );
