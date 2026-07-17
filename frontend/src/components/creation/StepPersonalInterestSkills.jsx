@@ -1,5 +1,6 @@
-import ALL_SKILLS from '../../utils/allSkills';
-import { getSkillBase, PREFILLED_WEAPON_SKILLS } from '../../utils/skillBases';
+import ALL_SKILLS, { SKILL_ERAS } from '../../utils/allSkills';
+import { getSkillBase, PREFILLED_WEAPON_SKILLS, MISC_ONLY_SKILLS } from '../../utils/skillBases';
+import { resolveCompulsoryChoices } from '../../utils/compulsoryChoices';
 
 // ── Shared sub-components ────────────────────────────────────────────────────
 function Btns({ atMin, atMax, onAdjust }) {
@@ -59,7 +60,7 @@ function SimpleRow({ name, base, occAbove, personalAbove, cap, onChange, isOcc, 
 }
 
 // ── Group box (fieldset-style card) ─────────────────────────────────────────
-function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occupationSkills, personalSkills, setPersonalSkillValue, setPersonalSlot }) {
+function GroupBox({ groupDef, occSkillsForGroup, occSkillSet, freeSlots, occGrantedFreeSlot = false, edu, skillsCap, occupationSkills, personalSkills, setPersonalSkillValue, setPersonalSlot }) {
   const { group, defaultName } = groupDef;
   const isOwn  = group === 'Language (Own)';
   const isMisc = group === 'Misc';
@@ -82,6 +83,7 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
       {occSkillsForGroup.map(skill => {
         // "Fighting (Brawl)" → "Brawl";  "Firearms" (generic) → "Firearms"
         const specialty = skill.includes('(') ? skill.slice(group.length + 2, -1) : skill;
+        const isGrantedByOcc = occSkillSet.includes(skill);
         const base        = getSkillBase(skill, edu);
         const occAbove    = occupationSkills?.[skill] ?? 0;
         const personalAbove = personalSkills?.[skill] ?? 0;
@@ -98,7 +100,9 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
               <span className="font-sans text-[0.68rem] text-(--text-faint) ml-[0.3rem]">
                 ({base}%)
               </span>
-              <span className="ml-[0.4rem] text-[0.63rem] font-sans font-bold uppercase tracking-[0.04em] text-(--color-primary-dark) bg-(--color-primary-light) py-[0.05rem] px-[0.3rem] rounded-full">{occAbove > 0 ? `occ +${occAbove}` : 'occ'}</span>
+              {isGrantedByOcc && (
+                <span className="ml-[0.4rem] text-[0.63rem] font-sans font-bold uppercase tracking-[0.04em] text-(--color-primary-dark) bg-(--color-primary-light) py-[0.05rem] px-[0.3rem] rounded-full">{occAbove > 0 ? `occ +${occAbove}` : 'occ'}</span>
+              )}
               {PREFILLED_WEAPON_SKILLS.includes(skill) && (
                 <span className="ml-[0.3rem] text-[0.63rem] font-sans font-bold uppercase tracking-[0.04em] text-(--color-primary-dark) bg-(--color-primary-light) py-[0.05rem] px-[0.3rem] rounded-full">pre-filled</span>
               )}
@@ -111,8 +115,9 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
 
       {/* Free-name slots */}
       {freeSlots.map((slot, si) => {
+        const hasName   = Boolean(slot.name);
         const fullName  = isMisc ? (slot.name || 'Custom') : `${group} (${slot.name || defaultName || 'x'})`;
-        const base      = isOwn ? edu : getSkillBase(fullName, edu);
+        const base      = isOwn ? edu : (hasName ? getSkillBase(fullName, edu) : 1);
         const maxAbove  = Math.max(0, skillsCap - base);
         const total     = base + slot.above;
         const adjust    = (d) => setPersonalSlot(group, si, { name: slot.name, above: Math.max(0, Math.min(maxAbove, slot.above + d)) });
@@ -130,6 +135,9 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
               <span className="font-sans text-[0.68rem] text-(--text-faint) ml-[0.3rem]">
                 ({base}%)
               </span>
+              {occGrantedFreeSlot && (
+                <span className="ml-[0.4rem] text-[0.63rem] font-sans font-bold uppercase tracking-[0.04em] text-(--color-primary-dark) bg-(--color-primary-light) py-[0.05rem] px-[0.3rem] rounded-full">occ</span>
+              )}
             </div>
             <Btns atMin={slot.above <= 0} atMax={slot.above >= maxAbove} onAdjust={adjust} />
             <Val total={total} />
@@ -142,7 +150,7 @@ function GroupBox({ groupDef, occSkillsForGroup, freeSlots, edu, skillsCap, occu
 
 // ── Main component ───────────────────────────────────────────────────────────
 export default function StepPersonalInterestSkills({ state, setPersonalSkillValue, setPersonalSlot }) {
-  const { selectedOccupation: occ, occupationSkills, specialtyChoices, personalSkills, personalSkillSlots, stats, skillsCap } = state;
+  const { selectedOccupation: occ, occupationSkills, specialtyChoices, chosenCompulsoryChoices, personalSkills, personalSkillSlots, stats, skillsCap, gameEra } = state;
   const edu      = stats.EDU;
   const totalPts = stats.INT * 2;
 
@@ -153,8 +161,11 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
         return Array.isArray(sel) ? sel : [sel];
       })
     : [];
+  const resolvedChoiceSkills = occ
+    ? resolveCompulsoryChoices(occ.compulsoryChoices ?? [], chosenCompulsoryChoices)
+    : [];
   const occSkillSet = occ
-    ? [...new Set([...occ.compulsorySkills, ...chosenSpecialties])]
+    ? [...new Set([...occ.compulsorySkills, ...resolvedChoiceSkills, ...chosenSpecialties])]
     : [];
 
   // Group prefixes — occ skills matching these go inside the group box, not the flat list
@@ -167,6 +178,7 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
   const extraOccSkills = occSkillSet.filter(s => {
     if (simpleNames.includes(s)) return false;
     if (s === 'Own Language' || s === 'Language Own') return false;
+    if (MISC_ONLY_SKILLS.includes(s)) return false; // rendered inside the Misc box, not as a catch-all row
     return !groupPrefixes.some(p => s.startsWith(p + ' (') || s === p);
   });
 
@@ -180,15 +192,24 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
   const allSpecialtyOptions = occ
     ? [...new Set(occ.specialtyChoices.flatMap(g => g.from))]
     : [];
-  const unchosenOptions = allSpecialtyOptions.filter(s => !occSkillSet.includes(s));
+  const unchosenOptions = allSpecialtyOptions.filter(s => !occSkillSet.includes(s) && !PREFILLED_WEAPON_SKILLS.includes(s));
 
   function getGroupOccSkills(groupDef) {
-    if (groupDef.group === 'Language (Own)') {
-      return occSkillSet.filter(s =>
-        s.startsWith('Language (Own)') || s === 'Own Language' || s === 'Language Own'
-      );
-    }
-    return occSkillSet.filter(s => s.startsWith(groupDef.group + ' (') || s === groupDef.group);
+    // Language (Own) must NEVER render as a fixed, locked "Own Language" label row.
+    // The player always names their native tongue via the editable free slot (which
+    // shows an "occ" badge when the occupation grants it), so the fixed-row path
+    // (occSkillsForGroup) must receive nothing for this group.
+    const base = groupDef.group === 'Language (Own)'
+      ? []
+      : occSkillSet.filter(s => s.startsWith(groupDef.group + ' (') || s === groupDef.group);
+    const alwaysShown = PREFILLED_WEAPON_SKILLS.filter(s => s.startsWith(groupDef.group + ' ('));
+    // Misc-only skills (e.g. Animal Handling, Diving) have no standalone row; when an
+    // occupation grants one, show it as a named row inside the Misc box. Unlike weapon
+    // skills, these only appear when actually occupation-granted (present in occSkillSet).
+    const miscOnly = groupDef.group === 'Misc'
+      ? MISC_ONLY_SKILLS.filter(s => occSkillSet.includes(s))
+      : [];
+    return [...new Set([...base, ...alwaysShown, ...miscOnly])];
   }
 
   function getUnchosenForGroup(groupDef) {
@@ -199,7 +220,13 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
 
   function getFreeSlots(groupDef, occCount) {
     const unchosen   = getUnchosenForGroup(groupDef);
-    const freeCount  = Math.max(1, groupDef.slots - occCount);
+    // Multi-slot groups keep a floor of 1 so players can add specialties beyond
+    // what the occupation already granted. Single-slot groups (only Language (Own))
+    // must NOT floor at 1 — once the occupation grants the group's one slot, there
+    // are zero additional free slots (an investigator has exactly one native language).
+    const freeCount  = groupDef.slots > 1
+      ? Math.max(1, groupDef.slots - occCount)
+      : Math.max(0, groupDef.slots - occCount);
     const totalSlots = Math.max(freeCount, unchosen.length);
     const raw        = personalSkillSlots?.[groupDef.group] ?? [];
     return Array.from({ length: totalSlots }, (_, i) => ({
@@ -251,12 +278,19 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
           if (typeof entry === 'object') {
             const occForGroup = getGroupOccSkills(entry);
             const freeSlots   = getFreeSlots(entry, occForGroup.length);
+            // Language (Own)'s single editable slot shows an "occ" badge when the
+            // occupation grants the native language. Scoped to this group only —
+            // every other group's free slots are optional personal picks (no badge).
+            const occGrantedFreeSlot = entry.group === 'Language (Own)'
+              && (occSkillSet.includes('Own Language') || occSkillSet.includes('Language Own'));
             return (
               <GroupBox
                 key={entry.group}
                 groupDef={entry}
                 occSkillsForGroup={occForGroup}
+                occSkillSet={occSkillSet}
                 freeSlots={freeSlots}
+                occGrantedFreeSlot={occGrantedFreeSlot}
                 edu={edu}
                 skillsCap={skillsCap}
                 occupationSkills={occupationSkills}
@@ -269,6 +303,7 @@ export default function StepPersonalInterestSkills({ state, setPersonalSkillValu
 
           const skill         = entry;
           const isOcc         = occSkillSet.includes(skill);
+          if (SKILL_ERAS[skill] && !SKILL_ERAS[skill].includes(gameEra) && !isOcc) return null;
           const base          = getSkillBase(skill, edu, stats.DEX);
           const occAbove      = isOcc ? (occupationSkills?.[skill] ?? 0) : 0;
           const personalAbove = personalSkills?.[skill] ?? 0;

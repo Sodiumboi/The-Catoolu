@@ -7,6 +7,7 @@ import { calcDodge } from './cocCalculations';
 const BASES = {
   'Cthulhu Mythos': 0,
   'Accounting': 5,
+  'Animal Handling': 5,
   'Anthropology': 1,
   'Appraise': 5,
   'Archaeology': 1,
@@ -16,9 +17,12 @@ const BASES = {
   'Art/Craft (Photography)': 5,
   'Charm': 15,
   'Climb': 20,
+  'Computer Use': 5,
   'Disguise': 5,
+  'Diving': 1,
   'Drive Auto': 20,
   'Electrical Repair': 10,
+  'Electronics': 1,
   'Fast Talk': 5,
   'Fighting (Brawl)': 25,
   'Fighting (Bayonet)': 15,
@@ -76,3 +80,8 @@ export function getSkillBase(skillName, edu, dex) {
 // Weapon skills that come pre-filled at their base value for the player
 // (no allocation needed to reach base). Used to render a "pre-filled" badge.
 export const PREFILLED_WEAPON_SKILLS = ['Fighting (Brawl)', 'Firearms (Handgun)', 'Firearms (Rifle/Shotgun)'];
+
+// Skills that exist in BASES but not in ALL_SKILLS — they have no standalone row
+// and are meant to be typed into a free Misc slot. When granted by an occupation,
+// they must render as a named row INSIDE the Misc box (not as a stray catch-all row).
+export const MISC_ONLY_SKILLS = ['Animal Handling', 'Diving'];

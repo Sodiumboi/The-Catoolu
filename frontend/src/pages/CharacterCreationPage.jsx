@@ -42,6 +42,7 @@ export default function CharacterCreationPage() {
     applyAgeDeduction,
     setOccupation,
     setSpecialtyChoice,
+    setCompulsoryChoice,
     setOccupationSkillValue,
     setPersonalSkillValue,
     setPersonalSlot,
@@ -94,7 +95,7 @@ export default function CharacterCreationPage() {
       case 3: return <StepCharacteristics state={state} setStat={setStat} initLuck={initLuck} />;
       case 4: return <StepAgeUpdates state={state} initStep4={initStep4} useEduRoll={useEduRoll} applyAgeDeduction={applyAgeDeduction} />;
       case 5: return <StepOccupationPicker state={state} setOccupation={setOccupation} />;
-      case 6: return <StepOccupationSkills state={state} setSpecialtyChoice={setSpecialtyChoice} setOccupationSkillValue={setOccupationSkillValue} />;
+      case 6: return <StepOccupationSkills state={state} setSpecialtyChoice={setSpecialtyChoice} setOccupationSkillValue={setOccupationSkillValue} setCompulsoryChoice={setCompulsoryChoice} />;
       case 7: return <StepPersonalInterestSkills state={state} setPersonalSkillValue={setPersonalSkillValue} setPersonalSlot={setPersonalSlot} />;
       case 8: return <StepReview state={state} />;
       default: return null;

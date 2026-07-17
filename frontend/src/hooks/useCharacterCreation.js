@@ -2,8 +2,9 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import apiClient from '../api/client';
 import { getSkillBase } from '../utils/skillBases';
 import { calcDamageBonusAndBuild, calcMove } from '../utils/cocCalculations';
-import ALL_SKILLS from '../utils/allSkills';
+import ALL_SKILLS, { SKILL_ERAS } from '../utils/allSkills';
 import OCCUPATIONS from '../utils/occupations';
+import { resolveCompulsoryChoices, isCompulsoryChoiceEntryResolved } from '../utils/compulsoryChoices';
 
 const INITIAL_STATE = {
   currentStep: 1,
@@ -76,6 +77,11 @@ function canProceedFromStep(step, state) {
         return count >= group.pick;
       });
       if (!allSpecialtiesPicked) return false;
+      // All compulsory-choice entries must be fully resolved (vacuously true if none exist)
+      const allChoicesResolved = (occ.compulsoryChoices ?? []).every((entry, i) =>
+        isCompulsoryChoiceEntryResolved(entry, state.chosenCompulsoryChoices?.[i])
+      );
+      if (!allChoicesResolved) return false;
       const totalPts = occ.skillPointsCalc(state.stats);
       const spent = Object.values(state.occupationSkills ?? {}).reduce((s, v) => s + v, 0);
       return spent <= totalPts;
@@ -206,13 +212,20 @@ export default function useCharacterCreation() {
   }, []);
 
   const setOccupation = useCallback((occupation) => {
-    setState(s => ({ ...s, selectedOccupation: occupation, specialtyChoices: {}, occupationSkills: {} }));
+    setState(s => ({ ...s, selectedOccupation: occupation, specialtyChoices: {}, chosenCompulsoryChoices: {}, occupationSkills: {} }));
   }, []);
 
   const setSpecialtyChoice = useCallback((groupIndex, skillId) => {
     setState(s => ({
       ...s,
       specialtyChoices: { ...s.specialtyChoices, [groupIndex]: skillId },
+    }));
+  }, []);
+
+  const setCompulsoryChoice = useCallback((entryIndex, value) => {
+    setState(s => ({
+      ...s,
+      chosenCompulsoryChoices: { ...s.chosenCompulsoryChoices, [entryIndex]: value },
     }));
   }, []);
 
@@ -263,7 +276,7 @@ export default function useCharacterCreation() {
   }, [state]);
 
   const saveCharacter = useCallback(async () => {
-    const { stats, selectedOccupation, occupationSkills, specialtyChoices, personalSkills, personalSkillSlots } = state;
+    const { stats, selectedOccupation, occupationSkills, specialtyChoices, chosenCompulsoryChoices, personalSkills, personalSkillSlots } = state;
     const edu = stats.EDU;
 
     // ── Build occupation skill name sets ──────────────────────
@@ -274,8 +287,11 @@ export default function useCharacterCreation() {
           return Array.isArray(sel) ? sel : [sel];
         })
       : [];
+    const resolvedChoiceSkills = selectedOccupation
+      ? resolveCompulsoryChoices(selectedOccupation.compulsoryChoices ?? [], chosenCompulsoryChoices)
+      : [];
     const allOccSkills = selectedOccupation
-      ? [...new Set([...selectedOccupation.compulsorySkills, ...chosenSpecialties])]
+      ? [...new Set([...selectedOccupation.compulsorySkills, ...resolvedChoiceSkills, ...chosenSpecialties])]
       : [];
     const occSkillNames = new Set(allOccSkills);
     if (selectedOccupation) occSkillNames.add('Credit Rating');
@@ -288,6 +304,10 @@ export default function useCharacterCreation() {
       totals['Credit Rating'] = selectedOccupation.creditRating.min + crAbove;
       allOccSkills.forEach(skill => {
         totals[skill] = getSkillBase(skill, edu, stats.DEX) + (occupationSkills?.[skill] ?? 0);
+        // Defensive floor: Cthulhu Mythos must always start at its base (0%) and can never be
+        // raised during creation — Sanity = 99 − Cthulhu Mythos depends on this invariant.
+        // Ignore any occupation points that may have been spent on it, regardless of source.
+        if (skill === 'Cthulhu Mythos') totals[skill] = getSkillBase('Cthulhu Mythos', edu, stats.DEX);
       });
     }
     Object.entries(personalSkills ?? {}).forEach(([k, v]) => {
@@ -335,6 +355,7 @@ export default function useCharacterCreation() {
 
     ALL_SKILLS.forEach(entry => {
       if (typeof entry === 'string') {
+        if (SKILL_ERAS[entry] && !SKILL_ERAS[entry].includes(state.gameEra) && !occSkillNames.has(entry)) return;
         const v = totals[entry] ?? getSkillBase(entry, edu, stats.DEX);
         skillRows.push(mkRow(entry, undefined, v, occSkillNames.has(entry)));
         addedKeys.add(entry);
@@ -353,17 +374,42 @@ export default function useCharacterCreation() {
           });
         } else {
           const prefix = groupName + ' (';
-          Object.keys(totals).forEach(k => {
-            if (addedKeys.has(k)) return;
-            if (k.startsWith(prefix) && k.endsWith(')')) {
-              named.push({ key: k, subskill: k.slice(prefix.length, -1) });
-              addedKeys.add(k);
-            }
-          });
+          const occGrantsOwnLanguage = groupName === 'Language (Own)'
+            && (occSkillNames.has('Own Language') || occSkillNames.has('Language Own'));
+
+          if (occGrantsOwnLanguage) {
+            // The occupation grants the investigator's native language. Collapse the
+            // occupation grant, the player-typed name, and any spent points into
+            // exactly ONE row. The name lives in the group's single editable slot
+            // (personalSkillSlots); fall back to the group's defaultName when the
+            // player left it untouched. Base is EDU per CoC 7e.
+            const slot          = personalSkillSlots?.['Language (Own)']?.[0];
+            const ownName       = slot?.name?.trim() || entry.defaultName || 'Own Language';
+            const occAbove      = occupationSkills?.['Own Language'] ?? occupationSkills?.['Language Own'] ?? 0;
+            const personalAbove = slot?.above ?? 0;
+            named.push({ subskill: ownName, value: edu + occAbove + personalAbove, isOcc: true });
+            // Retire the sentinel token(s) and any `Language (Own) (X)` totals key so
+            // the loop below can't emit a duplicate second row for this one slot.
+            Object.keys(totals).forEach(k => {
+              if (k === 'Own Language' || k === 'Language Own' || (k.startsWith(prefix) && k.endsWith(')'))) {
+                addedKeys.add(k);
+              }
+            });
+          } else {
+            Object.keys(totals).forEach(k => {
+              if (addedKeys.has(k)) return;
+              if (k.startsWith(prefix) && k.endsWith(')')) {
+                named.push({ key: k, subskill: k.slice(prefix.length, -1) });
+                addedKeys.add(k);
+              }
+            });
+          }
         }
 
-        named.forEach(({ key, subskill }) => {
-          skillRows.push(mkRow(groupName, subskill, totals[key] ?? 1, occSkillNames.has(key)));
+        named.forEach(({ key, subskill, value, isOcc }) => {
+          const v   = value !== undefined ? value : (totals[key] ?? 1);
+          const occ = isOcc  !== undefined ? isOcc : occSkillNames.has(key);
+          skillRows.push(mkRow(groupName, subskill, v, occ));
         });
 
         // Pad to the group's slot count with empty entries
@@ -469,6 +515,7 @@ export default function useCharacterCreation() {
     applyAgeDeduction,
     setOccupation,
     setSpecialtyChoice,
+    setCompulsoryChoice,
     setOccupationSkillValue,
     setPersonalSkillValue,
     setPersonalSlot,

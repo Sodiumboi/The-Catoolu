@@ -1,4 +1,12 @@
+import { useState } from 'react';
 import { getSkillBase, PREFILLED_WEAPON_SKILLS } from '../../utils/skillBases';
+import { getSkillCatalog } from '../../utils/allSkills';
+import {
+  resolveCompulsoryChoices,
+  isCompulsoryChoiceEntryResolved,
+  describeCompulsoryChoiceEntry,
+} from '../../utils/compulsoryChoices';
+import CompulsoryChoiceModal from './CompulsoryChoiceModal';
 
 function SkillRow({ name, base, aboveBase, cap, onChange, isSpecialty, baseLabel, isPrefilled }) {
   const total    = base + aboveBase;
@@ -62,21 +70,28 @@ export default function StepOccupationSkills({
   state,
   setSpecialtyChoice,
   setOccupationSkillValue,
+  setCompulsoryChoice,
 }) {
-  const { selectedOccupation: occ, specialtyChoices, occupationSkills, stats, skillsCap } = state;
+  const { selectedOccupation: occ, specialtyChoices, chosenCompulsoryChoices, occupationSkills, stats, skillsCap, gameEra } = state;
+  const [openChoiceIndex, setOpenChoiceIndex] = useState(null);
 
   if (!occ) return <p className="font-sans text-(--text-muted)">No occupation selected.</p>;
 
   const totalPts = occ.skillPointsCalc(stats);
   const edu      = stats.EDU;
 
-  // Build full skill list: compulsory + chosen specialties (deduped)
+  // Build full skill list: compulsory + resolved compulsory-choices + chosen specialties (deduped)
   const chosenSpecialties = occ.specialtyChoices.flatMap((_, i) => {
     const sel = specialtyChoices[i];
     if (!sel) return [];
     return Array.isArray(sel) ? sel : [sel];
   });
-  const skillSet = [...new Set([...occ.compulsorySkills, ...chosenSpecialties])];
+  const compulsoryChoices = occ.compulsoryChoices ?? [];
+  const resolvedChoiceSkills = resolveCompulsoryChoices(compulsoryChoices, chosenCompulsoryChoices);
+  const skillSet = [...new Set([...occ.compulsorySkills, ...resolvedChoiceSkills, ...chosenSpecialties])];
+
+  const allChoicesResolved = compulsoryChoices.length === 0 ||
+    compulsoryChoices.every((entry, i) => isCompulsoryChoiceEntryResolved(entry, chosenCompulsoryChoices?.[i]));
 
   // Points spent (above base) across all occupation skills + credit rating
   const crAbove = occupationSkills['Credit Rating'] ?? 0;
@@ -154,6 +169,58 @@ export default function StepOccupationSkills({
           )}
         </div>
       )}
+
+      {/* ── A2) Occupation Choices ── */}
+      {compulsoryChoices.length > 0 && (
+        <div className="bg-(--bg-page) border border-(--border-main) rounded-[10px] py-[1.1rem] px-5 mb-5">
+          <h3 className="font-sans text-[0.8rem] font-bold uppercase tracking-[0.06em] text-(--text-muted) mb-[0.9rem]">
+            Occupation Choices
+          </h3>
+          <div className="flex flex-col gap-[0.75rem]">
+            {compulsoryChoices.map((entry, i) => {
+              const value    = chosenCompulsoryChoices?.[i];
+              const resolved = isCompulsoryChoiceEntryResolved(entry, value);
+              const summary  = resolved
+                ? (entry.type === 'either' ? value : (Array.isArray(value) ? value.join(', ') : ''))
+                : 'Not yet chosen';
+              return (
+                <div key={i} className="flex items-center gap-3 flex-wrap">
+                  <div className="flex-1 min-w-[200px]">
+                    <p className="font-sans text-[0.82rem] text-(--text-secondary)">
+                      {describeCompulsoryChoiceEntry(entry, gameEra)}
+                    </p>
+                    <p className={`font-sans text-[0.76rem] ${resolved ? 'text-(--color-primary-dark)' : 'text-(--text-faint)'}`}>
+                      {summary}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setOpenChoiceIndex(i)}
+                    className={resolved ? 'btn-secondary' : 'btn-primary'}
+                  >
+                    {resolved ? 'Change' : 'Choose skill…'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          {!allChoicesResolved && (
+            <p className="mt-3 font-sans text-[0.78rem] text-(--warning)">
+              Make all occupation choices above — they'll appear in the skill list below.
+            </p>
+          )}
+        </div>
+      )}
+
+      <CompulsoryChoiceModal
+        key={openChoiceIndex}
+        open={openChoiceIndex !== null}
+        entry={openChoiceIndex !== null ? compulsoryChoices[openChoiceIndex] : null}
+        currentValue={openChoiceIndex !== null ? chosenCompulsoryChoices?.[openChoiceIndex] : undefined}
+        skillCatalog={getSkillCatalog()}
+        gameEra={gameEra}
+        onConfirm={value => { setCompulsoryChoice(openChoiceIndex, value); setOpenChoiceIndex(null); }}
+        onCancel={() => setOpenChoiceIndex(null)}
+      />
 
       {/* ── B) Point Allocation ── */}
       <div className="bg-(--bg-card) border border-(--border-main) rounded-[10px] overflow-hidden">

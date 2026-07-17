@@ -1,7 +1,8 @@
-import { getSkillBase } from '../../utils/skillBases';
+import { getSkillBase, PREFILLED_WEAPON_SKILLS } from '../../utils/skillBases';
 import { calcDamageBonusAndBuild, calcMove } from '../../utils/cocCalculations';
 import { getAgeUpdates } from '../../hooks/useCharacterCreation';
-import ALL_SKILLS from '../../utils/allSkills';
+import ALL_SKILLS, { SKILL_ERAS } from '../../utils/allSkills';
+import { resolveCompulsoryChoices } from '../../utils/compulsoryChoices';
 
 const ERA_LABELS = {
   classic_1920s: 'Classic 1920s',
@@ -32,6 +33,7 @@ export default function StepReview({ state }) {
     stats,
     selectedOccupation: occ,
     specialtyChoices,
+    chosenCompulsoryChoices,
     occupationSkills,
     personalSkills,
     personalSkillSlots,
@@ -46,8 +48,11 @@ export default function StepReview({ state }) {
         return Array.isArray(sel) ? sel : [sel];
       })
     : [];
+  const resolvedChoiceSkills = occ
+    ? resolveCompulsoryChoices(occ.compulsoryChoices ?? [], chosenCompulsoryChoices)
+    : [];
   const occSkillSet = occ
-    ? [...new Set([...occ.compulsorySkills, ...chosenSpecialties])]
+    ? [...new Set([...occ.compulsorySkills, ...resolvedChoiceSkills, ...chosenSpecialties])]
     : [];
   const crAbove = occupationSkills?.['Credit Rating'] ?? 0;
   const cr      = occ ? occ.creditRating.min + crAbove : null;
@@ -63,8 +68,8 @@ export default function StepReview({ state }) {
 
   // Simple personal skills (above base, not already in occ list)
   const simpleNames = ALL_SKILLS.filter(e => typeof e === 'string');
-  const personalSimpleRows = simpleNames
-    .filter(s => !occSkillSet.includes(s) && (personalSkills?.[s] ?? 0) > 0)
+  const personalSimpleRows = [...simpleNames, ...PREFILLED_WEAPON_SKILLS]
+    .filter(s => !occSkillSet.includes(s) && (personalSkills?.[s] ?? 0) > 0 && !(SKILL_ERAS[s] && !SKILL_ERAS[s].includes(gameEra)))
     .map(s => {
       const base = getSkillBase(s, edu, stats.DEX);
       return { skill: s, base, total: base + personalSkills[s] };
