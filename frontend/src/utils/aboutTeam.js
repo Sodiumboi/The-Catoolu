@@ -5,6 +5,7 @@
 export const TEAM_MEMBERS = [
   // { name: 'Someone', role: 'Keeper', badge: 'Founder', avatar: null },
   { name: 'Natrium \'K\'',     role: 'System Designer',   badge: 'Founder', avatar: 'https://assets.catoolu.quest/team/dfebc529-cc05-4aba-9837-48f9bf71cf58.jpg' },
+  { name: 'ItLiemai',    role: 'System Optimizer',        badge: 'Founder',            avatar: null },
   { name: 'Alistair',    role: 'Consultant',        badge: 'Founder',            avatar: 'https://assets.catoolu.quest/team/1f5db6a9-dbf9-4e3f-a80c-d8f1ee8c4a73.jpg' },
   { name: 'Tear_Celestia',    role: 'Feature Visionary',        badge: 'KEY CONTRIBUTOR',            avatar: 'https://assets.catoolu.quest/team/0fc620fd-b49e-474a-89fa-6964f07cb718.jpg' },
   //{ name: 'Un_sa',       role: 'Animator',          badge: 'Commissioner',       avatar: 'https://assets.catoolu.quest/team/3f5f97d5-1b68-46aa-9cd4-c66bd7d9d006.jpg' },
