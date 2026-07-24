@@ -503,6 +503,19 @@ input[type='number'] {
   50%       { box-shadow: 0 0 0 5px rgba(234, 179, 8, 0); }
 }
 
+/* ── Toast notifications ────────────────────────────────────── */
+/* Loading-bar countdown — scaleX from the left edge (GPU-cheap; pauses via
+   animation-play-state on hover). Named `shrink-width` per the toast spec. */
+@keyframes shrink-width {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+/* Toast exit — slides out to the right and fades. */
+@keyframes toast-out {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(120%); opacity: 0; }
+}
+
 /* ── CoC Roll Result Colours ────────────────────────────────── */
 :root,
 [data-theme="light"] {

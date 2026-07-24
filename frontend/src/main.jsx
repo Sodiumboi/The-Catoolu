@@ -7,6 +7,7 @@ import { SocketProvider }         from './context/SocketContext';
 import { CampaignProvider }       from './context/CampaignContext';
 import { ThemeProvider }          from './context/ThemeContext';
 import { NavBarActionsProvider }  from './context/NavBarActionsContext';
+import { ToastProvider }           from './context/ToastContext';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')).render(
         <CampaignProvider>
           <ThemeProvider>
             <NavBarActionsProvider>
-              <App />
+              <ToastProvider>
+                <App />
+              </ToastProvider>
             </NavBarActionsProvider>
           </ThemeProvider>
         </CampaignProvider>

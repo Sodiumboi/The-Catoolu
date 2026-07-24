@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import NavBar from '../components/NavBar';
 import apiClient from '../api/client';
 
@@ -230,6 +231,104 @@ function TeamAssets() {
   );
 }
 
+// ── Toast Test Panel (DEV ONLY) ────────────────────────────────
+// Dev-only harness for eyeballing every toast variant in context. The call site
+// is guarded by import.meta.env.DEV, which Vite statically replaces with `false`
+// in production — so Rollup prunes this whole component (and its "Toast System"
+// strings) out of the prod bundle.
+function ToastTestPanel() {
+  const toast = useToast();
+
+  const groups = [
+    {
+      label: 'Basic types',
+      buttons: [
+        { label: 'Success toast', onClick: () =>
+          toast.success('Character saved', 'All changes have been saved to your investigator sheet.') },
+        { label: 'Info toast', onClick: () =>
+          toast.info('New version available', 'v1.8 Glaaki is available. Refresh to update.',
+            { action: { label: 'Refresh', onClick: () => window.location.reload() } }) },
+        { label: 'Warning toast', onClick: () =>
+          toast.warning('Disconnected from room', 'Trying to reconnect automatically. Your session is still active.') },
+        { label: 'Error toast', onClick: () =>
+          toast.error("Couldn't save character", "Your changes weren't saved. Try again or refresh the page.", {
+            action: { label: 'Try again', onClick: () => {} },
+            details: { endpoint: 'PUT /api/characters/550e8400-e29b', status: 503, raw: 'Service temporarily unavailable' },
+          }) },
+        { label: 'Critical toast', onClick: () =>
+          toast.critical('Session expired', "You've been signed out. Please log in again to continue.",
+            { action: { label: 'Log in', onClick: () => {} } }) },
+      ],
+    },
+    {
+      label: 'Edge cases',
+      buttons: [
+        { label: 'Details only (no action)', onClick: () =>
+          toast.error('Upload failed', "The file couldn't be uploaded to storage.",
+            { details: { endpoint: 'POST /api/uploads', status: 413, raw: 'Payload too large' } }) },
+        { label: 'Action only (no details)', onClick: () =>
+          toast.warning('Unsaved changes', 'You have unsaved changes that will be lost.',
+            { action: { label: 'Save now', onClick: () => {} } }) },
+        { label: 'No extras (title + message)', onClick: () =>
+          toast.info('Maintenance mode enabled', 'Players will see the maintenance page until you disable it.') },
+      ],
+    },
+    {
+      label: 'Stress test',
+      buttons: [
+        { label: 'Spam 5 toasts', onClick: () => {
+          // Fired back-to-back: first 3 become visible, the last 2 queue and
+          // promote as the earlier ones dismiss.
+          toast.success('Saved', 'Draft saved.');
+          toast.info('Synced', 'Data synced with server.');
+          toast.warning('Slow connection', 'Response times are high.');
+          toast.error('Upload failed', 'Try again.');
+          toast.critical('Session expired', 'Please log in again.');
+        } },
+      ],
+    },
+    {
+      label: 'Timer behavior',
+      buttons: [
+        { label: 'Hover to pause test', onClick: () =>
+          toast.error('Hover over me to pause', 'The timer bar should stop while your mouse is over this toast.',
+            { details: { raw: 'Timer pauses on mouseenter, resumes on mouseleave' } }) },
+      ],
+    },
+  ];
+
+  return (
+    <div className="mt-8 bg-(--bg-card) border-2 border-dashed border-(--border-input) rounded-xl p-7">
+      <div className="flex items-center gap-2.5 mb-1.5">
+        <h2 className="m-0 font-serif text-lg text-(--text-primary)">Toast System — Test Panel</h2>
+        <span className="text-[10px] py-0.5 px-2 rounded-full font-sans font-semibold uppercase tracking-[0.06em] bg-(--accent-bg) text-(--color-primary)">
+          Dev
+        </span>
+      </div>
+      <p className="mt-0 mb-5 text-[13px] text-(--text-faint) font-sans leading-[1.5]">
+        Only visible in development (<code>import.meta.env.DEV</code>).
+      </p>
+
+      <div className="flex flex-col gap-5">
+        {groups.map(group => (
+          <div key={group.label}>
+            <div className="font-sans text-xs font-semibold text-(--text-secondary) uppercase tracking-[0.08em] mb-2.5">
+              {group.label}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {group.buttons.map(btn => (
+                <button key={btn.label} type="button" className="btn-secondary-sm" onClick={btn.onClick}>
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ──────────────────────────────────────────────────
 export default function AdminPage() {
   const { user }   = useAuth();
@@ -391,6 +490,9 @@ export default function AdminPage() {
             )}
           </>
         )}
+
+        {/* Dev-only toast test harness — pruned from production builds. */}
+        {import.meta.env.DEV && <ToastTestPanel />}
       </div>
     </div>
   );
