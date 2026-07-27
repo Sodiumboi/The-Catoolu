@@ -7,11 +7,13 @@ import apiClient from '../api/client';
 import KeeperCampaignDetail  from '../components/KeeperCampaignDetail';
 import CreateCampaignModal   from '../components/CreateCampaignModal';
 import logo from '../assets/vault-logo.png';
+import { useToast } from '../context/ToastContext';
 
 export default function KeeperPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const returnToRef = useRef(null);
+  const toast = useToast();
   const [campaigns,    setCampaigns]   = useState([]);
   const [loading,      setLoading]     = useState(true);
   const [selected,     setSelected]    = useState(null); // campaign object
@@ -47,8 +49,12 @@ export default function KeeperPage() {
       ]);
       const kept = res.data.campaigns.filter(c => c.role === 'keeper');
       setCampaigns(kept);
-    } catch { /* silent */ }
-    finally { setLoading(false); }
+    } catch (err) {
+      toast.error("Couldn't load your campaigns", 'Refresh to try again.', {
+        action: { label: 'Try again', onClick: load },
+        details: { endpoint: 'GET /campaigns', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);

@@ -9,7 +9,9 @@ import { useAuth } from '../context/AuthContext';
 import logo from '../assets/vault-logo.png';
 import { CREATION_ENGINE_ENABLED } from '../config/features';
 import ConfirmDialog from '../components/ConfirmDialog';
+import BetaBadge from '../components/ui/BetaBadge';
 import useConfirm from '../hooks/useConfirm';
+import { useToast } from '../context/ToastContext';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -18,9 +20,9 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const [characters, setCharacters]   = useState([]);
   const [loading, setLoading]         = useState(true); // true = load on mount
-  const [error, setError]             = useState(location.state?.error || '');
   const [importing, setImporting]     = useState(false);
   const { confirm, dialogProps } = useConfirm();
+  const toast = useToast();
   const [showCreateImport, setShowCreateImport] = useState(false);
   const [createdBanner, setCreatedBanner] = useState(!!location.state?.created);
   const fileInputRef = useRef(null);
@@ -37,6 +39,12 @@ export default function DashboardPage() {
     return () => clearTimeout(t);
   }, [createdBanner]);
 
+  // Surface an error passed via navigation (e.g. a failed redirect) once on mount.
+  useEffect(() => {
+    if (location.state?.error) toast.error('Something went wrong', location.state.error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const fetchCharacters = async () => {
     setLoading(true);
     try {
@@ -46,7 +54,10 @@ export default function DashboardPage() {
       ]);
       setCharacters(response.data.characters);
     } catch (err) {
-      setError('Failed to load characters. Is the backend running?');
+      toast.error("Couldn't load your investigators", 'Refresh to try again.', {
+        action: { label: 'Try again', onClick: fetchCharacters },
+        details: { endpoint: 'GET /characters', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
     } finally {
       setLoading(false);
     }
@@ -66,12 +77,11 @@ export default function DashboardPage() {
     e.target.value = '';
 
     if (!file.name.endsWith('.json')) {
-      setError('Please select a .json file.');
+      toast.warning('Wrong file type', "Please choose a .json file exported from Dhole's House.");
       return;
     }
 
     setImporting(true);
-    setError('');
 
     try {
       // Read the file as text
@@ -85,9 +95,13 @@ export default function DashboardPage() {
       await fetchCharacters();
     } catch (err) {
       if (err instanceof SyntaxError) {
-        setError('Invalid JSON file. Please check the file and try again.');
+        toast.error("Couldn't import — invalid JSON", 'The file is not valid JSON. Check the file and try again.', {
+          details: { raw: err.message },
+        });
       } else {
-        setError(err.response?.data?.error || 'Failed to import character.');
+        toast.error("Couldn't import investigator", 'Try again.', {
+          details: { endpoint: 'POST /characters', status: err.response?.status, raw: err.response?.data?.error || err.message },
+        });
       }
     } finally {
       setImporting(false);
@@ -107,7 +121,10 @@ export default function DashboardPage() {
       await apiClient.delete(`/characters/${character.uuid}`);
       setCharacters(prev => prev.filter(c => c.uuid !== character.uuid));
     } catch (err) {
-      setError('Failed to delete character.');
+      toast.error("Couldn't delete investigator", 'The investigator was not deleted. Try again.', {
+        action: { label: 'Try again', onClick: () => handleDelete(character) },
+        details: { endpoint: 'DELETE /characters', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
     }
   };
 
@@ -202,14 +219,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Error banner */}
-        {error && (
-          <div className="mb-6 px-4 py-3 rounded text-sm flex items-center justify-between [background:var(--danger)22] text-(--danger) border border-(--danger)">
-            <span className="inline-flex items-center gap-1"><span className="icon icon-sm">warning</span>{error}</span>
-            <button onClick={() => setError('')} className="text-(--danger) opacity-70"><span className="icon icon-sm">close</span></button>
-          </div>
-        )}
-
         {/* Loading state */}
         {loading ? (
           <div className="flex items-center justify-center py-24">
@@ -233,7 +242,7 @@ export default function DashboardPage() {
             <button
               onClick={openCreateImport}
               className="btn-primary">
-              <span className="icon icon-sm">add</span>{' '}Create or Import Investigator
+              <span className="icon icon-sm">add</span>{' '}Create or Import Investigator<BetaBadge className="ml-[0.4rem]" />
             </button>
           </div>
 
@@ -278,7 +287,7 @@ export default function DashboardPage() {
               }}
             >
               <span className="text-3xl">+</span>
-              <span className="text-sm font-medium">Create or Import</span>
+              <span className="text-sm font-medium">Create or Import<BetaBadge className="ml-[0.4rem]" /></span>
             </button>
           </div>
         )}

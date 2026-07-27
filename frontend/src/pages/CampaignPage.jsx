@@ -7,13 +7,14 @@ import JoinCampaignModal from '../components/JoinCampaignModal';
 import CustomDropdown from '../components/ui/CustomDropdown';
 import logo from '../assets/vault-logo.png';
 import Tooltip from '../components/ui/Tooltip';
+import { useToast } from '../context/ToastContext';
 
 export default function CampaignPage() {
   const navigate = useNavigate();
+  const toast    = useToast();
 
   const [campaigns, setCampaigns] = useState([]);
   const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState('');
   const [modal,     setModal]     = useState(null); // 'join' | null
   const [sortBy,    setSortBy]    = useState(
     () => localStorage.getItem('player-campaign-sort') || 'last-joined-desc'
@@ -44,15 +45,17 @@ export default function CampaignPage() {
   // ── Load campaigns ──────────────────────────────────────────
   const loadCampaigns = async () => {
     setLoading(true);
-    setError('');
     try {
       const [res] = await Promise.all([
         apiClient.get('/campaigns'),
         new Promise(r => setTimeout(r, 400)),
       ]);
       setCampaigns(res.data.campaigns);
-    } catch {
-      setError('Could not load campaigns. Please try again.');
+    } catch (err) {
+      toast.error("Couldn't load your campaigns", 'Refresh to try again.', {
+        action: { label: 'Try again', onClick: loadCampaigns },
+        details: { endpoint: 'GET /campaigns', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
     } finally {
       setLoading(false);
     }
@@ -112,13 +115,6 @@ export default function CampaignPage() {
             </button>
           </div>
         </div>
-
-        {/* Error */}
-        {error && (
-          <div className="bg-(--danger-bg) border border-(--danger) rounded-lg py-3 px-4 mb-5 text-[13px] text-(--danger)">
-            <span className="icon icon-sm">warning</span>{' '}{error}
-          </div>
-        )}
 
         {/* Loading state */}
         {loading && (
