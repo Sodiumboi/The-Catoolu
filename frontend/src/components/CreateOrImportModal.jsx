@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Tooltip from './ui/Tooltip';
+import BetaBadge from './ui/BetaBadge';
 
 // ── CreateOrImportModal ──────────────────────────────────────────────
 // Animated chooser shown from the Investigators dashboard:
@@ -89,7 +90,7 @@ export default function CreateOrImportModal({ open, onClose, onCreate, onImport,
           <div className="flex flex-col gap-1">
             <Option
               icon="person_add"
-              title="Create New Investigator"
+              title={<>Create New Investigator<BetaBadge className="ml-[0.4rem]" /></>}
               subtitle="Start from scratch with the character creation wizard"
               onClick={creationEnabled ? onCreate : undefined}
               disabled={!creationEnabled}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
+import BetaBadge from '../components/ui/BetaBadge';
 import useCharacterCreation from '../hooks/useCharacterCreation';
 import CreationStepIndicator from '../components/creation/CreationStepIndicator';
 import StepPersonalDetails from '../components/creation/StepPersonalDetails';
@@ -12,6 +13,7 @@ import StepOccupationPicker from '../components/creation/StepOccupationPicker';
 import StepOccupationSkills from '../components/creation/StepOccupationSkills';
 import StepPersonalInterestSkills from '../components/creation/StepPersonalInterestSkills';
 import StepReview from '../components/creation/StepReview';
+import BetaDisclaimerModal from '../components/creation/BetaDisclaimerModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import useConfirm from '../hooks/useConfirm';
 
@@ -30,6 +32,9 @@ export default function CharacterCreationPage() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  // Beta disclaimer shows on every entry to the wizard — no persistence, so it
+  // re-shows on every mount by design (per product requirement).
+  const [showBetaDisclaimer, setShowBetaDisclaimer] = useState(true);
   const { confirm, dialogProps } = useConfirm();
 
   const {
@@ -108,7 +113,7 @@ export default function CharacterCreationPage() {
 
       <main className="flex-1 max-w-[860px] w-full mx-auto py-8 px-6">
         <h1 className="font-serif text-(--text-primary) text-[1.9rem] mb-6">
-          Create Investigator
+          Create Investigator<BetaBadge className="ml-2" />
         </h1>
 
         {/* Resume banner — shown when a saved draft was restored on mount */}
@@ -182,6 +187,10 @@ export default function CharacterCreationPage() {
       </main>
 
       <ConfirmDialog {...dialogProps} />
+
+      {showBetaDisclaimer && (
+        <BetaDisclaimerModal onDismiss={() => setShowBetaDisclaimer(false)} />
+      )}
 
       <Footer />
     </div>
