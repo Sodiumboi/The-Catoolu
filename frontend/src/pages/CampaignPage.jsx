@@ -211,7 +211,7 @@ function CampaignCard({ campaign, onEnter }) {
 
       {/* Campaign name */}
       <div>
-        <h3 className="font-serif text-lg text-(--text-primary) m-0 mb-1 leading-[1.3]">
+        <h3 className="font-serif text-lg text-(--text-primary) m-0 mb-1 leading-[1.3] break-words line-clamp-2">
           {campaign.name}
         </h3>
         {campaign.description && (

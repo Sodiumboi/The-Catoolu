@@ -187,7 +187,7 @@ export default function KeeperPage() {
                 <div className="inline-flex items-center gap-[5px] bg-(--accent-bg) text-(--accent) rounded-[20px] text-[11px] font-medium py-[3px] px-2.5 mb-2.5">
                   <span className="icon icon-sm">theater_comedy</span>{' '}Keeper
                 </div>
-                <h3 className="font-serif text-lg text-(--text-primary) m-0 mb-1.5">
+                <h3 className="font-serif text-lg text-(--text-primary) m-0 mb-1.5 break-words line-clamp-2">
                   {c.name}
                 </h3>
                 {c.description && (

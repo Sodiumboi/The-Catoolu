@@ -369,6 +369,7 @@ function InfoTab({
             <input
               value={name}
               onChange={e => setName(e.target.value)}
+              maxLength={100}
               style={{ ...inputStyle, fontSize:'18px', fontFamily:'var(--font-serif)', marginBottom:'10px' }}
             />
             <textarea
@@ -417,6 +418,7 @@ function InfoTab({
               <h2 style={{
                 fontFamily:'var(--font-serif)', fontSize:'22px',
                 color:'var(--text-primary)', margin:'0 0 6px',
+                flex:1, minWidth:0, wordBreak:'break-word',
               }}>
                 {name}
               </h2>

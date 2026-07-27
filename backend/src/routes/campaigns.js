@@ -731,6 +731,9 @@ router.put('/:uuid', async (req, res) => {
     if (!name?.trim()) {
       return res.status(400).json({ error: 'Campaign name is required.' });
     }
+    if (name.trim().length > 100) {
+      return res.status(400).json({ error: 'Campaign name must be under 100 characters.' });
+    }
 
     const result = await pool.query(
       `UPDATE campaigns
