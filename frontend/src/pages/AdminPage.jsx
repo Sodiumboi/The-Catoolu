@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import NavBar from '../components/NavBar';
-import apiClient from '../api/client';
+import apiClient, { armDevFailure } from '../api/client';
 
 // ── Tab button ─────────────────────────────────────────────────
 function Tab({ label, active, onClick }) {
@@ -239,10 +239,28 @@ function TeamAssets() {
 function ToastTestPanel() {
   const toast = useToast();
   const [shouldThrow, setShouldThrow] = useState(false);
+  const [failMode, setFailMode] = useState('off');
+  const [sticky, setSticky]     = useState(false);
 
   // Throw during render (NOT in the onClick handler) — a throw inside a React
   // synthetic event handler is swallowed and never reaches the ErrorBoundary.
   if (shouldThrow) throw new Error('Test: ErrorBoundary triggered from admin panel');
+
+  // Arm real apiClient requests to fail so the app's actual error toasts fire.
+  const applyFail = (mode) => { setFailMode(mode); armDevFailure({ mode, once: !sticky }); };
+  const toggleSticky = () => {
+    const next = !sticky;
+    setSticky(next);
+    armDevFailure({ once: !next }); // keep the current mode, flip one-shot ↔ sticky
+  };
+  const FAIL_MODES = [
+    { id: 'off',     label: 'Off' },
+    { id: '500',     label: 'HTTP 500' },
+    { id: '503',     label: 'HTTP 503' },
+    { id: '429',     label: 'HTTP 429' },
+    { id: 'network', label: 'Network' },
+    { id: 'timeout', label: 'Timeout' },
+  ];
 
   const groups = [
     {
@@ -329,6 +347,40 @@ function ToastTestPanel() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Real-path failure injection — arm a mode, then use any real feature. */}
+      <div className="mt-6 pt-5 border-t border-(--border-input)">
+        <div className="font-sans text-xs font-semibold text-(--text-secondary) uppercase tracking-[0.08em] mb-1.5">
+          Real-path failure injection
+        </div>
+        <p className="mt-0 mb-3 text-[12px] text-(--text-faint) font-sans leading-[1.5]">
+          Arm a mode, then use any real feature (upload a handout, save/delete a note,
+          delete a file, switch character in a room). The app's real error toasts fire
+          with real status/details/retry — no need to stop the backend.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="seg">
+            {FAIL_MODES.map(m => (
+              <button
+                key={m.id}
+                type="button"
+                className={`seg-tab${m.id === failMode ? ' active' : ''}`}
+                onClick={() => applyFail(m.id)}>
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <label className="flex items-center gap-1.5 text-[12px] text-(--text-muted) font-sans cursor-pointer">
+            <input type="checkbox" checked={sticky} onChange={toggleSticky} />
+            sticky (all requests)
+          </label>
+        </div>
+        {failMode !== 'off' && (
+          <p className="mt-2 mb-0 text-[12px] text-(--warning) font-sans">
+            ⚠ Armed: {failMode} — {sticky ? 'every request fails until Off' : 'fails the next request only'}.
+          </p>
+        )}
       </div>
 
       {/* Destructive test — separated so it isn't clicked casually. */}

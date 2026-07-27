@@ -23,6 +23,37 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// ── DEV-only failure injection (error-handling testing) ────
+// Armed from the admin Toast test panel. When active, makes real apiClient
+// requests fail so the app's actual error toasts (real status/details/retry)
+// fire without stopping the backend. The whole block is compiled out of
+// production; in prod `devFailure` is null and `armDevFailure` is a no-op.
+export const devFailure = import.meta.env.DEV ? { mode: 'off', once: true } : null;
+
+export function armDevFailure(next) {
+  if (devFailure) Object.assign(devFailure, next);
+}
+
+if (import.meta.env.DEV) {
+  apiClient.interceptors.request.use((config) => {
+    if (!devFailure || devFailure.mode === 'off') return config;
+    if (config.url?.includes('/health')) return config; // never trip the health poll
+    const { mode } = devFailure;
+    if (devFailure.once) devFailure.mode = 'off'; // one-shot unless sticky
+    if (mode === 'network') {
+      return Promise.reject(Object.assign(new Error('Network Error'), { config }));
+    }
+    if (mode === 'timeout') {
+      return Promise.reject(Object.assign(new Error('timeout of 10000ms exceeded'), { code: 'ECONNABORTED', config }));
+    }
+    // HTTP status modes ('500' / '503' / '429' / …) — shaped like a real axios error.
+    return Promise.reject(Object.assign(new Error(`Simulated HTTP ${mode}`), {
+      config,
+      response: { status: Number(mode), data: { error: `Simulated ${mode} (dev failure injection)` } },
+    }));
+  });
+}
+
 // ── Response Interceptor ───────────────────────────────────
 // Runs when EVERY response comes back
 // If we get a 401 (unauthorized), token is expired — log the user out
