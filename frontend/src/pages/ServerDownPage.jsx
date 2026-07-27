@@ -1,9 +1,13 @@
+import serverFire from '../assets/this-is-fine.png';
+
 export default function ServerDownPage() {
   return (
     <div className="min-h-screen bg-[#1C1C1A] flex flex-col items-center justify-center py-8 px-4 text-center">
-      <span className="icon text-[48px] text-[#E24B4A] mb-5">
-        cloud_off
-      </span>
+      <img
+        src={serverFire}
+        alt=""
+        className="w-[200px] h-[200px] object-contain mb-5"
+      />
       <h1 className="m-0 mb-3 font-serif text-[26px] text-[#EAF3DE]">Server Unreachable</h1>
       <p className="m-0 font-sans text-sm text-[#888780] max-w-[360px] leading-[1.6]">
         The Catoolu server isn't responding. Check your connection or try again in a moment.
