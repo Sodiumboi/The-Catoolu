@@ -20,6 +20,14 @@ const DEFAULT_DURATION = {
 function reducer(state, action) {
   switch (action.type) {
     case 'ADD': {
+      // Dedupe: ignore a new toast if an identical one (same type/title/message)
+      // is already visible or queued. Collapses StrictMode double-invokes, rapid
+      // double-clicks, and retry spam into a single toast.
+      const isDup = (t) =>
+        t.type === action.toast.type &&
+        t.title === action.toast.title &&
+        t.message === action.toast.message;
+      if (state.toasts.some(isDup) || state.queue.some(isDup)) return state;
       // Overflow past MAX_VISIBLE goes to the queue instead of the visible stack.
       if (state.toasts.length < MAX_VISIBLE) {
         return { ...state, toasts: [...state.toasts, action.toast] };
