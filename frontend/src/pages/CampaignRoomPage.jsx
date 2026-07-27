@@ -14,6 +14,7 @@ import { useAuth }         from '../context/AuthContext';
 import { useCampaign }     from '../context/CampaignContext';
 import { useNavBarActions } from '../context/NavBarActionsContext';
 import { useTheme }        from '../context/ThemeContext';
+import { useToast }        from '../context/ToastContext';
 import apiClient           from '../api/client';
 import SessionSheet        from '../components/SessionSheet';
 import PossessionsList     from '../components/PossessionsList';
@@ -68,6 +69,7 @@ export default function CampaignRoomPage() {
   const { enterRoom, leaveRoom }  = useCampaign();
   const { setOnLeaveRoom }        = useNavBarActions();
   const { sheetFontScale, roomFontScale, memeEnabled } = useTheme();
+  const toast                     = useToast();
 
   // ── Core state ────────────────────────────────────────────────
   const [campaign,      setCampaign]      = useState(null);
@@ -410,7 +412,11 @@ export default function CampaignRoomPage() {
       try {
         const res = await apiClient.get('/characters/' + character_uuid);
         setKeeperSheetModal(res.data.character);
-      } catch { /* silently fail — sheet stays showing stale data */ }
+      } catch (err) {
+        toast.warning('Sheet may be out of date', "Couldn't refresh the character sheet — showing the last version.", {
+          details: { endpoint: 'GET /characters', status: err.response?.status, raw: err.response?.data?.error || err.message },
+        });
+      }
     };
 
     socket.on('joined',                    onJoined);
@@ -553,8 +559,8 @@ export default function CampaignRoomPage() {
 
   // ── Attachment file validation ────────────────────────────────
   const handleFileSelect = (file) => {
-    if (!file.type.startsWith('image/')) { alert('Only image files can be attached.'); return; }
-    if (file.size > 5 * 1024 * 1024)    { alert('Image must be under 5MB.');           return; }
+    if (!file.type.startsWith('image/')) { toast.warning("Can't attach that file", 'Only image files can be attached.'); return; }
+    if (file.size > 5 * 1024 * 1024)    { toast.warning('Image too large', 'Images must be under 5 MB.');               return; }
     // Cap at 5 attachments per message — silently ignore extras.
     setAttachedFiles(prev => prev.length >= 5 ? prev : [...prev, file]);
   };
@@ -906,7 +912,11 @@ export default function CampaignRoomPage() {
       const data = res.data.character;
       setMemberSheetCache(prev => ({ ...prev, [member.id]: data }));
       setKeeperRollPicker({ member, charData: data, anchorRect, allMode: false });
-    } catch { /* silently fail */ }
+    } catch (err) {
+      toast.warning("Couldn't load sheet", `Couldn't load ${member.character_name || 'the player'}'s sheet to build the roll. Try again.`, {
+        details: { endpoint: 'GET /characters', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    }
   };
 
   const handleOpenAllRollPicker = async (anchorRect) => {
@@ -923,7 +933,11 @@ export default function CampaignRoomPage() {
       const data = res.data.character;
       setMemberSheetCache(prev => ({ ...prev, [players[0].id]: data }));
       setKeeperRollPicker({ member: null, charData: data, anchorRect, allMode: true });
-    } catch { /* silently fail */ }
+    } catch (err) {
+      toast.warning("Couldn't load sheets", "Couldn't load player sheets to build the roll. Try again.", {
+        details: { endpoint: 'GET /characters', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    }
   };
 
   const handlePickerSelect = async (rollType, rollName, rollValue) => {
@@ -1037,7 +1051,11 @@ export default function CampaignRoomPage() {
         campaignId:  campaign?.id,
         characterId: character?.id || null,
       });
-    } catch { /* silent */ }
+    } catch (err) {
+      toast.warning("Couldn't switch character", 'Your character change may not have been saved. Try again.', {
+        details: { endpoint: 'PUT /campaigns/character', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    }
   };
 
   // ── Typing handlers ───────────────────────────────────────────

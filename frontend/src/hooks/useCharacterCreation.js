@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import apiClient from '../api/client';
+import { useToast } from '../context/ToastContext';
 import { getSkillBase } from '../utils/skillBases';
 import { calcDamageBonusAndBuild, calcMove } from '../utils/cocCalculations';
 import ALL_SKILLS, { SKILL_ERAS } from '../utils/allSkills';
@@ -96,6 +97,7 @@ function canProceedFromStep(step, state) {
 }
 
 export default function useCharacterCreation() {
+  const toast = useToast();
   const [state, setState] = useState(INITIAL_STATE);
 
   // ── Draft resume ───────────────────────────────────────────
@@ -137,7 +139,9 @@ export default function useCharacterCreation() {
     apiClient.put('/characters/draft', {
       wizard_state: state,
       current_step: state.currentStep,
-    }).catch(() => {});
+    }).catch((err) => toast.warning("Couldn't save draft", 'Your progress may not be saved. Check your connection.', {
+      details: { endpoint: 'PUT /characters/draft', status: err.response?.status, raw: err.response?.data?.error || err.message },
+    }));
   }, [state.currentStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Continue → keep the restored state, just hide the banner

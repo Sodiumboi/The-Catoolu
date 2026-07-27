@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import NavBar   from '../components/NavBar';
 import Footer   from '../components/Footer';
 import apiClient from '../api/client';
+import { useToast } from '../context/ToastContext';
 
 export default function InboxPage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [notifications, setNotifications] = useState([]);
   const [loading,       setLoading]       = useState(true);
 
@@ -13,25 +15,46 @@ export default function InboxPage() {
     try {
       const res = await apiClient.get('/notifications');
       setNotifications(res.data.notifications);
-    } catch { /* silent */ }
-    finally { setLoading(false); }
+    } catch (err) {
+      toast.error("Couldn't load notifications", 'Refresh to try again.', {
+        details: { endpoint: 'GET /notifications', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);
 
   const handleClear = async () => {
-    await apiClient.delete('/notifications');
-    setNotifications(prev => prev.filter(n => n.is_pinned));
+    try {
+      await apiClient.delete('/notifications');
+      setNotifications(prev => prev.filter(n => n.is_pinned));
+    } catch (err) {
+      toast.error("Couldn't clear notifications", 'Try again.', {
+        details: { endpoint: 'DELETE /notifications', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    }
   };
 
   const handleDismiss = async (id) => {
-    await apiClient.delete('/notifications/' + id);
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    try {
+      await apiClient.delete('/notifications/' + id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch (err) {
+      toast.error("Couldn't dismiss notification", 'Try again.', {
+        details: { endpoint: 'DELETE /notifications', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    }
   };
 
   const handleMarkAllRead = async () => {
-    await apiClient.put('/notifications/read-all');
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    try {
+      await apiClient.put('/notifications/read-all');
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    } catch (err) {
+      toast.error("Couldn't mark all as read", 'Try again.', {
+        details: { endpoint: 'PUT /notifications/read-all', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    }
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;

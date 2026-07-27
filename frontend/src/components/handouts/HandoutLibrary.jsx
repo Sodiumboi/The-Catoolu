@@ -7,6 +7,7 @@ import FileDropZone from '../ui/FileDropZone';
 import Checkbox from '../ui/Checkbox';
 import ConfirmDialog from '../ConfirmDialog';
 import useConfirm from '../../hooks/useConfirm';
+import { useToast } from '../../context/ToastContext';
 
 // Inject keyframe animations once at module load
 if (typeof document !== 'undefined' && !document.getElementById('hl-anim-styles')) {
@@ -625,6 +626,7 @@ export default function HandoutLibrary({ campaignUuid }) {
   const [creating,       setCreating]      = useState(null); // 'text' | 'bundle' | null
   const [editing,        setEditing]       = useState(null); // handout object | null
   const { confirm, dialogProps } = useConfirm();
+  const toast = useToast();
   const [saving,         setSaving]        = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [handoutProgress, setHandoutProgress] = useState(null);
@@ -751,8 +753,11 @@ export default function HandoutLibrary({ campaignUuid }) {
       );
       setHandouts(prev => [...prev, res.data]);
       setStats(s => ({ ...s, imageCount: s.imageCount + 1 }));
-    } catch {
-      alert(`Failed to upload ${file.name}.`);
+    } catch (err) {
+      toast.error("Couldn't upload handout", `Check ${file.name} and try again.`, {
+        action: { label: 'Try again', onClick: () => uploadImage(file) },
+        details: { endpoint: 'POST /campaigns/handouts', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
     } finally {
       setUploadingCount(n => {
         const next = n - 1;
@@ -781,8 +786,11 @@ export default function HandoutLibrary({ campaignUuid }) {
         setHandouts(prev => [...prev, res.data]);
         setCreating(null);
       }
-    } catch {
-      alert('Failed to save handout.');
+    } catch (err) {
+      toast.error("Couldn't save handout", "Your changes weren't saved. Try again.", {
+        action: { label: 'Try again', onClick: () => handleSaveText(title, content) },
+        details: { endpoint: editing ? 'PUT /campaigns/handouts' : 'POST /campaigns/handouts', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
     } finally {
       setSaving(false);
     }
@@ -798,8 +806,11 @@ export default function HandoutLibrary({ campaignUuid }) {
       );
       setHandouts(prev => prev.map(h => h.uuid === editing.uuid ? res.data : h));
       setEditing(null);
-    } catch {
-      alert('Failed to rename image.');
+    } catch (err) {
+      toast.error("Couldn't rename image", "The new name wasn't saved. Try again.", {
+        action: { label: 'Try again', onClick: () => handleSaveImageTitle(title) },
+        details: { endpoint: 'PUT /campaigns/handouts', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
     } finally {
       setSaving(false);
     }
@@ -824,8 +835,11 @@ export default function HandoutLibrary({ campaignUuid }) {
         setHandouts(prev => [...prev, res.data]);
         setCreating(null);
       }
-    } catch {
-      alert('Failed to save bundle.');
+    } catch (err) {
+      toast.error("Couldn't save bundle", "Your changes weren't saved. Try again.", {
+        action: { label: 'Try again', onClick: () => handleSaveBundle(title, itemUuids) },
+        details: { endpoint: editing ? 'PUT /campaigns/handouts' : 'POST /campaigns/handouts', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
     } finally {
       setSaving(false);
     }
@@ -846,8 +860,11 @@ export default function HandoutLibrary({ campaignUuid }) {
     try {
       await apiClient.delete(`/campaigns/${campaignUuid}/handouts/${h.uuid}`);
       setHandouts(prev => prev.filter(item => item.uuid !== h.uuid));
-    } catch {
-      alert('Failed to delete handout.');
+    } catch (err) {
+      toast.error("Couldn't delete handout", "The handout wasn't deleted. Try again.", {
+        action: { label: 'Try again', onClick: () => handleDelete(h) },
+        details: { endpoint: 'DELETE /campaigns/handouts', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
     }
   };
 
@@ -894,7 +911,11 @@ export default function HandoutLibrary({ campaignUuid }) {
     if (deleted.size < uuids.length) {
       // Keep failed ones selected so the user can retry; stay in selection mode
       setSelected(new Set(uuids.filter(u => !deleted.has(u))));
-      alert('Some handouts could not be deleted. Please try again.');
+      const failed = uuids.length - deleted.size;
+      toast.error(
+        "Some handouts weren't deleted",
+        `${failed} of ${uuids.length} couldn't be deleted. The failed ones stay selected — try again.`,
+      );
     } else {
       exitSelectionMode();
     }

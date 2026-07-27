@@ -28,6 +28,8 @@ import { CREATION_ENGINE_ENABLED } from './config/features';
 import { APP_VERSION }       from './config/version';
 import WhatsNewModal         from './components/WhatsNewModal';
 import BackgroundArt         from './components/BackgroundArt';
+import ErrorBoundary         from './components/ErrorBoundary';
+import { useToast }          from './context/ToastContext';
 
 // ── Renders the parallax background art behind the 4 main pages ─
 // Lives inside <BrowserRouter> so it can read the current path. BackgroundArt
@@ -97,6 +99,7 @@ async function checkHealth() {
 // ── Main App ───────────────────────────────────────────────
 export default function App() {
   const { user } = useAuth();
+  const toast    = useToast();
   // What's New modal — auto-shown once per release to logged-in users.
   const [showWhatsNew, setShowWhatsNew] = useState(false);
   // null = first check not yet done; prevents any route from flashing before we know state.
@@ -211,6 +214,39 @@ export default function App() {
   // so they render instantly whenever the user navigates there.
   useEffect(() => preloadWhenIdle(ABOUT_PRELOAD_IMAGES), []);
 
+  // ── Global uncaught-error safety net ──────────────────────────
+  // Surface uncaught promise rejections and runtime errors as a toast instead
+  // of failing silently. Render/lifecycle errors are handled by ErrorBoundary.
+  useEffect(() => {
+    const onRejection = (event) => {
+      // Rejections tagged { silent: true } are intentionally ignored.
+      if (event.reason?.silent) return;
+      toast.error(
+        'Something went wrong',
+        'An unexpected error occurred. Try refreshing if the problem persists.',
+        { details: { raw: event.reason?.message || String(event.reason) } },
+      );
+    };
+    const onError = (event) => {
+      // Ignore noise from browser extensions and cross-origin scripts (which
+      // report a generic "Script error." with no usable error object).
+      const src = event.filename || '';
+      if (src.startsWith('chrome-extension://') || src.startsWith('moz-extension://') || src.startsWith('safari-extension://')) return;
+      if (!event.error) return;
+      toast.error(
+        'Something went wrong',
+        'An unexpected error occurred. Try refreshing if the problem persists.',
+        { details: { raw: event.error?.message || event.message } },
+      );
+    };
+    window.addEventListener('unhandledrejection', onRejection);
+    window.addEventListener('error', onError);
+    return () => {
+      window.removeEventListener('unhandledrejection', onRejection);
+      window.removeEventListener('error', onError);
+    };
+  }, [toast]);
+
   // Auto-show the What's New modal once per release for logged-in users.
   // The short delay lets the app settle before the modal pops in.
   useEffect(() => {
@@ -235,6 +271,7 @@ export default function App() {
   if (health.status === 'down')                           return <ServerDownPage />;
 
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       {showWhatsNew && <WhatsNewModal onClose={handleCloseWhatsNew} />}
       <AppShell>
@@ -292,5 +329,6 @@ export default function App() {
       </Routes>
       </AppShell>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }

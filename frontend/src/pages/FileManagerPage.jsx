@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import apiClient from '../api/client';
+import { useToast } from '../context/ToastContext';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import HandoutViewer from '../components/handouts/HandoutViewer';
@@ -31,6 +32,7 @@ export default function FileManagerPage() {
   const [quota,     setQuota]     = useState(null);
   const [loading,   setLoading]   = useState(true);
   const { confirm, dialogProps }  = useConfirm();
+  const toast = useToast();
   const [busyId,    setBusyId]    = useState(null);
   const [viewing,   setViewing]   = useState(null);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -40,7 +42,9 @@ export default function FileManagerPage() {
   useEffect(() => {
     apiClient.get('/profile/uploads')
       .then(r => { setFiles(r.data.files); setQuota(r.data.quota); })
-      .catch(() => {})
+      .catch((err) => toast.error("Couldn't load files", 'Refresh to try again.', {
+        details: { endpoint: 'GET /profile/uploads', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      }))
       .finally(() => setLoading(false));
   }, []);
 
@@ -50,8 +54,11 @@ export default function FileManagerPage() {
       const r = await apiClient.delete('/profile/uploads/' + id);
       setFiles(prev => prev.filter(f => f.id !== id));
       if (r.data?.quota) setQuota(r.data.quota);
-    } catch { /* leave the row; user can retry */ }
-    finally { setBusyId(null); }
+    } catch (err) {
+      toast.error("Couldn't delete file", 'The file was not deleted. Try again.', {
+        details: { endpoint: 'DELETE /profile/uploads', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    } finally { setBusyId(null); }
   };
 
   const requestDelete = async (f) => {

@@ -10,18 +10,18 @@ import { NavBarActionsProvider }  from './context/NavBarActionsContext';
 import { ToastProvider }           from './context/ToastContext';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AuthProvider>
-      <SocketProvider>
-        <CampaignProvider>
-          <ThemeProvider>
-            <NavBarActionsProvider>
-              <ToastProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <SocketProvider>
+          <CampaignProvider>
+            <ThemeProvider>
+              <NavBarActionsProvider>
                 <App />
-              </ToastProvider>
-            </NavBarActionsProvider>
-          </ThemeProvider>
-        </CampaignProvider>
-      </SocketProvider>
-    </AuthProvider>
+              </NavBarActionsProvider>
+            </ThemeProvider>
+          </CampaignProvider>
+        </SocketProvider>
+      </AuthProvider>
+    </ToastProvider>
   </StrictMode>
 );

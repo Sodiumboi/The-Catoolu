@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
+import { useToast } from '../context/ToastContext';
 import ReadOnlySheet from './ReadOnlySheet';
 import HandoutLibrary from './handouts/HandoutLibrary';
 import ConfirmDialog from './ConfirmDialog';
@@ -21,13 +22,17 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
   const [showInvite,   setShowInvite]   = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
   const { confirm, dialogProps } = useConfirm();
+  const toast = useToast();
 
   const load = async () => {
     try {
       const res = await apiClient.get('/campaigns/' + campaign.uuid);
       setMembers(res.data.campaign.members || []);
-    } catch { /* silent */ }
-    finally { setLoading(false); }
+    } catch (err) {
+      toast.error("Couldn't load campaign details", 'Refresh to try again.', {
+        details: { endpoint: 'GET /campaigns', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, [campaign.uuid]);
@@ -45,7 +50,11 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
     try {
       await apiClient.delete('/campaigns/' + campaign.uuid + '/members/' + userId);
       setMembers(prev => prev.filter(m => m.id !== userId));
-    } catch { /* silent */ }
+    } catch (err) {
+      toast.error("Couldn't remove player", "The player wasn't removed. Try again.", {
+        details: { endpoint: 'DELETE /campaigns/members', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    }
   };
 
   const handleCopyCode = () => {
@@ -728,6 +737,7 @@ function InfoTab({
 
 // ── Danger Zone Tab ───────────────────────────────────────────
 function DangerZoneTab({ campaign, onDeleted }) {
+  const toast = useToast();
   const [confirming, setConfirming] = useState(false);
   const [typedName,  setTypedName]  = useState('');
   const [deleting,   setDeleting]   = useState(false);
@@ -740,8 +750,11 @@ function DangerZoneTab({ campaign, onDeleted }) {
     try {
       await apiClient.delete('/campaigns/' + campaign.uuid);
       onDeleted();
-    } catch {
+    } catch (err) {
       setDeleting(false);
+      toast.error("Couldn't delete campaign", 'The campaign was not deleted. Try again.', {
+        details: { endpoint: 'DELETE /campaigns', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
     }
   };
 

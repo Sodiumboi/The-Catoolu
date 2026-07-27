@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import apiClient from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 import Tooltip from '../ui/Tooltip';
 
 const SORT_OPTIONS = [
@@ -277,6 +278,7 @@ function ListBundleRow({ bundle, sharing, isShared, onShare, expanded, hold, mak
 // ─── KeeperHandoutPanel ───────────────────────────────────────────
 export default function KeeperHandoutPanel({ campaignUuid }) {
   const navigate = useNavigate();
+  const toast = useToast();
   const [handouts,    setHandouts]    = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [sharing,     setSharing]     = useState(null);
@@ -317,8 +319,11 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
         ]);
         setHandouts(libRes.data);
         setSharedUuids(sharedRes.data.map(s => s.handout.uuid));
-      } catch { /* silent */ }
-      finally { setLoading(false); }
+      } catch (err) {
+        toast.error("Couldn't load handouts", 'Refresh to try again.', {
+          details: { endpoint: 'GET /campaigns/handouts', status: err.response?.status, raw: err.response?.data?.error || err.message },
+        });
+      } finally { setLoading(false); }
     };
     load();
   }, [campaignUuid]);
@@ -373,8 +378,11 @@ export default function KeeperHandoutPanel({ campaignUuid }) {
       setSharedUuids(prev =>
         prev.includes(handoutUuid) ? prev : [...prev, handoutUuid]
       );
-    } catch { /* silent */ }
-    finally { setSharing(null); }
+    } catch (err) {
+      toast.error("Couldn't share handout", "The handout wasn't shared. Try again.", {
+        details: { endpoint: 'POST /campaigns/handouts/share', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    } finally { setSharing(null); }
   };
 
   const isShared = (uuid) => sharedUuids.includes(uuid);
