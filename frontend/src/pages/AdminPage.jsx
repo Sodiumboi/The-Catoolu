@@ -238,6 +238,11 @@ function TeamAssets() {
 // strings) out of the prod bundle.
 function ToastTestPanel() {
   const toast = useToast();
+  const [shouldThrow, setShouldThrow] = useState(false);
+
+  // Throw during render (NOT in the onClick handler) — a throw inside a React
+  // synthetic event handler is swallowed and never reaches the ErrorBoundary.
+  if (shouldThrow) throw new Error('Test: ErrorBoundary triggered from admin panel');
 
   const groups = [
     {
@@ -324,6 +329,19 @@ function ToastTestPanel() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Destructive test — separated so it isn't clicked casually. */}
+      <div className="mt-6 pt-5 border-t border-(--border-input)">
+        <p className="mt-0 mb-3 text-[12px] text-(--warning) font-sans leading-[1.5]">
+          ⚠ This will crash the current render subtree and show the ErrorBoundary panel. Reload the page to recover.
+        </p>
+        <button
+          type="button"
+          className="btn-danger-soft btn-danger-sm"
+          onClick={() => setShouldThrow(true)}>
+          💥 Trigger ErrorBoundary (throws)
+        </button>
       </div>
     </div>
   );
