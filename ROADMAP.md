@@ -295,14 +295,23 @@ The polish patch. No new systems — just everything that was slightly wrong, sl
 
 ---
 
-## 🔄 v1.7 — Eihort
+## ✅ v1.7 — Eihort
 
-**Status: In Progress — Target Q3 2026**
+**Status: Released — July 2026**
 _"The Pale Beast. Lives in the tunnels. Does the deep internal work nobody sees."_
 
-The migration. No new features — just bringing the stylesheet up to standard. Everything looks identical after.
+The largest release since Nyarlathotep. Three independent systems, a new design language, and a complete visual sweep.
 
-- [ ] Tailwind CSS migration — one page at a time, visually identical throughout
+- [x] **Tailwind CSS migration** — ~1,700 inline styles eliminated across ~70 files. Everything looks identical after.
+- [x] **Frosted Gem design language** — 26 shared CSS classes, every button and pill rebuilt. Nav tabs restyled to dark gem aesthetic.
+- [x] **Focus animation system** — form inputs fade to green border with a soft glow, app-wide.
+- [x] **Character creation engine (Beta)** — rules fixed (Luck, EDU, age deductions, DB/Build, Dodge), occupation skill data model overhauled across 116 occupations. Modal choice picker for free picks, fixed lists, and specialty groups. Behind a beta badge with Dhole's House cross-check disclaimer.
+- [x] **Error handling system** — toast notifications (5 types, retry actions, expandable technical details), ErrorBoundary (no more white-screens), socket error bridge, replaced all silent failures.
+- [x] Notes font size stepper, room tab jitter fix, keeper detail scroll fix
+- [x] Handout Library bulk delete, Checkbox primitive
+- [x] Campaign name overflow fix + startup migration for legacy data
+- [x] Cloudflare fallback page redesign — Frosted Gem CI, ghost-fade illustration
+- [x] Password reset fix (Resend from address)
 
 ---
 
@@ -313,13 +322,13 @@ The migration. No new features — just bringing the stylesheet up to standard. 
 **Status: Planned — Target Q4 2026**
 _"Lord of Dead Dreams. Pulls things out of the deep and gives them new life."_
 
-The refactor. TypeScript migration followed by a code readability pass. No new features.
+The refactor. TypeScript migration followed by a code readability pass.
 
 - [ ] TypeScript migration — shared types first, then page by page
-- [ ] Break large components into smaller focused ones
-- [ ] Remove prop drilling where it has gotten out of hand
-- [ ] Consistent naming conventions throughout
-- [ ] Remove dead code and commented-out blocks
+- [ ] `CampaignRoomPage.jsx` refactor — split into focused sub-components
+- [ ] Creation engine re-enable — final QA on 10 deferred occupation edge cases, remove beta badge
+- [ ] Dead file cleanup (4 orphaned components confirmed unused)
+- [ ] Remaining Tailwind migration deferred files
 
 ---
 
@@ -407,7 +416,7 @@ _"Ph'nglui mglw'nafh. The Great Dreamer wakes. The platform is complete."_
  Jun  ████████████████  v1.6c Semphar         ✅ Released
  Jun  ████████████████  v1.6d Icewind Dale    ✅ Released
  Jul  ████████████████  v1.6e Nakamaru        ✅ Released
- Q3   ░░░░░░░░░░░░░░░░  v1.7  Eihort          🔄 In Progress
+ Jul  ████████████████  v1.7  Eihort          ✅ Released
  Q4   ░░░░░░░░░░░░░░░░  v1.8  Glaaki          🔮 Planned
 
 2027

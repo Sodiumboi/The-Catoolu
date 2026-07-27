@@ -1,6 +1,6 @@
 # 🐙 The Catoolu
 
-<img width="3518" height="769" alt="Catoolu banner" src="https://github.com/user-attachments/assets/06008ee2-57fc-47e1-b483-6f35602f7f84" />
+<img alt="Catoolu banner" src="https://assets.catoolu.quest/team/f2ffcbdb-d89d-4efb-beda-b796297c3b54.png" />
 
 ### A Self-Hosted Call of Cthulhu 7e Character Manager & Lightweight VTT
 
@@ -10,7 +10,7 @@
 
 Built for home server deployment. No subscriptions, no ads, no cloud dependency. Your campaign data lives on your own machine.
 
-![Version](https://img.shields.io/badge/version-1.6e%20Nakamaru-3B6D11?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.7%20Eihort-3B6D11?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![Built with](https://img.shields.io/badge/built%20with-React%20%2B%20Express%20%2B%20PostgreSQL-4A90E2?style=flat-square)
 
@@ -102,23 +102,41 @@ A full interactive CoC 7e character sheet with live rule calculations.
 - Per-user storage quota — 200MB total, 50MB per 5 minutes
 - File Manager at `/files` — browse all uploaded files with previews
 - Delete individual files from R2 and quota tracking in one action
+- Bulk delete with multi-select, select-all, and partial-failure retry
 - Quota panel in the NavBar shows live usage
+
+### 🧙 Character Creation Wizard (Beta)
+
+- Step-by-step CoC 7e character creation from scratch
+- Stats generated via dice rolls (3D6×5, 2D6+6×5) or point allocation
+- Occupation picker with correct skill point calculations
+- Occupation skill picker with modal choice system for free picks, specialty groups, and either/or choices — covering 88+ occupations
+- Personal interest skill allocation with era-filtering (Modern/Classic)
+- Age-based stat deductions per CoC 7e rules — STR/CON/DEX pool, APP auto-reduces, MOV penalty applied
+- EDU improvement roll (1D10 per age bracket, 2–4 checks)
+- Full derived stats preview before saving
+- Draft resume — close the tab, come back later
+- Beta badge with Dhole's House cross-check disclaimer
 
 ### 🎨 UI & Theming
 
+- **Frosted Gem design language** — named visual identity system with 26 shared CSS classes across every button, pill, and nav element in the app
 - DM Serif Display + DM Sans typography
 - Catoolu Green brand identity
-- Dark (cool-gray) and Parchment (warm cream) themes
+- Six themes — Parchment, Shale, Farmilia Dark, Marsh, Archive, Cosmic Void
 - Material Symbols icon system
 - Font scale system — independent sheet text and display text scales, per-device
 - All preferences persist across sessions
+- Focus animation system — form inputs fade to accent border with soft glow
 
-### 🛡 Admin
+### 🛡 Admin & Reliability
 
 - Bug report form with screenshot upload — accessible from the NavBar dropdown
 - Admin dashboard — view and resolve bug reports, toggle maintenance mode, live stats
 - Maintenance flag — socket broadcast to all users, red NavBar pill with tooltip
 - Server down page — shown when origin is completely unreachable
+- **Error handling system** — toast notifications (5 types: success/info/warning/error/critical) with retry actions and expandable technical details. ErrorBoundary prevents white-screens. Socket error events surface to the user instead of silently hanging.
+- Cloudflare Worker fallback page with Catoolu branding — shown when the tunnel itself is unreachable
 
 ### 🔧 Deployment
 
@@ -136,7 +154,7 @@ A full interactive CoC 7e character sheet with live rule calculations.
 
 | Layer        | Technology                                          |
 | ------------ | --------------------------------------------------- |
-| Frontend     | React 18 + Vite + Tailwind                          |
+| Frontend     | React 19.2.6 + Vite + Tailwind CSS v4               |
 | Backend      | Node.js + Express                                   |
 | Database     | PostgreSQL 16 (JSONB)                               |
 | Real-time    | Socket.io                                           |
@@ -262,7 +280,7 @@ Catoolu-coc-sheet-manager/
 │   │   │   ├── sheet/      # Shared sheet module library
 │   │   │   ├── handouts/   # Handout components (Library, Viewer, PlayerTab, etc.)
 │   │   │   └── ...         # Other shared UI components
-│   │   ├── context/        # Auth + Theme context providers
+│   │   ├── context/        # Auth, Theme, Campaign, Toast context providers
 │   │   └── utils/          # preloadImages, aboutTeam, etc.
 │   └── nginx/
 │       └── default.conf    # Nginx config — static + API proxy
