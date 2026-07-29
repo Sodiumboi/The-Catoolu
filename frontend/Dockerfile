@@ -25,3 +25,6 @@ EXPOSE 80
 
 # Nginx runs in foreground (required for Docker)
 CMD ["nginx", "-g", "daemon off;"]
+
+ARG VITE_CREATION_ENGINE_ENABLED=false
+ENV VITE_CREATION_ENGINE_ENABLED=$VITE_CREATION_ENGINE_ENABLED

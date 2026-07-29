@@ -55,6 +55,8 @@ jobs:
         uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         with:
           context: ./frontend
+          build-args: |
+            VITE_CREATION_ENGINE_ENABLED=${{ secrets.VITE_CREATION_ENGINE_ENABLED }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/sodiumboi/catoolu-frontend:latest
