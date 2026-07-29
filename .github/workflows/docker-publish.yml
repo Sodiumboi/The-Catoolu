@@ -56,7 +56,7 @@ jobs:
         with:
           context: ./frontend
           build-args: |
-            VITE_CREATION_ENGINE_ENABLED=${{ secrets.VITE_CREATION_ENGINE_ENABLED }}
+            VITE_CREATION_ENGINE_ENABLED=${{ vars.VITE_CREATION_ENGINE_ENABLED }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/sodiumboi/catoolu-frontend:latest
