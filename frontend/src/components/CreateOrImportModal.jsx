@@ -11,20 +11,19 @@ import BetaBadge from './ui/BetaBadge';
 
 const EXIT_MS = 200;
 
-function Option({ icon, title, subtitle, onClick, disabled = false }) {
+function Option({ icon, title, subtitle, onClick }) {
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
-      className={`flex items-start gap-3.5 w-full text-left py-4 px-[18px] rounded-xl border border-(--border-main) bg-(--bg-card) font-sans [transition:border-color_0.12s_ease,background_0.12s_ease,transform_0.12s_ease] ${disabled ? 'cursor-not-allowed opacity-45' : 'cursor-pointer opacity-100'}`}
-      onMouseEnter={disabled ? undefined : (e => {
+      className="flex items-start gap-3.5 w-full text-left py-4 px-[18px] rounded-xl border border-(--border-main) bg-(--bg-card) font-sans cursor-pointer [transition:border-color_0.12s_ease,background_0.12s_ease,transform_0.12s_ease]"
+      onMouseEnter={e => {
         e.currentTarget.style.borderColor = 'var(--accent)';
         e.currentTarget.style.background = 'var(--accent-bg)';
-      })}
-      onMouseLeave={disabled ? undefined : (e => {
+      }}
+      onMouseLeave={e => {
         e.currentTarget.style.borderColor = 'var(--border-main)';
         e.currentTarget.style.background = 'var(--bg-card)';
-      })}
+      }}
     >
       <span className="icon text-[28px] text-(--accent) leading-none shrink-0">{icon}</span>
       <span>
@@ -39,7 +38,7 @@ function Option({ icon, title, subtitle, onClick, disabled = false }) {
   );
 }
 
-export default function CreateOrImportModal({ open, onClose, onCreate, onImport, creationEnabled = true }) {
+export default function CreateOrImportModal({ open, onClose, onCreate, onImport }) {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -87,20 +86,12 @@ export default function CreateOrImportModal({ open, onClose, onCreate, onImport,
 
         {/* Options */}
         <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <Option
-              icon="person_add"
-              title={<>Create New Investigator<BetaBadge className="ml-[0.4rem]" /></>}
-              subtitle="Start from scratch with the character creation wizard"
-              onClick={creationEnabled ? onCreate : undefined}
-              disabled={!creationEnabled}
-            />
-            {!creationEnabled && (
-              <span className="text-[11px] text-(--text-muted) italic pl-1">
-                Character creation coming soon
-              </span>
-            )}
-          </div>
+          <Option
+            icon="person_add"
+            title={<>Create New Investigator<BetaBadge className="ml-[0.4rem]" /></>}
+            subtitle="Start from scratch with the character creation wizard"
+            onClick={onCreate}
+          />
           <Option
             icon="upload_file"
             title="Import from Dhole's House"

@@ -7,7 +7,6 @@ import CreateOrImportModal from '../components/CreateOrImportModal';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/vault-logo.png';
-import { CREATION_ENGINE_ENABLED } from '../config/features';
 import ConfirmDialog from '../components/ConfirmDialog';
 import BetaBadge from '../components/ui/BetaBadge';
 import useConfirm from '../hooks/useConfirm';
@@ -301,7 +300,6 @@ export default function DashboardPage() {
         onClose={() => setShowCreateImport(false)}
         onCreate={handleChooseCreate}
         onImport={handleChooseImport}
-        creationEnabled={CREATION_ENGINE_ENABLED}
       />
 
       <Footer />

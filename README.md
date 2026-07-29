@@ -16,6 +16,28 @@ Built for home server deployment. No subscriptions, no ads, no cloud dependency.
 
 ---
 
+## 🌐 Access
+
+The Catoolu is available in two ways:
+
+**catoolu.quest** — a live instance running on a personal home server.
+Free to use. Sign up to create investigators and join campaigns.
+
+Note: catoolu.quest runs on personal hardware with no uptime guarantee.
+It may go down for maintenance, updates, or the occasional home server reboot.
+There is no active support queue or ticket system — if something is broken,
+open a GitHub issue or use the in-app bug report form.
+
+Your data (characters, campaigns, uploads) lives on this personal server,
+not a managed cloud provider. If you want your account or data removed,
+contact via the email on the About page.
+
+**Self-hosting** — the recommended path if you want full control and
+reliability. See the [Self-Hosting](#-self-hosting) section below.
+Your data, your server, your rules.
+
+---
+
 ## ✨ Features
 
 ### 🔐 Authentication

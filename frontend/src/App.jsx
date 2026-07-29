@@ -16,7 +16,6 @@ import CampaignPage          from './pages/CampaignPage';
 import InboxPage             from './pages/InboxPage';
 import CampaignRoomPage      from './pages/CampaignRoomPage';
 import CharacterCreationPage from './pages/CharacterCreationPage';
-import CreationUnavailablePage from './pages/CreationUnavailablePage';
 import AboutPage             from './pages/AboutPage';
 import LegalPage             from './pages/LegalPage';
 import OAuthCallbackPage     from './pages/OAuthCallbackPage';
@@ -24,7 +23,6 @@ import MaintenancePage       from './pages/MaintenancePage';
 import ServerDownPage        from './pages/ServerDownPage';
 import { preloadWhenIdle }   from './utils/preloadImages';
 import { ABOUT_PRELOAD_IMAGES } from './utils/aboutTeam';
-import { CREATION_ENGINE_ENABLED } from './config/features';
 import { APP_VERSION }       from './config/version';
 import WhatsNewModal         from './components/WhatsNewModal';
 import BackgroundArt         from './components/BackgroundArt';
@@ -299,11 +297,7 @@ export default function App() {
             }/>
 
             <Route path="/create" element={
-              <ProtectedRoute>
-                {CREATION_ENGINE_ENABLED
-                  ? <CharacterCreationPage />
-                  : <CreationUnavailablePage />}
-              </ProtectedRoute>
+              <ProtectedRoute><CharacterCreationPage /></ProtectedRoute>
             }/>
             <Route path="/plzwork" element={<Navigate to="/create" replace />} />
 
