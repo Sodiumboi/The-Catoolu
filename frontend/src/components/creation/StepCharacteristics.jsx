@@ -4,6 +4,20 @@ import {
   calcDodge, calcMove, calcHalf, calcFifth,
 } from '../../utils/cocCalculations';
 import { getAgeUpdates } from '../../hooks/useCharacterCreation';
+import { STAT_TOOLTIPS, DERIVED_TOOLTIPS } from '../../data/statTooltips';
+import Tooltip from '../ui/Tooltip';
+
+/* ponytail: one renderer for all 16 tooltips instead of repeating the block per stat */
+function tipContent(tip) {
+  if (!tip) return null;
+  return (
+    <div>
+      <div className="font-semibold">{tip.name}</div>
+      <div>{tip.description}</div>
+      <div className="text-(--text-muted) text-[11px] mt-1">{tip.normal}</div>
+    </div>
+  );
+}
 
 const STAT_MINS = { STR: 15, DEX: 15, INT: 40, CON: 15, APP: 15, POW: 15, SIZ: 40, EDU: 40 };
 const STAT_MAX  = 90;
@@ -32,9 +46,11 @@ function StatBox({ label, value, min, onChange }) {
 
   return (
     <div className="bg-(--bg-card) border border-(--border-main) rounded-[10px] p-3 flex flex-col items-center gap-[0.4rem] min-w-22.5">
-      <span className="font-sans text-[0.72rem] font-bold text-(--text-muted) uppercase tracking-[0.06em]">
-        {label}
-      </span>
+      <Tooltip content={tipContent(STAT_TOOLTIPS[label])} placement="top">
+        <span className="font-sans text-[0.72rem] font-bold text-(--text-muted) uppercase tracking-[0.06em]">
+          {label}
+        </span>
+      </Tooltip>
 
       {/* Main value + sub-values */}
       <div className="flex gap-1 items-end">
@@ -68,10 +84,15 @@ function StatBox({ label, value, min, onChange }) {
   );
 }
 
-function DerivedRow({ label, value }) {
+function DerivedRow({ label, value, tip }) {
+  const labelEl = (
+    <span className="font-sans text-[0.82rem] text-(--text-secondary)">{label}</span>
+  );
   return (
     <div className="flex justify-between items-center py-[0.35rem] border-b border-(--border-main)">
-      <span className="font-sans text-[0.82rem] text-(--text-secondary)">{label}</span>
+      {tip
+        ? <Tooltip content={tipContent(DERIVED_TOOLTIPS[tip])} placement="top">{labelEl}</Tooltip>
+        : labelEl}
       <span className="font-sans text-[0.9rem] font-semibold text-(--text-primary)">{value}</span>
     </div>
   );
@@ -176,13 +197,14 @@ export default function StepCharacteristics({ state, setStat, initLuck }) {
             Derived Stats
           </h3>
           <div className="bg-(--bg-page) border border-(--border-main) rounded-lg py-2 px-3">
-            <DerivedRow label="Move Rate"       value={move} />
-            <DerivedRow label="Hit Points"      value={hp} />
-            <DerivedRow label="Magic Points"    value={mp} />
-            <DerivedRow label="Sanity"          value={stats.POW} />
-            <DerivedRow label="Damage Bonus"    value={damageBonus} />
-            <DerivedRow label="Build"           value={build} />
-            <DerivedRow label="Dodge"           value={dodge} />
+            <DerivedRow label="Move Rate"       value={move}          tip="MOV" />
+            <DerivedRow label="Hit Points"      value={hp}            tip="HP" />
+            <DerivedRow label="Magic Points"    value={mp}            tip="MP" />
+            <DerivedRow label="Sanity"          value={stats.POW}     tip="SAN" />
+            <DerivedRow label="Luck"            value={state.luck ?? '—'} tip="LUCK" />
+            <DerivedRow label="Damage Bonus"    value={damageBonus}   tip="DB" />
+            <DerivedRow label="Build"           value={build}         tip="BUILD" />
+            <DerivedRow label="Dodge"           value={dodge}         tip="DODGE" />
             <DerivedRow label="Interest Pts"    value={stats.INT * 2} />
           </div>
           <p className="mt-[0.6rem] font-sans text-[0.73rem] text-(--text-faint) leading-[1.4]">

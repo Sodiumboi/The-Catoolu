@@ -8,9 +8,12 @@ export default defineConfig({
     tailwindcss(),
   ],
   test: {
+    environment: 'node',
     globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/setupTests.js',
+    include: ['src/**/*.test.js', 'src/**/*.test.jsx'],
+    coverage: {
+      reporter: ['text', 'json'],
+    },
   },
   server: {
     port: 5173,

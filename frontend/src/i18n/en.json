@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "investigators": "Investigators",
+    "keeper": "Keeper",
+    "campaign": "Campaign",
+    "welcome": "Welcome back, {{name}}"
+  },
+  "dashboard": {
+    "create_new": "Create New",
+    "create_or_import": "Create or Import Investigator",
+    "import": "Import",
+    "empty": "No investigators yet."
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "loading": "Loading..."
+  }
+}

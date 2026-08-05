@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -13,6 +14,7 @@ import useConfirm from '../hooks/useConfirm';
 import { useToast } from '../context/ToastContext';
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -241,7 +243,7 @@ export default function DashboardPage() {
             <button
               onClick={openCreateImport}
               className="btn-primary">
-              <span className="icon icon-sm">add</span>{' '}Create or Import Investigator<BetaBadge className="ml-[0.4rem]" />
+              <span className="icon icon-sm">add</span>{' '}{t('dashboard.create_or_import')}<BetaBadge className="ml-[0.4rem]" />
             </button>
           </div>
 

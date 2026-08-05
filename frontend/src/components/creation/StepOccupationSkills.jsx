@@ -7,12 +7,15 @@ import {
   describeCompulsoryChoiceEntry,
 } from '../../utils/compulsoryChoices';
 import CompulsoryChoiceModal from './CompulsoryChoiceModal';
+import Tooltip from '../ui/Tooltip';
 
 function SkillRow({ name, base, aboveBase, cap, onChange, isSpecialty, baseLabel, isPrefilled }) {
   const total    = base + aboveBase;
   const half     = Math.floor(total / 2);
   const fifth    = Math.floor(total / 5);
   const maxAbove = cap - base;
+  /* Credit Rating passes a bracketed range ("(15 – 40)") instead of a plain base */
+  const baseText = baseLabel ? baseLabel.replace(/[()]/g, '').trim() : `${base}%`;
 
   const adjust = (delta) => {
     const next = Math.max(0, Math.min(maxAbove, aboveBase + delta));
@@ -25,9 +28,11 @@ function SkillRow({ name, base, aboveBase, cap, onChange, isSpecialty, baseLabel
     <div className={`flex items-center gap-[0.6rem] py-[0.45rem] px-3 border-b border-(--border-main) ${isSpecialty ? 'bg-(--accent-bg)' : 'bg-transparent'}`}>
       {/* Name + base */}
       <div className="flex-1 min-w-0">
-        <span className={`font-sans text-[0.88rem] text-(--text-primary) ${isSpecialty ? 'font-semibold' : 'font-normal'}`}>
-          {name}
-        </span>
+        <Tooltip content={`${name} — base: ${baseText}`} placement="right">
+          <span className={`font-sans text-[0.88rem] text-(--text-primary) ${isSpecialty ? 'font-semibold' : 'font-normal'}`}>
+            {name}
+          </span>
+        </Tooltip>
         <span className="font-sans text-[0.73rem] text-(--text-faint) ml-[0.3rem]">
           {baseLabel ?? `(${base}%)`}
         </span>

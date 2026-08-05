@@ -1,6 +1,7 @@
 import ALL_SKILLS, { SKILL_ERAS } from '../../utils/allSkills';
 import { getSkillBase, PREFILLED_WEAPON_SKILLS, MISC_ONLY_SKILLS } from '../../utils/skillBases';
 import { resolveCompulsoryChoices } from '../../utils/compulsoryChoices';
+import Tooltip from '../ui/Tooltip';
 
 // ── Shared sub-components ────────────────────────────────────────────────────
 function Btns({ atMin, atMax, onAdjust }) {
@@ -41,9 +42,11 @@ function SimpleRow({ name, base, occAbove, personalAbove, cap, onChange, isOcc, 
   return (
     <div className={`${ROW} ${isOcc ? 'bg-(--accent-bg)' : 'bg-transparent'}`}>
       <div className="flex-1 min-w-0">
-        <span className={`font-sans text-[0.83rem] text-(--text-primary) ${isOcc ? 'font-medium' : 'font-normal'}`}>
-          {name}
-        </span>
+        <Tooltip content={`${name} — base: ${base}%`} placement="right">
+          <span className={`font-sans text-[0.83rem] text-(--text-primary) ${isOcc ? 'font-medium' : 'font-normal'}`}>
+            {name}
+          </span>
+        </Tooltip>
         <span className="font-sans text-[0.68rem] text-(--text-faint) ml-[0.3rem]">
           ({base}%)
         </span>
@@ -65,16 +68,19 @@ function GroupBox({ groupDef, occSkillsForGroup, occSkillSet, freeSlots, occGran
   const isOwn  = group === 'Language (Own)';
   const isMisc = group === 'Misc';
   const headerBase = isOwn ? 'EDU' : getSkillBase(group, edu);
+  const headerBaseText = typeof headerBase === 'number' ? `${headerBase}%` : headerBase;
 
   return (
     <div className="my-[0.3rem] border border-(--border-main) rounded-lg overflow-hidden">
       {/* Header: "Group (base%) ─────" */}
       <div className="flex items-center gap-[0.4rem] py-[0.3rem] px-3 bg-transparent">
-        <span className="font-sans text-[0.8rem] font-bold text-(--text-primary) whitespace-nowrap">
-          {group}
-        </span>
+        <Tooltip content={`${group} — base: ${headerBaseText}`} placement="right">
+          <span className="font-sans text-[0.8rem] font-bold text-(--text-primary) whitespace-nowrap">
+            {group}
+          </span>
+        </Tooltip>
         <span className="font-sans text-[0.68rem] text-(--text-faint) whitespace-nowrap">
-          ({typeof headerBase === 'number' ? `${headerBase}%` : headerBase})
+          ({headerBaseText})
         </span>
         <div className="flex-1 h-px bg-(--border-main)" />
       </div>
@@ -94,9 +100,11 @@ function GroupBox({ groupDef, occSkillsForGroup, occSkillSet, freeSlots, occGran
         return (
           <div key={skill} className={`${ROW} bg-(--accent-bg)`}>
             <div className="flex-1 min-w-0">
-              <span className="font-sans text-[0.83rem] text-(--text-primary) font-medium">
-                {specialty}
-              </span>
+              <Tooltip content={`${skill} — base: ${base}%`} placement="right">
+                <span className="font-sans text-[0.83rem] text-(--text-primary) font-medium">
+                  {specialty}
+                </span>
+              </Tooltip>
               <span className="font-sans text-[0.68rem] text-(--text-faint) ml-[0.3rem]">
                 ({base}%)
               </span>

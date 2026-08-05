@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useTheme, THEMES } from '../context/ThemeContext';
 import { useCampaign } from '../context/CampaignContext';
@@ -16,9 +17,9 @@ import apiClient from '../api/client';
 // ── Tab definitions ────────────────────────────────────────
 // 'available' tabs are clickable, 'soon' tabs are greyed out
 const TABS = [
-  { id: 'investigators', label: 'Investigators', path: '/dashboard', status: 'available' },
-  { id: 'keeper',        label: 'Keeper',        path: '/keeper',   status: 'available' },
-  { id: 'campaign',      label: 'Campaign',      path: '/campaign', status: 'available' },
+  { id: 'investigators', labelKey: 'nav.investigators', path: '/dashboard', status: 'available' },
+  { id: 'keeper',        labelKey: 'nav.keeper',        path: '/keeper',   status: 'available' },
+  { id: 'campaign',      labelKey: 'nav.campaign',      path: '/campaign', status: 'available' },
 ];
 
 // NavBar remounts on every page — these carry state across remounts.
@@ -28,6 +29,7 @@ let _maintState = { mounted: false, visible: false, message: '' };
 
 
 export default function NavBar({ activeTab = 'investigators' }) {
+  const { t }                     = useTranslation();
   const { user, logout }          = useAuth();
   const { theme }                 = useTheme();
   const { activeRoom, leaveRoom } = useCampaign();
@@ -233,7 +235,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
               The Catoolu
             </div>
             <div className="font-sans text-[11px] text-(--text-muted) leading-[1.2]">
-              welcome back, {user?.username}
+              {t('nav.welcome', { name: user?.username ?? '' })}
             </div>
           </div>
         </button>
@@ -275,7 +277,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
                   // cursor (unlayered .pill-nav-tab wins over utilities, so inline)
                   style={isSoon ? { color: 'var(--text-faint)', cursor: 'default' } : undefined}
                 >
-                  {tab.label}
+                  {t(tab.labelKey)}
 
                   {isSoon && (
                     <span className="icon icon-sm opacity-40">lock</span>
@@ -644,8 +646,15 @@ function PreferencesPanel({ theme, setPanel }) {
     parallaxEnabled,   setParallaxEnabled,
     parallaxIntensity, setParallaxIntensity,
   } = useTheme();
+  const { i18n }                  = useTranslation();
   const [savedMsg, setSavedMsg]   = useState('');
   const [homePage, setHomePage]   = useState(() => localStorage.getItem('coc_home_page') || '/');
+
+  // i18next holds the active language; localStorage only seeds it on next boot.
+  const handleLanguageChange = (lang) => {
+    i18n.changeLanguage(lang);
+    localStorage.setItem('catoolu_lang', lang);
+  };
 
   // Flash "Saved" confirmation when a setting changes
   const applySetting = (fn) => {
@@ -712,6 +721,22 @@ function PreferencesPanel({ theme, setPanel }) {
                 </Tooltip>
               );
             })}
+          </div>
+        </div>
+
+        {/* ── LANGUAGE ── */}
+        <div className="border-t border-(--border-main) pt-2.5 mb-3.5">
+          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Language</div>
+          <div className="seg">
+            {[{ id: 'en', label: 'EN' }, { id: 'th', label: 'ภาษาไทย' }].map(l => (
+              <button
+                key={l.id}
+                onClick={() => applySetting(() => handleLanguageChange(l.id))}
+                className={`seg-tab ${i18n.language === l.id ? 'active' : ''}`}
+              >
+                {l.label}
+              </button>
+            ))}
           </div>
         </div>
 

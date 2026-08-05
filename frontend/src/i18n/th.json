@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "investigators": "นักสืบ",
+    "keeper": "ผู้ดูแล",
+    "campaign": "แคมเปญ",
+    "welcome": "ยินดีต้อนรับกลับ {{name}}"
+  },
+  "dashboard": {
+    "create_new": "สร้างใหม่",
+    "create_or_import": "สร้างหรือนำเข้านักสืบ",
+    "import": "นำเข้า",
+    "empty": "ยังไม่มีนักสืบ"
+  },
+  "common": {
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "confirm": "ยืนยัน",
+    "close": "ปิด",
+    "loading": "กำลังโหลด..."
+  }
+}
