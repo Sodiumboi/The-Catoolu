@@ -1492,6 +1492,10 @@ input[type='number'] {
   gap: 2px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
   position: relative;
+  /* Stretch/contract the track when translated labels resize it. Only animates
+     when NavBar has measured a px width (intrinsic widths aren't animatable) —
+     same curve as .pill-nav-indicator so track and pill move in sympathy. */
+  transition: width 0.35s cubic-bezier(0.34, 1.15, 0.64, 1);
 }
 
 .pill-nav-tab {
@@ -1505,13 +1509,23 @@ input[type='number'] {
   position: relative;
   z-index: 1;
   user-select: none;
-  transition: color 0.22s ease;
+  transition: color 0.22s ease, opacity 0.18s ease;
   background: transparent;
   border: none;
 }
 .pill-nav-tab.active {
   color: var(--color-primary);
   font-weight: 700;
+}
+
+/* Language swap, both directions. NavBar hides the labels instantly
+   (transition:none) so the new glyphs are never painted while the track is still
+   the wrong size for them, then removes this class on the frame the track
+   arrives at its new width — at which point the rule above fades them in over
+   0.18s. The box always resizes empty; the text appears only once it fits. */
+.pill-nav-tab.is-lang-swapping {
+  opacity: 0;
+  transition: none;
 }
 
 .pill-nav-indicator {

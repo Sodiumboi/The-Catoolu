@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,22 @@ const TABS = [
   { id: 'campaign',      labelKey: 'nav.campaign',      path: '/campaign', status: 'available' },
 ];
 
+// Width the track needs to hold its tabs: tab widths + gaps + padding + border
+// (border-box, so padding/border are inside the width). The track is inline-flex
+// with an intrinsic width, and intrinsic widths can't be CSS-transitioned — so we
+// compute the number ourselves. Two callers need it and must agree exactly: the
+// animated width we set, and the gate that decides when the track is wide enough
+// to reveal the labels.
+function trackWidthFor(container, tabs) {
+  const cs    = getComputedStyle(container);
+  const gap   = parseFloat(cs.columnGap || cs.gap) || 0;
+  const padX  = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+  const bordX = (parseFloat(cs.borderLeftWidth) || 0) + (parseFloat(cs.borderRightWidth) || 0);
+  const content = tabs.reduce((sum, n) => sum + n.getBoundingClientRect().width, 0);
+  // Ceil so a subpixel shortfall can never clip the rounded end cap.
+  return Math.ceil(content + gap * (tabs.length - 1) + padX + bordX);
+}
+
 // NavBar remounts on every page — these carry state across remounts.
 let _lastPillBounds = null;
 // Maintenance pill: persists so the pill stays visible on navigation while maintenance is on.
@@ -29,7 +45,7 @@ let _maintState = { mounted: false, visible: false, message: '' };
 
 
 export default function NavBar({ activeTab = 'investigators' }) {
-  const { t }                     = useTranslation();
+  const { t, i18n }               = useTranslation();
   const { user, logout }          = useAuth();
   const { theme }                 = useTheme();
   const { activeRoom, leaveRoom } = useCampaign();
@@ -124,6 +140,9 @@ export default function NavBar({ activeTab = 'investigators' }) {
   const containerRef                    = useRef(null);
   const tabRefs                         = useRef({});
   const [pillBounds, setPillBounds]     = useState(_lastPillBounds);
+  const [trackWidth, setTrackWidth]     = useState(null);
+
+  const didMountLang                    = useRef(false);
 
   // ── Close dropdown when clicking outside ────────────────
   useEffect(() => {
@@ -187,17 +206,85 @@ export default function NavBar({ activeTab = 'investigators' }) {
   )?.id ?? activeTab;
 
   // Measure active tab position; persist across remounts so animation plays on navigation
-  useEffect(() => {
+  const measurePill = useCallback(() => {
     const el        = tabRefs.current[currentActiveTab];
     const container = containerRef.current;
     if (!el || !container) return;
     const r          = el.getBoundingClientRect();
     const c          = container.getBoundingClientRect();
-    const borderLeft = parseFloat(getComputedStyle(container).borderLeftWidth) || 0;
+    const cs         = getComputedStyle(container);
+    const borderLeft = parseFloat(cs.borderLeftWidth) || 0;
     const b = { left: r.left - c.left - borderLeft, width: r.width };
     _lastPillBounds = b;
     setPillBounds(b);
+
+    // Give the track a concrete px width so it can stretch/contract between
+    // label sizes. Only the three tab labels feed this, and they only change on
+    // language switch, so a JS-driven width stays stable the rest of the time.
+    const tabs = TABS.map(x => tabRefs.current[x.id]).filter(Boolean);
+    if (tabs.length === TABS.length) setTrackWidth(trackWidthFor(container, tabs));
   }, [currentActiveTab]);
+
+  // Translated glyphs re-lay-out instantly while the track and pill animate to
+  // their new size over 0.35s, so for that window the text would sit outside its
+  // own box (obvious when growing, e.g. TH→EN). Blank the labels for the frame
+  // the language flips, then release them so CSS fades them back in as the
+  // boxes converge — text and boxes land together.
+  //
+  // useLayoutEffect, not useEffect: this runs before paint, so the misaligned
+  // frame is never shown. Done by touching classList rather than React state so
+  // it costs no extra render (and no set-state-in-effect).
+  useLayoutEffect(() => {
+    if (!didMountLang.current) { didMountLang.current = true; return; }  // no fade on first load
+    const container = containerRef.current;
+    const nodes     = TABS.map(x => tabRefs.current[x.id]).filter(Boolean);
+    if (!container || nodes.length !== TABS.length) return;
+
+    const needed = trackWidthFor(container, nodes);          // width the NEW labels require
+    const have   = container.getBoundingClientRect().width;  // width the track has right now
+    if (Math.abs(have - needed) <= 0.5) return;              // already the right size, nothing to animate
+
+    const reveal = () => nodes.forEach(n => n.classList.remove('is-lang-swapping'));
+    nodes.forEach(n => n.classList.add('is-lang-swapping'));
+
+    // Poll the track's real animated width and reveal the labels the frame it
+    // arrives at its new size — geometry-driven rather than timed, so the box
+    // always resizes empty and the text only appears once it fits properly.
+    // Direction-aware: growing arrives from below the target, shrinking from
+    // above. Testing the crossing (rather than equality) also means the spring's
+    // overshoot uncovers the text a touch before the box finishes settling.
+    const growing = have < needed;
+    const arrived = () => {
+      const w = container.getBoundingClientRect().width;
+      return growing ? w + 0.5 >= needed : w - 0.5 <= needed;
+    };
+
+    let raf;
+    const tick = () => {
+      if (arrived()) { reveal(); return; }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    // Failsafe: never leave the labels invisible if the width never arrives
+    // (interrupted transition, measurement drift, reduced-motion overrides).
+    const bail = setTimeout(reveal, 800);
+
+    return () => { cancelAnimationFrame(raf); clearTimeout(bail); reveal(); };
+  }, [i18n.language]);
+
+  // Re-measure on tab change AND on language change — translated labels have
+  // different widths, so the pill has to resize with them, not just slide.
+  useEffect(() => {
+    measurePill();
+    // Thai renders in Noto Sans Thai, an async webfont. A measurement taken
+    // before it swaps in is based on fallback-font widths, which matters on a
+    // cold load with the language already persisted to 'th'. Re-measure once
+    // fonts settle; the promise is already resolved on later switches, so this
+    // is a cheap no-op then.
+    let cancelled = false;
+    document.fonts?.ready.then(() => { if (!cancelled) measurePill(); });
+    return () => { cancelled = true; };
+  }, [measurePill, i18n.language]);
 
   // ── Handlers ─────────────────────────────────────────────
   const handleLogout = () => {
@@ -247,6 +334,10 @@ export default function NavBar({ activeTab = 'investigators' }) {
         <div
           ref={containerRef}
           className="pill-nav-container"
+          // Runtime-measured so the track can animate between label widths.
+          // null until first measure — falls back to the CSS intrinsic width,
+          // so there is no width animation on initial page load.
+          style={trackWidth ? { width: trackWidth } : undefined}
         >
           {/* Single pill — slides across the container */}
           {pillBounds && (
