@@ -7,9 +7,11 @@ import HandoutLibrary from './handouts/HandoutLibrary';
 import ConfirmDialog from './ConfirmDialog';
 import useConfirm from '../hooks/useConfirm';
 import Tooltip from './ui/Tooltip';
+import ToggleRow from './ui/ToggleRow';
 
 const TABS = [
   { id: 'info',        label: 'Info',        icon: 'info'          },
+  { id: 'settings',    label: 'Settings',    icon: 'settings'      },
   { id: 'handouts',    label: 'Handouts',    icon: 'photo_library' },
   { id: 'danger-zone', label: 'Danger Zone', icon: 'warning'       },
 ];
@@ -21,6 +23,10 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
   const [loading,      setLoading]      = useState(true);
   const [showInvite,   setShowInvite]   = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
+  // Settings live here rather than in SettingsTab so the value survives tab
+  // switches (each tab body unmounts when you switch away).
+  const [sessionLuck,  setSessionLuck]  = useState(!!campaign.session_luck_enabled);
+  const [settingMsg,   setSettingMsg]   = useState('');
   const { confirm, dialogProps } = useConfirm();
   const toast = useToast();
 
@@ -28,6 +34,7 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
     try {
       const res = await apiClient.get('/campaigns/' + campaign.uuid);
       setMembers(res.data.campaign.members || []);
+      setSessionLuck(!!res.data.campaign.session_luck_enabled);
     } catch (err) {
       toast.error("Couldn't load campaign details", 'Refresh to try again.', {
         details: { endpoint: 'GET /campaigns', status: err.response?.status, raw: err.response?.data?.error || err.message },
@@ -53,6 +60,22 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
     } catch (err) {
       toast.error("Couldn't remove player", "The player wasn't removed. Try again.", {
         details: { endpoint: 'DELETE /campaigns/members', status: err.response?.status, raw: err.response?.data?.error || err.message },
+      });
+    }
+  };
+
+  // Settings save immediately on toggle — optimistic, reverted if the PUT fails.
+  const handleToggleSessionLuck = async () => {
+    const next = !sessionLuck;
+    setSessionLuck(next);
+    try {
+      await apiClient.put('/campaigns/' + campaign.uuid, { session_luck_enabled: next });
+      setSettingMsg('✓ Saved');
+      setTimeout(() => setSettingMsg(''), 1500);
+    } catch (err) {
+      setSessionLuck(!next);
+      toast.error("Couldn't save the setting", 'Session Luck was left unchanged. Try again.', {
+        details: { endpoint: 'PUT /campaigns', status: err.response?.status, raw: err.response?.data?.error || err.message },
       });
     }
   };
@@ -229,6 +252,15 @@ export default function KeeperCampaignDetail({ campaign, onBack, initialTab }) {
             onShowInvite={() => setShowInvite(p => !p)}
             onCopyCode={handleCopyCode}
             onRemoveMember={handleRemoveMember}
+          />
+        )}
+
+        {/* ── SETTINGS TAB ── */}
+        {activeTab === 'settings' && (
+          <SettingsTab
+            sessionLuck={sessionLuck}
+            savedMsg={settingMsg}
+            onToggleSessionLuck={handleToggleSessionLuck}
           />
         )}
 
@@ -733,6 +765,49 @@ function InfoTab({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Settings Tab ──────────────────────────────────────────────
+function SettingsTab({ sessionLuck, savedMsg, onToggleSessionLuck }) {
+  return (
+    <div style={{ maxWidth:'520px' }}>
+      <div style={{
+        display:'flex', alignItems:'center',
+        justifyContent:'space-between', gap:'12px',
+        marginBottom:'12px',
+      }}>
+        <h3 style={{
+          fontFamily:'var(--font-serif)', fontSize:'17px',
+          color:'var(--text-primary)', margin:0,
+        }}>
+          Campaign Settings
+        </h3>
+        {/* opacity stays inline — driven by the transient save flash */}
+        <span style={{
+          fontFamily:'var(--font-sans)', fontSize:'11px',
+          color:'var(--success)',
+          transition:'opacity 0.2s ease',
+          opacity: savedMsg ? 1 : 0,
+        }}>
+          {savedMsg}
+        </span>
+      </div>
+
+      <div style={{
+        background:'var(--bg-card)',
+        border:'1px solid var(--border-main)',
+        borderRadius:'var(--radius-card)',
+        padding:'4px 16px 12px',
+      }}>
+        <ToggleRow
+          label="Session Luck"
+          desc="Instead of fixed Luck from character creation, the Keeper can roll new Luck values for all players at the start of each session."
+          checked={sessionLuck}
+          onChange={onToggleSessionLuck}
+        />
+      </div>
     </div>
   );
 }

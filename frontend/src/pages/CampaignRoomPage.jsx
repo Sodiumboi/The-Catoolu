@@ -376,6 +376,91 @@ export default function CampaignRoomPage() {
       });
     };
 
+    // ── Session Luck ──
+    // Player side: queue the request alongside normal roll requests so the
+    // existing pill stack (and the keeper's cancel path) handles it unchanged.
+    const onLuckRollRequest = ({ requestId, requestedBy }) => {
+      setRollRequests(prev => {
+        if (prev.some(r => r.requestId === requestId)) return prev;
+        return [...prev, { requestId, kind: 'luck', rollName: 'Session Luck', requestedBy }];
+      });
+    };
+
+    // Keeper side: one pending pill per player who received the request.
+    const onLuckRollRequested = ({ requestId, players }) => {
+      if (!players?.length) {
+        toast.info('No players to roll for', 'Nobody is connected to the room right now.');
+        return;
+      }
+      setPendingRollReqs(prev => {
+        const next = { ...prev };
+        players.forEach(p => {
+          next[requestId + ':' + p.userId] = {
+            memberId: p.userId, rollName: 'Session Luck', requestId, kind: 'luck',
+          };
+        });
+        return next;
+      });
+    };
+
+    const onLuckRollComplete = ({ requestId, userId, luck }) => {
+      setPendingRollReqs(prev => {
+        const next = { ...prev };
+        delete next[requestId + ':' + userId];
+        return next;
+      });
+      if (luck == null) return;   // player couldn't roll (no investigator registered)
+      // Keep the cached sheet current so the roll picker offers the new Luck
+      setMemberSheetCache(prev => {
+        const cached = prev[userId];
+        if (!cached) return prev;
+        return {
+          ...prev,
+          [userId]: {
+            ...cached,
+            sheet_data: {
+              ...cached.sheet_data,
+              Investigator: {
+                ...cached.sheet_data?.Investigator,
+                Characteristics: {
+                  ...cached.sheet_data?.Investigator?.Characteristics,
+                  Luck: String(luck),
+                },
+              },
+            },
+          },
+        };
+      });
+    };
+
+    // Player side: reflect the new Luck on the sheet without a refetch.
+    // LuckMax moves with it (server does the same) so Max/Now never disagree.
+    const onLuckUpdated = ({ luck }) => {
+      setMyCharFullData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          sheet_data: {
+            ...prev.sheet_data,
+            Investigator: {
+              ...prev.sheet_data?.Investigator,
+              Characteristics: {
+                ...prev.sheet_data?.Investigator?.Characteristics,
+                Luck:    String(luck),
+                LuckMax: String(luck),
+              },
+            },
+          },
+        };
+      });
+    };
+
+    // Keeper edited the campaign (name, description, Session Luck) from the
+    // manage page — keep the room's copy live instead of requiring a re-enter.
+    const onCampaignUpdated = (updatedCampaign) => {
+      setCampaign(prev => ({ ...prev, ...updatedCampaign }));
+    };
+
     const onHandoutShared = (data) => {
       const shareItem = {
         id:         data.share_uuid,
@@ -430,6 +515,11 @@ export default function CampaignRoomPage() {
     socket.on('keeper:roll_request',       onKeeperRollRequest);
     socket.on('keeper:roll_request_cancel', onKeeperRollRequestCancel);
     socket.on('player:roll_response',      onPlayerRollResponse);
+    socket.on('luck_roll_request',         onLuckRollRequest);
+    socket.on('luck_roll_requested',       onLuckRollRequested);
+    socket.on('luck_roll_complete',        onLuckRollComplete);
+    socket.on('luck_updated',              onLuckUpdated);
+    socket.on('campaign_updated',          onCampaignUpdated);
     socket.on('handout:shared',            onHandoutShared);
     socket.on('message:deleted',           onMessageDeleted);
     socket.on('sheet_updated',             onSheetUpdated);
@@ -446,6 +536,11 @@ export default function CampaignRoomPage() {
       socket.off('keeper:roll_request',       onKeeperRollRequest);
       socket.off('keeper:roll_request_cancel', onKeeperRollRequestCancel);
       socket.off('player:roll_response',      onPlayerRollResponse);
+      socket.off('luck_roll_request',         onLuckRollRequest);
+      socket.off('luck_roll_requested',       onLuckRollRequested);
+      socket.off('luck_roll_complete',        onLuckRollComplete);
+      socket.off('luck_updated',              onLuckUpdated);
+      socket.off('campaign_updated',          onCampaignUpdated);
       socket.off('handout:shared',            onHandoutShared);
       socket.off('message:deleted',           onMessageDeleted);
       socket.off('sheet_updated',             onSheetUpdated);
@@ -1026,6 +1121,22 @@ export default function CampaignRoomPage() {
     setRollRequests(prev => prev.filter(r => r.requestId !== requestId));
   };
 
+  // ── Session Luck ──────────────────────────────────────────────
+  // Keeper asks every connected player for a fresh Luck value. The dice are
+  // rolled server-side (3D6×5); nothing here decides the result.
+  const luckRequestPending = Object.values(pendingRollReqs).some(p => p.kind === 'luck');
+
+  const handleRollSessionLuck = () => {
+    if (!socket || !inRoom || luckRequestPending) return;
+    socket.emit('request_luck_roll', { campaignId: campaign?.id });
+  };
+
+  const handleLuckPillRoll = (requestId) => {
+    if (!socket || !inRoom) return;
+    socket.emit('submit_luck_roll', { campaignId: campaign?.id, requestId });
+    setRollRequests(prev => prev.filter(r => r.requestId !== requestId));
+  };
+
   // ── Adv/Dis toggle ────────────────────────────────────────────
   const handleToggleAdv = () => { setAdvMode(p => !p); setDisMode(false); };
   const handleToggleDis = () => { setDisMode(p => !p); setAdvMode(false); };
@@ -1092,6 +1203,7 @@ export default function CampaignRoomPage() {
           requests={rollRequests}
           myCharFullData={myCharFullData}
           onRoll={handlePillRoll}
+          onLuckRoll={handleLuckPillRoll}
           onDismiss={handlePillDismiss}
         />
       )}
@@ -1279,17 +1391,31 @@ export default function CampaignRoomPage() {
                         <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) font-sans">
                           Investigators ({members.filter(m => m.role === 'player').length})
                         </div>
-                        {members.some(m => m.role === 'player' && m.character_uuid) && (
-                          <Tooltip content="Request a roll from all players">
-                          <button
-                            onClick={e => handleOpenAllRollPicker(e.currentTarget.getBoundingClientRect())}
-                            className="btn-secondary btn-secondary-sm"
-                          >
-                            <span className="icon icon-sm">casino</span>
-                            Request All
-                          </button>
-                          </Tooltip>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {members.some(m => m.role === 'player' && m.character_uuid) && (
+                            <Tooltip content="Request a roll from all players">
+                            <button
+                              onClick={e => handleOpenAllRollPicker(e.currentTarget.getBoundingClientRect())}
+                              className="btn-secondary btn-secondary-sm"
+                            >
+                              <span className="icon icon-sm">casino</span>
+                              Request All
+                            </button>
+                            </Tooltip>
+                          )}
+                          {campaign?.session_luck_enabled && (
+                            <Tooltip content="Roll fresh Luck (3D6×5) for every player">
+                            <button
+                              onClick={handleRollSessionLuck}
+                              disabled={luckRequestPending}
+                              className="btn-secondary btn-secondary-sm"
+                            >
+                              <span className="icon icon-sm">casino</span>
+                              {luckRequestPending ? 'Waiting…' : 'Roll Session Luck'}
+                            </button>
+                            </Tooltip>
+                          )}
+                        </div>
                       </div>
                       {members
                         .filter(m => m.role === 'player')

@@ -132,8 +132,9 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
   const isAdv        = raw.advantage;
   const isDis        = raw.disadvantage;
   const hasAdvDis    = isAdv || isDis;
-  const showSum      = raw.rolls && raw.rolls.length > 1 && !hasAdvDis;
-  const hasResultLine = sl || raw.isDamage || showSum;
+  // Luck rolls carry their own result line (3D6 sum × 5), so the plain sum is suppressed
+  const showSum      = raw.rolls && raw.rolls.length > 1 && !hasAdvDis && !raw.isLuck;
+  const hasResultLine = sl || raw.isDamage || raw.isLuck || showSum;
 
   const displayName = msg.character_name
     ? msg.character_name.split(' ')[0] + ' ' + (msg.character_name.split(' ')[1] || '')
@@ -142,6 +143,8 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
   let header;
   if (raw.isDamage) {
     header = (displayName || msg.username).trim() + ' deals damage';
+  } else if (raw.isLuck) {
+    header = displayName.trim() + ' rolls new Luck!';
   } else if (raw.skillName) {
     const weaponSkills = ['brawl', 'handgun', 'rifle', 'shotgun', 'fighting'];
     const isAttack = weaponSkills.some(w => raw.skillName.toLowerCase().includes(w));
@@ -307,6 +310,13 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
                   {' = '}
                   {/* color stays inline — severity-derived, roll outcome data */}
                   <strong style={{ color: `var(--roll-${severity}-text)` }}>{raw.total}</strong>
+                </span>
+              )}
+              {/* Session Luck total — 3D6 sum, then ×5 */}
+              {raw.isLuck && (
+                <span className="text-(--roll-none-text)">
+                  {raw.rolls.join(' + ')} = {raw.subtotal} × 5 ={' '}
+                  <strong>{raw.total}</strong>
                 </span>
               )}
               {/* Damage total */}

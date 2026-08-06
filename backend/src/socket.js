@@ -1,4 +1,5 @@
 const { Server } = require('socket.io');
+const { randomUUID } = require('crypto');
 const jwt        = require('jsonwebtoken');
 const pool       = require('./config/db');
 const { roll }   = require('./utils/dice');
@@ -18,9 +19,15 @@ const EVENTS = {
   KEEPER_ROLL_REQUEST_CANCEL: 'keeper:roll_request_cancel',
   PLAYER_ROLL_RESPONSE:       'player:roll_response',
   HANDOUT_SHARED:             'handout:shared',
+  REQUEST_LUCK_ROLL:          'request_luck_roll',
+  SUBMIT_LUCK_ROLL:           'submit_luck_roll',
 
   // Server → Client
   JOINED:          'joined',
+  LUCK_ROLL_REQUEST:   'luck_roll_request',
+  LUCK_ROLL_REQUESTED: 'luck_roll_requested',
+  LUCK_ROLL_COMPLETE:  'luck_roll_complete',
+  LUCK_UPDATED:        'luck_updated',
   RECEIVE_MESSAGE: 'receive_message',
   USER_JOINED:     'user_joined',
   USER_LEFT:       'user_left',
@@ -32,6 +39,14 @@ const EVENTS = {
 
 // ── Room name helper ───────────────────────────────────────────
 const roomName = (campaignId) => `campaign:${campaignId}`;
+
+// ── Session Luck request registry ──────────────────────────────
+// requestId → Set of userIds still allowed to submit a Luck roll for it.
+// Without this any client could emit submit_luck_roll at will and reroll its
+// own Luck; a submission is only honoured if the Keeper asked for it.
+// Entries self-expire so abandoned requests don't accumulate.
+const pendingLuckRequests = new Map();
+const LUCK_REQUEST_TTL_MS = 60_000;
 
 // ── Main setup function ────────────────────────────────────────
 function setupSocket(httpServer) {
@@ -528,9 +543,192 @@ function setupSocket(httpServer) {
       }
     });
 
+    // ── REQUEST_LUCK_ROLL ───────────────────────────────────────
+    // Keeper asks every connected player in the room for a fresh Luck roll.
+    // Only the players currently in the campaign room are targeted — a request
+    // must never surface on a tab that isn't in the session.
+    socket.on(EVENTS.REQUEST_LUCK_ROLL, async ({ campaignId }) => {
+      try {
+        if (!campaignId) return;
+
+        const check = await pool.query(
+          `SELECT cm.role, c.session_luck_enabled
+           FROM campaign_members cm
+           JOIN campaigns c ON c.id = cm.campaign_id
+           WHERE cm.campaign_id = $1 AND cm.user_id = $2`,
+          [campaignId, socket.user.id]
+        );
+        const membership = check.rows[0];
+        if (!membership || membership.role !== 'keeper') {
+          return socket.emit(EVENTS.ERROR, { message: 'Only the Keeper can request a Luck roll.' });
+        }
+        if (!membership.session_luck_enabled) {
+          return socket.emit(EVENTS.ERROR, { message: 'Session Luck is not enabled for this campaign.' });
+        }
+
+        const playersRes = await pool.query(
+          `SELECT cm.user_id, u.username
+           FROM campaign_members cm
+           JOIN users u ON u.id = cm.user_id
+           WHERE cm.campaign_id = $1 AND cm.role = 'player'`,
+          [campaignId]
+        );
+        const playerNames = new Map(playersRes.rows.map(r => [r.user_id, r.username]));
+
+        const room            = roomName(campaignId);
+        const socketsInRoom   = await io.in(room).fetchSockets();
+        const requestId       = randomUUID();
+        const targeted        = [];
+
+        for (const s of socketsInRoom) {
+          const userId = s.data.userId;
+          if (!playerNames.has(userId)) continue;   // keeper / non-player
+          s.emit(EVENTS.LUCK_ROLL_REQUEST, {
+            campaignId,
+            requestId,
+            requestedBy: socket.user.username,
+          });
+          if (!targeted.some(t => t.userId === userId)) {
+            targeted.push({ userId, username: playerNames.get(userId) });
+          }
+        }
+
+        if (targeted.length > 0) {
+          pendingLuckRequests.set(requestId, new Set(targeted.map(t => t.userId)));
+          setTimeout(() => pendingLuckRequests.delete(requestId), LUCK_REQUEST_TTL_MS).unref?.();
+        }
+
+        socket.emit(EVENTS.LUCK_ROLL_REQUESTED, { requestId, players: targeted });
+
+        console.log(`🍀 ${socket.user.username} requested Session Luck from ${targeted.length} player(s)`);
+      } catch (err) {
+        console.error('request_luck_roll error:', err);
+        socket.emit(EVENTS.ERROR, { message: 'Failed to request Luck rolls.' });
+      }
+    });
+
+    // ── SUBMIT_LUCK_ROLL ────────────────────────────────────────
+    // Player answers a Luck request. The 3D6×5 roll happens HERE — the client
+    // sends no value and none would be trusted.
+    socket.on(EVENTS.SUBMIT_LUCK_ROLL, async ({ campaignId, requestId }) => {
+      try {
+        const allowed = pendingLuckRequests.get(requestId);
+        if (!allowed || !allowed.has(socket.user.id)) return;  // unsolicited or already answered
+        allowed.delete(socket.user.id);
+        if (allowed.size === 0) pendingLuckRequests.delete(requestId);
+
+        const charRes = await pool.query(
+          `SELECT c.id, c.uuid, c.portrait_data AS portrait,
+                  sheet_data->'Investigator'->'PersonalDetails'->>'Name' AS character_name
+           FROM characters c
+           JOIN campaign_members cm ON cm.character_id = c.id
+           WHERE cm.campaign_id = $1 AND cm.user_id = $2
+           LIMIT 1`,
+          [campaignId, socket.user.id]
+        );
+        // Keepers watch pending pills per player — clear this player's either way.
+        const notifyKeepers = async (payload) => {
+          const keeperRes = await pool.query(
+            `SELECT user_id FROM campaign_members
+             WHERE campaign_id = $1 AND role = 'keeper'`,
+            [campaignId]
+          );
+          keeperRes.rows.forEach(({ user_id }) => {
+            io.to('user:' + user_id).emit(EVENTS.LUCK_ROLL_COMPLETE, {
+              requestId,
+              userId:   socket.user.id,
+              username: socket.user.username,
+              ...payload,
+            });
+          });
+        };
+
+        const character = charRes.rows[0];
+        if (!character) {
+          await notifyKeepers({ luck: null });
+          return socket.emit(EVENTS.ERROR, { message: 'No investigator registered — cannot roll Luck.' });
+        }
+
+        // CoC 7e Luck = 3D6 × 5, rolled with the shared hardware-entropy engine.
+        const base = roll('3d6');
+        if (base.error) return;
+        const luck = base.total * 5;
+
+        const rollContent = {
+          ...base,
+          subtotal:  base.total,   // the raw 3D6 sum, before the ×5
+          total:     luck,
+          isLuck:    true,
+          forced:    true,
+          skillName: 'Luck Roll',
+          summary:   `${base.rolls.join(' + ')} = ${base.total} × 5 = ${luck}`,
+        };
+
+        // Both values move together — Session Luck replaces the creation-time
+        // Luck outright, so a stale LuckMax would render as "Max 50 / Now 65".
+        await pool.query(
+          `UPDATE characters
+           SET sheet_data = jsonb_set(
+             jsonb_set(
+               sheet_data,
+               ARRAY['Investigator', 'Characteristics', 'Luck'],
+               to_jsonb($1::text)
+             ),
+             ARRAY['Investigator', 'Characteristics', 'LuckMax'],
+             to_jsonb($1::text)
+           )
+           WHERE id = $2`,
+          [String(luck), character.id]
+        );
+
+        const userRes = await pool.query(
+          'SELECT avatar_url FROM users WHERE id = $1', [socket.user.id]
+        );
+
+        const dbResult = await pool.query(
+          `INSERT INTO messages
+             (campaign_id, user_id, type, content, avatar_url, portrait, character_name)
+           VALUES ($1, $2, 'roll', $3, $4, $5, $6)
+           RETURNING id, type, content, created_at, avatar_url, portrait, character_name`,
+          [campaignId, socket.user.id, JSON.stringify(rollContent),
+           userRes.rows[0]?.avatar_url || null, character.portrait, character.character_name]
+        );
+
+        io.to(roomName(campaignId)).emit(EVENTS.RECEIVE_MESSAGE, {
+          ...dbResult.rows[0],
+          campaign_id:   campaignId,
+          campaign_name: socket.currentCampaignName,
+          user_id:       socket.user.id,
+          username:      socket.user.username,
+          content:       rollContent,
+        });
+
+        // Player's own sheet updates without a refetch
+        socket.emit(EVENTS.LUCK_UPDATED, {
+          character_uuid: character.uuid,
+          luck:           String(luck),
+        });
+
+        // Keepers with this sheet open re-fetch it (existing signal-then-refetch)
+        io.to(roomName(campaignId)).emit(EVENTS.SHEET_UPDATED, { character_uuid: character.uuid });
+
+        await notifyKeepers({
+          characterName: character.character_name,
+          luck:          String(luck),
+        });
+
+        console.log(`🍀 ${socket.user.username} rolled Session Luck → ${luck}`);
+      } catch (err) {
+        console.error('submit_luck_roll error:', err);
+        socket.emit(EVENTS.ERROR, { message: 'Failed to roll Luck.' });
+      }
+    });
+
     // ── KEEPER_ROLL_REQUEST_CANCEL ──────────────────────────────
     // Keeper cancels a pending roll request — removes pill from player's screen.
     socket.on(EVENTS.KEEPER_ROLL_REQUEST_CANCEL, ({ campaignId, requestId }) => {
+      // Also revokes a Session Luck request of the same id, if that's what it was.
+      pendingLuckRequests.delete(requestId);
       io.to(roomName(campaignId)).emit(EVENTS.KEEPER_ROLL_REQUEST_CANCEL, { requestId });
     });
 

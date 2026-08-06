@@ -25,6 +25,7 @@ const addImageUrlsToMessages = require('./migrations/add_image_urls_to_messages'
 const createUserUploads  = require('./migrations/create_user_uploads');
 const addCampaignMemberLastJoined = require('./migrations/add_campaign_member_last_joined');
 const trimLongCampaignNames = require('./migrations/trim_long_campaign_names');
+const addSessionLuckEnabled = require('./migrations/add_session_luck_enabled');
 
 // Auth
 const session  = require('express-session');
@@ -140,6 +141,7 @@ async function startServer() {
   await createUserUploads();
   await addCampaignMemberLastJoined();
   await trimLongCampaignNames();
+  await addSessionLuckEnabled();
 
   httpServer.listen(PORT, () => {
     console.log('');

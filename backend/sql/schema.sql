@@ -68,6 +68,9 @@ CREATE TABLE IF NOT EXISTS campaigns (
   description  TEXT         DEFAULT '',
   keeper_id    INTEGER      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   invite_code  VARCHAR(10)  NOT NULL UNIQUE,
+  -- Session Luck mode: Keeper rolls fresh Luck (3D6×5) for every player
+  -- at the start of a session instead of using the creation-time value.
+  session_luck_enabled BOOLEAN NOT NULL DEFAULT false,
   created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );

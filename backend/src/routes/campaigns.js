@@ -161,6 +161,7 @@ router.get('/', async (req, res) => {
          c.description,
          c.invite_code,
          c.keeper_id,
+         c.session_luck_enabled,
          c.created_at,
          c.updated_at,
          cm.role,
@@ -714,10 +715,12 @@ router.post('/:uuid/roll/hidden', async (req, res) => {
 });
 
 // ── PUT /api/campaigns/:uuid ──────────────────────────────────
-// Edit campaign name/description. Keeper only. Broadcasts to room.
+// Edit campaign name/description/settings. Keeper only. Broadcasts to room.
+// Every field is an optional patch — COALESCE keeps whatever wasn't sent, so
+// the settings toggle can save on its own without resending name/description.
 router.put('/:uuid', async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, session_luck_enabled } = req.body;
 
     const campaign = await getCampaignByUuid(req.params.uuid);
     if (!campaign) {
@@ -728,26 +731,43 @@ router.put('/:uuid', async (req, res) => {
     if (!(await isKeeper(campaignId, req.user.id))) {
       return res.status(403).json({ error: 'Only the Keeper can edit this campaign.' });
     }
-    if (!name?.trim()) {
-      return res.status(400).json({ error: 'Campaign name is required.' });
+    if (name !== undefined) {
+      if (!name?.trim()) {
+        return res.status(400).json({ error: 'Campaign name is required.' });
+      }
+      if (name.trim().length > 100) {
+        return res.status(400).json({ error: 'Campaign name must be under 100 characters.' });
+      }
     }
-    if (name.trim().length > 100) {
-      return res.status(400).json({ error: 'Campaign name must be under 100 characters.' });
+    if (session_luck_enabled !== undefined && typeof session_luck_enabled !== 'boolean') {
+      return res.status(400).json({ error: 'session_luck_enabled must be a boolean.' });
+    }
+    if (name === undefined && description === undefined && session_luck_enabled === undefined) {
+      return res.status(400).json({ error: 'Nothing to update.' });
     }
 
     const result = await pool.query(
       `UPDATE campaigns
-       SET name = $1, description = $2, updated_at = NOW()
-       WHERE id = $3
+       SET name                 = COALESCE($1, name),
+           description          = COALESCE($2, description),
+           session_luck_enabled = COALESCE($3, session_luck_enabled),
+           updated_at           = NOW()
+       WHERE id = $4
        RETURNING *`,
-      [name.trim(), description?.trim() || '', campaignId]
+      [
+        name === undefined        ? null : name.trim(),
+        description === undefined ? null : description.trim(),
+        session_luck_enabled === undefined ? null : session_luck_enabled,
+        campaignId,
+      ]
     );
 
     const io = req.app.get('io');
     if (io) {
       io.to('campaign:' + campaignId).emit('campaign_updated', {
-        name:        result.rows[0].name,
-        description: result.rows[0].description,
+        name:                 result.rows[0].name,
+        description:          result.rows[0].description,
+        session_luck_enabled: result.rows[0].session_luck_enabled,
       });
     }
 
