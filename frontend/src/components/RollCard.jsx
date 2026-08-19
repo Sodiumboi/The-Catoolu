@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import natD100   from '../utils/natD100';
 import wojakRight from '../assets/wojak-point_andy_right.png';
@@ -94,28 +94,25 @@ function MultiDieDisplay({ rolls, sides, severity = 'none' }) {
   );
 }
 
-// ── Math expression result (Avrae style) ──────────────────────
-// Replaces the digit boxes when a roll came from the expression parser —
-// '2d10 (6, 9) + 5 * 6' does not fit in fixed-width digit tiles.
-function ExpressionResult({ result, total }) {
+// ── Expression dice → the individual faces that were rolled ───
+// Same tiles as any other roll. Each group is drawn separately so its own die
+// size drives the digit padding — 2d6 + 1d4 must not pad the d4 to two digits.
+// The maths and the total live on the result line under the card.
+function ExpressionDice({ diceGroups, severity = 'none' }) {
   return (
-    <div className="w-full min-w-0 flex flex-col gap-1.5 py-1">
-      <div className="flex items-baseline gap-1.5 min-w-0">
-        <span className="text-[11px] font-bold tracking-wider text-(--text-muted) shrink-0">
-          Result:
-        </span>
-        <span className="font-mono text-[13px] text-(--text-primary) leading-[1.5] break-words min-w-0">
-          {result}
-        </span>
-      </div>
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-[11px] font-bold tracking-wider text-(--text-muted) shrink-0">
-          Total:
-        </span>
-        <span className="font-serif text-2xl font-bold text-(--text-primary) leading-none">
-          {total}
-        </span>
-      </div>
+    <div className="flex items-center gap-1.5 justify-center flex-wrap">
+      {diceGroups.map((group, i) => (
+        <Fragment key={i}>
+          {i > 0 && (
+            <div className="w-0.5 h-14 bg-(--border-main) rounded-xs shrink-0" />
+          )}
+          <MultiDieDisplay
+            rolls={group.rolls}
+            sides={parseInt(group.notation.split('d')[1], 10)}
+            severity={severity}
+          />
+        </Fragment>
+      ))}
     </div>
   );
 }
@@ -160,7 +157,7 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
   const isExpression = !!raw.isExpression;
   // Luck rolls carry their own result line (3D6 sum × 5), so the plain sum is suppressed
   const showSum      = !isExpression && raw.rolls && raw.rolls.length > 1 && !hasAdvDis && !raw.isLuck;
-  const hasResultLine = sl || raw.isDamage || raw.isLuck || showSum;
+  const hasResultLine = sl || raw.isDamage || raw.isLuck || showSum || isExpression;
 
   const displayName = msg.character_name
     ? msg.character_name.split(' ')[0] + ' ' + (msg.character_name.split(' ')[1] || '')
@@ -171,6 +168,10 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
     header = (displayName || msg.username).trim() + ' deals damage';
   } else if (raw.isLuck) {
     header = displayName.trim() + ' rolls new Luck!';
+  } else if (isExpression) {
+    // The expression is spelled out in full on the line under the card, so the
+    // pill stays a fixed short length instead of echoing '2D10 + 5 * 6'.
+    header = displayName.trim() + ' makes a Roll!';
   } else if (raw.skillName) {
     const weaponSkills = ['brawl', 'handgun', 'rifle', 'shotgun', 'fighting'];
     const isAttack = weaponSkills.some(w => raw.skillName.toLowerCase().includes(w));
@@ -253,9 +254,9 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
             {showMeme && (
               <img src={wojakLeft} alt="" className="h-15 w-auto opacity-85 pointer-events-none shrink-0" />
             )}
-            <div className={`flex items-center justify-center gap-2 flex-wrap min-w-0 ${isExpression ? 'flex-1' : ''}`}>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
               {isExpression ? (
-                <ExpressionResult result={raw.result} total={raw.total} />
+                <ExpressionDice diceGroups={raw.diceGroups || []} severity={severity} />
               ) : hasAdvDis && raw.advDisRolls ? (() => {
                 const v0 = raw.advDisRolls[0].reduce((a, b) => a + b, 0) || 100;
                 const v1 = raw.advDisRolls[1].reduce((a, b) => a + b, 0) || 100;
@@ -329,6 +330,15 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
                     </>
                   )}
                 </>
+              )}
+              {/* Working-out line for math expression rolls */}
+              {isExpression && (
+                <span className="text-(--text-muted) font-mono">
+                  {raw.result}
+                  {' = '}
+                  {/* color stays inline — severity-derived, roll outcome data */}
+                  <strong style={{ color: `var(--roll-${severity}-text)` }}>{raw.total}</strong>
+                </span>
               )}
               {/* Sum line for multi-die rolls */}
               {showSum && (
