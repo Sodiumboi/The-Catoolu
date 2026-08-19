@@ -16,6 +16,7 @@ import { useNavBarActions } from '../context/NavBarActionsContext';
 import { useTheme }        from '../context/ThemeContext';
 import { useToast }        from '../context/ToastContext';
 import apiClient           from '../api/client';
+import natD100             from '../utils/natD100';
 import SessionSheet        from '../components/SessionSheet';
 import PossessionsList     from '../components/PossessionsList';
 import ReadOnlySheet       from '../components/ReadOnlySheet';
@@ -302,10 +303,9 @@ export default function CampaignRoomPage() {
         const raw = typeof msg.content === 'string'
           ? (() => { try { return JSON.parse(msg.content); } catch { return null; } })()
           : msg.content;
-        if (memeEnabledRef.current &&
-            raw?.notation?.toLowerCase().includes('d100') &&
-            (raw.total === 1 || raw.total === 100)) {
-          const colors = raw.total === 100
+        const nat = natD100(raw);
+        if (memeEnabledRef.current && nat) {
+          const colors = nat === 100
             ? ['#7f0000', '#ff6b6b', '#1a0000']
             : ['#3B6D11', '#C0DD97', '#F59E0B'];
           [{ x: 0.2, y: 0.6 }, { x: 0.8, y: 0.6 }].forEach(origin =>
@@ -504,6 +504,19 @@ export default function CampaignRoomPage() {
       }
     };
 
+    // A rejected roll (bad notation / bad expression) never echoes back a
+    // message, so the send + roll locks would stay stuck. The toast itself is
+    // raised centrally in SocketContext — this only releases the UI.
+    const onRoomError = () => {
+      setIsSending(false);
+      setRolling(false);
+      setRollingDie(null);
+      setPopupSubmitting(false);
+      clearTimeout(rollingTimeoutRef.current);
+      clearTimeout(popupTimeoutRef.current);
+    };
+
+    socket.on('error',                     onRoomError);
     socket.on('joined',                    onJoined);
     socket.on('receive_message',           onMessage);
     socket.on('user_joined',               onUserJoined);
@@ -525,6 +538,7 @@ export default function CampaignRoomPage() {
     socket.on('sheet_updated',             onSheetUpdated);
 
     return () => {
+      socket.off('error',                     onRoomError);
       socket.off('joined',                    onJoined);
       socket.off('receive_message',           onMessage);
       socket.off('user_joined',               onUserJoined);
@@ -749,12 +763,15 @@ export default function CampaignRoomPage() {
       }
     }
 
-    const isRoll  = trimmed.startsWith('/roll') || trimmed.startsWith('/r ') || trimmed === '/r';
+    // Both / and ! prefixes, in long (/roll) and short (/r) form
+    const isRoll  = /^[/!]roll/i.test(trimmed) || /^[/!]r(\s|$)/i.test(trimmed);
 
     if (isRoll) {
-      let notation = trimmed.replace(/^\/(roll|r)\s*/i, '').trim();
+      let notation = trimmed.replace(/^[/!](roll|r)\s*/i, '').trim();
       if (!notation) notation = advMode ? '1d100adv' : disMode ? '1d100dis' : '1d100';
-      else if (!notation.endsWith('adv') && !notation.endsWith('dis')) {
+      // adv/dis only attach to a single plain roll — appending them to a math
+      // expression ('2d10 + 5 * 6adv') would just make it unparseable.
+      else if (/^\d*d\d+([+-]\d+)?$/i.test(notation)) {
         if (advMode) notation += 'adv';
         if (disMode) notation += 'dis';
       }
@@ -784,7 +801,12 @@ export default function CampaignRoomPage() {
             forceMemeNextRollRef.current = false;
           }
           setMessages(prev => [...prev, msg]);
-        } catch { /* silent */ }
+        } catch (err) {
+          const detail = err.response?.data?.error;
+          toast.error("Couldn't roll that", detail || 'The roll failed. Check the notation and try again.', {
+            details: { raw: detail, notation },
+          });
+        }
         // Hidden rolls produce no receive_message echo — clear the lock here.
         setIsSending(false);
       } else {

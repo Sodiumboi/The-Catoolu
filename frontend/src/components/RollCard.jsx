@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import natD100   from '../utils/natD100';
 import wojakRight from '../assets/wojak-point_andy_right.png';
 import wojakLeft  from '../assets/wojak-point_andy_left.png';
 
@@ -93,6 +94,32 @@ function MultiDieDisplay({ rolls, sides, severity = 'none' }) {
   );
 }
 
+// ── Math expression result (Avrae style) ──────────────────────
+// Replaces the digit boxes when a roll came from the expression parser —
+// '2d10 (6, 9) + 5 * 6' does not fit in fixed-width digit tiles.
+function ExpressionResult({ result, total }) {
+  return (
+    <div className="w-full min-w-0 flex flex-col gap-1.5 py-1">
+      <div className="flex items-baseline gap-1.5 min-w-0">
+        <span className="text-[11px] font-bold tracking-wider text-(--text-muted) shrink-0">
+          Result:
+        </span>
+        <span className="font-mono text-[13px] text-(--text-primary) leading-[1.5] break-words min-w-0">
+          {result}
+        </span>
+      </div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-[11px] font-bold tracking-wider text-(--text-muted) shrink-0">
+          Total:
+        </span>
+        <span className="font-serif text-2xl font-bold text-(--text-primary) leading-none">
+          {total}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ── Main RollCard component ────────────────────────────────────
 export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
   const { memeEnabled } = useTheme();
@@ -115,10 +142,7 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
     ? (() => { try { return JSON.parse(msg.content); } catch { return null; } })()
     : msg.content;
 
-  const showMeme = memeEnabled && (
-    (raw?.notation?.toLowerCase().includes('d100') &&
-      (raw?.total === 1 || raw?.total === 100)) || !!msg._forceMeme
-  );
+  const showMeme = memeEnabled && (natD100(raw) !== null || !!msg._forceMeme);
 
   if (!raw) return null;
   if (!revealed) return <RollCardSkeleton isOwn={isOwn} />;
@@ -132,8 +156,10 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
   const isAdv        = raw.advantage;
   const isDis        = raw.disadvantage;
   const hasAdvDis    = isAdv || isDis;
+  // Math expression rolls print their own Result/Total block instead of digit boxes
+  const isExpression = !!raw.isExpression;
   // Luck rolls carry their own result line (3D6 sum × 5), so the plain sum is suppressed
-  const showSum      = raw.rolls && raw.rolls.length > 1 && !hasAdvDis && !raw.isLuck;
+  const showSum      = !isExpression && raw.rolls && raw.rolls.length > 1 && !hasAdvDis && !raw.isLuck;
   const hasResultLine = sl || raw.isDamage || raw.isLuck || showSum;
 
   const displayName = msg.character_name
@@ -227,8 +253,10 @@ export default function RollCard({ msg, isOwn, canDelete, onDelete }) {
             {showMeme && (
               <img src={wojakLeft} alt="" className="h-15 w-auto opacity-85 pointer-events-none shrink-0" />
             )}
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              {hasAdvDis && raw.advDisRolls ? (() => {
+            <div className={`flex items-center justify-center gap-2 flex-wrap min-w-0 ${isExpression ? 'flex-1' : ''}`}>
+              {isExpression ? (
+                <ExpressionResult result={raw.result} total={raw.total} />
+              ) : hasAdvDis && raw.advDisRolls ? (() => {
                 const v0 = raw.advDisRolls[0].reduce((a, b) => a + b, 0) || 100;
                 const v1 = raw.advDisRolls[1].reduce((a, b) => a + b, 0) || 100;
                 const g0w = isAdv ? v0 <= v1 : v0 >= v1;

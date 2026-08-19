@@ -94,7 +94,8 @@ export default function ChatInput({
     e.target.value = '';
   };
 
-  const isRoll = text.trim().startsWith('/roll') || text.trim().startsWith('/r ') || text.trim() === '/r';
+  // Both / and ! prefixes, in long (/roll) and short (/r) form
+  const isRoll = /^[/!]roll/i.test(text.trim()) || /^[/!]r(\s|$)/i.test(text.trim());
   const canSend = !disabled && !isSending && (!!text.trim() || attachedFiles.length > 0);
 
   return (
@@ -202,7 +203,7 @@ export default function ChatInput({
                 ? 'Sending…'
                 : attachedFiles.length > 0
                   ? 'Add a caption (optional)…'
-                  : 'Message or /roll 1d100adv... (or /r)'}
+                  : 'Message or /roll 2d10 + 5 * 6... (or /r, !r)'}
             className={`w-full py-2.5 pr-3.5 border-none bg-transparent text-(--text-primary) font-sans text-sm leading-[1.57] outline-none! box-border resize-none overflow-auto h-auto block ${isRoll ? 'pl-9' : 'pl-3.5'}`}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}

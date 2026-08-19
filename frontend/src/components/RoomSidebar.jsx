@@ -228,6 +228,8 @@ function HelpPanel() {
     { notation: '/roll 1d100adv', desc: 'Roll with advantage (take lower)' },
     { notation: '/roll 1d100dis', desc: 'Roll with disadvantage (take higher)' },
     { notation: '/roll 2d6+3',    desc: 'Roll 2d6 and add 3' },
+    { notation: '/r 2d10 + 5 * 6', desc: 'Math expressions — × ÷ before + −' },
+    { notation: '/r (2d6 + 3) * 2', desc: 'Parentheses group the maths' },
     { notation: 'Click a stat',   desc: 'Roll against that stat value' },
     { notation: 'Click a skill',  desc: 'Roll against that skill value' },
     { notation: 'Shift + Send',   desc: '🎉 Easter egg' },

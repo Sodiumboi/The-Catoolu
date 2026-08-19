@@ -5,6 +5,7 @@
 // ══════════════════════════════════════════════════════════════
 
 const { randomInt } = require('crypto');
+const { evaluateExpression } = require('./diceExpression');
 
 // ── Roll a single die — hardware entropy ──────────────────────
 // randomInt(min, max) — min inclusive, max exclusive
@@ -110,16 +111,54 @@ function calcSuccessLevel(roll, skillValue) {
   return                              { label: 'Failure',          severity: 'failure',  emoji: '❌' };
 }
 
+// ── Math expression roll ───────────────────────────────────────
+// Fallback path for anything the simple parser declines: full math
+// expressions with precedence and parentheses (2d10 + 5 * 6, (2d6+3)*2).
+// Shape mirrors the simple result so every existing consumer keeps working;
+// isExpression tells the UI to use the Avrae-style display instead of digits.
+function rollExpression(notation, skillValue, skillName) {
+  let evaluated;
+  try {
+    evaluated = evaluateExpression(notation);
+  } catch (err) {
+    if (err.isDiceError) return { error: err.message };
+    console.error('Dice expression error:', err);
+    return {
+      error: `Invalid dice notation: "${notation}". Try: 1d100, 2d6+3, d20, 1d100adv, 2d10 + 5 * 6`
+    };
+  }
+
+  const { expression, result, total, diceGroups } = evaluated;
+
+  return {
+    notation:      expression,
+    expression,
+    result,
+    isExpression:  true,
+    diceGroups,
+    rolls:         diceGroups.flatMap(g => g.rolls),
+    advDisRolls:   null,
+    modifier:      0,
+    total,
+    advantage:     false,
+    disadvantage:  false,
+    skillName:     skillName  || null,
+    skillValue:    skillValue || null,
+    successLevel:  null,
+    summary:       `${result} = ${total}`,
+  };
+}
+
 // ── Main roll function ─────────────────────────────────────────
 // Called by the socket handler.
 // Returns a complete result object ready to store in messages.
 function roll(notation, skillValue = null, skillName = null) {
   const parsed = parseNotation(notation);
 
+  // Simple XdY notation always wins — adv/dis, crit detection and the digit
+  // display are unchanged. Only what it rejects reaches the expression parser.
   if (!parsed) {
-    return {
-      error: `Invalid dice notation: "${notation}". Try: 1d100, 2d6+3, d20, 1d100adv, 1d100dis`
-    };
+    return rollExpression(notation, skillValue, skillName);
   }
 
   const { rolls, advDisRolls, total } = rollDice(parsed);
@@ -172,4 +211,4 @@ function parseCommand(input) {
   return notation || null;
 }
 
-module.exports = { roll, parseNotation, parseCommand, calcSuccessLevel };
+module.exports = { roll, parseNotation, parseCommand, calcSuccessLevel, rollExpression };
