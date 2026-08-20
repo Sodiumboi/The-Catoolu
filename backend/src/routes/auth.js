@@ -13,6 +13,7 @@ const auth     = require('../middleware/auth');
 const crypto   = require('crypto');
 const passport = require('../config/passport');
 const { sendPasswordResetEmail, buildResetEmailHtml } = require('../config/email');
+const { validatePassword } = require('../utils/passwordPolicy');
 
 const router = express.Router();
 
@@ -34,8 +35,9 @@ router.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ error: 'Username, email, and password are required.' });
     }
-    if (password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+    const policyError = validatePassword(password);
+    if (policyError) {
+      return res.status(400).json({ error: policyError });
     }
     if (username.length < 3 || username.length > 50) {
       return res.status(400).json({ error: 'Username must be 3–50 characters.' });
@@ -117,6 +119,13 @@ router.post('/login', async (req, res) => {
 
     const token = createToken(user);
 
+    // Passwords set before the current policy still sign in — the policy only
+    // ever gates *setting* a password, never using one. Login is the single
+    // moment we hold the plaintext, so it is the only place a legacy password
+    // is detectable at all; flag it so the UI can suggest an update. Advisory
+    // only: nothing downstream is allowed to treat this as a block.
+    const passwordNeedsUpdate = validatePassword(password) !== null;
+
     res.json({
       message: 'Logged in successfully!',
       token,
@@ -126,6 +135,7 @@ router.post('/login', async (req, res) => {
         email:      user.email,
         avatar_url: user.avatar_url || null,
         is_admin:   user.is_admin || false,
+        password_needs_update: passwordNeedsUpdate,
       }
     });
 
@@ -216,8 +226,9 @@ router.post('/reset-password', async (req, res) => {
     if (!token || !password) {
       return res.status(400).json({ error: 'Token and new password are required.' });
     }
-    if (password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+    const policyError = validatePassword(password);
+    if (policyError) {
+      return res.status(400).json({ error: policyError });
     }
 
     // Find the token and check it hasn't expired
@@ -353,8 +364,9 @@ router.delete('/google', auth, async (req, res) => {
 router.post('/set-password', auth, async (req, res) => {
   try {
     const { password } = req.body;
-    if (!password || password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+    const policyError = validatePassword(password);
+    if (policyError) {
+      return res.status(400).json({ error: policyError });
     }
     const row = await pool.query('SELECT password FROM users WHERE id = $1', [req.user.id]);
     if (row.rows[0].password) {

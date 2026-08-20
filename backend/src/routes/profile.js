@@ -3,6 +3,7 @@
 // GET  /api/profile      ← get current user's profile
 // PUT  /api/profile      ← update username or email
 // PUT  /api/profile/password ← change password (requires current)
+// POST /api/profile/verify-password ← check current password (rate limited)
 // ============================================================
 
 const express = require('express');
@@ -12,6 +13,8 @@ const pool    = require('../config/db');
 const auth    = require('../middleware/auth');
 const { uploadToR2, deleteFromR2 }    = require('../utils/uploadToR2');
 const quota = require('../utils/uploadQuota');
+const { validatePassword } = require('../utils/passwordPolicy');
+const { passwordAttemptLimit } = require('../middleware/passwordAttemptLimit');
 
 function bytesToMb(b) { return Math.round((b / (1024 * 1024)) * 10) / 10; }
 
@@ -113,8 +116,9 @@ router.put('/password', async (req, res) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ error: 'Current and new password are required.' });
     }
-    if (newPassword.length < 8) {
-      return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+    const policyError = validatePassword(newPassword);
+    if (policyError) {
+      return res.status(400).json({ error: policyError });
     }
     if (currentPassword === newPassword) {
       return res.status(400).json({ error: 'New password must be different from current.' });
@@ -144,6 +148,37 @@ router.put('/password', async (req, res) => {
 
   } catch (err) {
     console.error('Change password error:', err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// ── POST /api/profile/verify-password ────────────────────────
+// Confirms the caller knows their current password WITHOUT changing anything,
+// so the settings modal can reveal the new-password fields only once the old
+// one checks out. Rate limited — see middleware/passwordAttemptLimit.js for
+// why this endpoint needs a leash.
+router.post('/verify-password', passwordAttemptLimit, async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required.' });
+    }
+
+    const result = await pool.query('SELECT password FROM users WHERE id = $1', [req.user.id]);
+    const stored = result.rows[0]?.password;
+
+    // OAuth-only accounts have no password to verify against.
+    if (!stored) {
+      return res.json({ valid: false });
+    }
+
+    const valid = await bcrypt.compare(password, stored);
+    // 200 either way: "wrong password" is the answer to a legitimate question
+    // here, not a request failure. The client branches on `valid`.
+    res.json({ valid });
+
+  } catch (err) {
+    console.error('Verify password error:', err);
     res.status(500).json({ error: 'Server error.' });
   }
 });
