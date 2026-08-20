@@ -2,17 +2,13 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { useTheme, THEMES } from '../context/ThemeContext';
 import { useCampaign } from '../context/CampaignContext';
 import { useNavBarActions } from '../context/NavBarActionsContext';
-import CustomDropdown from './ui/CustomDropdown';
-import ToggleRow from './ui/ToggleRow';
-import Slider from './ui/Slider';
 import Tooltip from './ui/Tooltip';
 import { useSocket } from '../context/SocketContext';
 import logo from '../assets/vault-logo.png';
 import BugReportModal from './BugReportModal';
-import apiClient from '../api/client';
+import SettingsModal from './SettingsModal';
 
 // ── Tab definitions ────────────────────────────────────────
 // 'available' tabs are clickable, 'soon' tabs are greyed out
@@ -47,7 +43,6 @@ let _maintState = { mounted: false, visible: false, message: '' };
 export default function NavBar({ activeTab = 'investigators' }) {
   const { t, i18n }               = useTranslation();
   const { user, logout }          = useAuth();
-  const { theme }                 = useTheme();
   const { activeRoom, leaveRoom } = useCampaign();
   const { onImport, onLeaveRoom } = useNavBarActions();
   const [roomPillHovered, setRoomPillHovered] = useState(false);
@@ -62,8 +57,9 @@ export default function NavBar({ activeTab = 'investigators' }) {
   const roomPillTimerRef                      = useRef(null);
   const navigate                  = useNavigate();
   const location                  = useLocation();
-  const [dropdownOpen,     setDropdownOpen]     = useState(false);
-  const [bugModalOpen,     setBugModalOpen]     = useState(false);
+  const [dropdownOpen,      setDropdownOpen]      = useState(false);
+  const [bugModalOpen,      setBugModalOpen]      = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   // maintPill: mounted = in DOM, visible = opacity 1 (drives fade transition).
   // Initialized from module-level cache so pill stays visible across page navigations.
   const [maintPill, setMaintPill] = useState(_maintState);
@@ -134,7 +130,6 @@ export default function NavBar({ activeTab = 'investigators' }) {
     );
   };
   const [tooltip,      setTooltip]      = useState(null);
-  const [panel,        setPanel]        = useState('main'); // 'main' | 'preferences'
   const dropdownRef                     = useRef(null);
   const fileInputRef                    = useRef(null);
   const containerRef                    = useRef(null);
@@ -147,9 +142,13 @@ export default function NavBar({ activeTab = 'investigators' }) {
   // ── Close dropdown when clicking outside ────────────────
   useEffect(() => {
     const handleClickOutside = (e) => {
+      // A CustomDropdown opened from inside this menu portals its option list
+      // to <body>, so it sits outside dropdownRef. Closing here would unmount
+      // the panel on mousedown and kill the click that selects the option.
+      // Kept as a standing guard for any portalled panel opened from this menu.
+      if (e.target instanceof Element && e.target.closest('[data-dropdown-panel]')) return;
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
-        setPanel('main'); // ← reset to main when closed
       }
       if (roomPillRef.current && !roomPillRef.current.contains(e.target)) {
         setRoomMenuOpen(false);
@@ -162,7 +161,6 @@ export default function NavBar({ activeTab = 'investigators' }) {
   // ── Close dropdown on route change ──────────────────────
   useEffect(() => {
     setDropdownOpen(false);
-    setPanel('main'); // ← reset panel on navigation too
   }, [location.pathname]);
 
   // ── Maintenance socket events ────────────────────────────
@@ -507,38 +505,18 @@ export default function NavBar({ activeTab = 'investigators' }) {
               ) : initials}
             </button>
 
-            {/* Dropdown */}
             {/* ── Dropdown ─────────────────────────── */}
               {dropdownOpen && (
-                <div className={`absolute top-[calc(100%+8px)] right-0 bg-(--bg-card) border border-(--border-main) rounded-xl shadow-(--shadow-dropdown) overflow-hidden z-[100] [transition:width_0.2s_ease] ${panel === 'main' ? 'w-[200px]' : 'w-[240px]'}`}>
-
-                  {/* Panel content — key triggers remount + animation */}
-                  <div
-                    key={panel}
-                    className={panel === 'preferences'
-                      ? 'animate-[slideInFromRight_0.18s_ease]'
-                      : 'animate-[slideInFromLeft_0.18s_ease]'}
-                  >
-                    {panel === 'main' && (
-                      <MainMenuPanel
-                        user={user}
-                        navigate={navigate}
-                        setDropdownOpen={setDropdownOpen}
-                        setPanel={setPanel}
-                        handleLogout={handleLogout}
-                        setBugModalOpen={setBugModalOpen}
-                      />
-                    )}
-                    {panel === 'preferences' && (
-                      <PreferencesPanel
-                        theme={theme}
-                        setPanel={setPanel}
-                      />
-                    )}
-                    {panel === 'quota' && (
-                      <QuotaPanel setPanel={setPanel} navigate={navigate} onClose={() => setDropdownOpen(false)} />
-                    )}
-                  </div>
+                <div className="absolute top-[calc(100%+8px)] right-0 w-[248px] bg-(--bg-card) border border-(--border-main) rounded-xl shadow-(--shadow-dropdown) overflow-hidden z-[100] animate-[fadeRise_150ms_ease-out_both]">
+                  <AccountMenu
+                    user={user}
+                    initials={initials}
+                    navigate={navigate}
+                    setDropdownOpen={setDropdownOpen}
+                    setSettingsModalOpen={setSettingsModalOpen}
+                    setBugModalOpen={setBugModalOpen}
+                    handleLogout={handleLogout}
+                  />
                 </div>
               )}
           </div>
@@ -547,6 +525,7 @@ export default function NavBar({ activeTab = 'investigators' }) {
     </nav>
 
     {bugModalOpen && <BugReportModal onClose={() => setBugModalOpen(false)} />}
+    {settingsModalOpen && <SettingsModal onClose={() => setSettingsModalOpen(false)} />}
   </>
   );
 }
@@ -578,7 +557,7 @@ function MaintPill({ pill }) {
 }
 
 // ── Dropdown menu item ─────────────────────────────────────
-function DropdownItem({ label, icon, onClick, danger, chevron }) {
+function DropdownItem({ label, icon, onClick, danger }) {
   return (
     <button
       onClick={onClick}
@@ -594,56 +573,60 @@ function DropdownItem({ label, icon, onClick, danger, chevron }) {
     >
       <span className="text-sm">{icon}</span>
       <span className="flex-1">{label}</span>
-      {chevron && (
-        <span className="text-sm text-(--text-faint) leading-none">
-          ›
-        </span>
-      )}
     </button>
   );
 }
 
-// ── Main menu panel ────────────────────────────────────────
-function MainMenuPanel({
-  user, navigate, setDropdownOpen, setPanel, handleLogout, setBugModalOpen
+// ── Account menu ───────────────────────────────────────────
+// Everything that used to live in the nested Preferences / Upload Quota
+// sub-panels now lives in SettingsModal — this menu is flat by design.
+function AccountMenu({
+  user, initials, navigate, setDropdownOpen, setSettingsModalOpen,
+  setBugModalOpen, handleLogout,
 }) {
   return (
     <>
-      {/* Username header */}
-      <div className="pt-3 px-4 pb-2.5 border-b border-(--border-main)">
-        <div className="font-serif text-[15px] text-(--text-primary)">
-          {user?.username}
+      {/* Identity header — not clickable */}
+      <div className="flex items-center gap-2.5 pt-3 px-3.5 pb-2.5 border-b border-(--border-main)">
+        <div className="w-9.5 h-9.5 shrink-0 rounded-full bg-(--color-primary-light) border-[1.5px] border-(--border-main) flex items-center justify-center overflow-hidden font-sans text-xs font-medium text-(--color-primary-dark)">
+          {user?.avatar_url ? (
+            <img
+              src={user.avatar_url.startsWith('http') ? user.avatar_url : (import.meta.env.VITE_API_URL || '') + user.avatar_url}
+              alt={user.username}
+              className="w-full h-full object-cover"
+            />
+          ) : initials}
+        </div>
+        <div className="min-w-0">
+          <div className="font-sans text-[13px] font-bold text-(--text-primary) truncate">
+            {user?.username}
+          </div>
+          <div className="font-sans text-[11px] text-(--text-muted) truncate">
+            {user?.email}
+          </div>
         </div>
       </div>
 
       {/* Menu items */}
       <div className="p-1.5">
         <DropdownItem
-          label="Profile"
-          icon="👤"
-          onClick={() => { navigate('/profile'); setDropdownOpen(false); }}
+          label="Account & Settings"
+          icon={<span className="icon icon-sm">settings</span>}
+          onClick={() => { setSettingsModalOpen(true); setDropdownOpen(false); }}
         />
         <DropdownItem
           label="About"
           icon={<span className="icon icon-sm">info</span>}
           onClick={() => { navigate('/about'); setDropdownOpen(false); }}
         />
-
-        {/* Preferences — navigates to prefs panel */}
         <DropdownItem
-          label="Preferences"
-          icon={<span className="icon icon-sm">settings</span>}
-          onClick={() => setPanel('preferences')}
-          chevron
+          label="Report a Bug"
+          icon={<span className="icon icon-sm">bug_report</span>}
+          onClick={() => { setBugModalOpen(true); setDropdownOpen(false); }}
         />
 
-        <DropdownItem
-          label="Upload Quota"
-          icon={<span className="icon icon-sm">cloud_upload</span>}
-          onClick={() => setPanel('quota')}
-          chevron
-        />
-
+        {/* Admin — this menu is the only route into /admin, so it stays here
+            rather than moving into the settings modal. Admins only. */}
         {user?.is_admin && (
           <DropdownItem
             label="Admin"
@@ -651,12 +634,6 @@ function MainMenuPanel({
             onClick={() => { navigate('/admin'); setDropdownOpen(false); }}
           />
         )}
-
-        <DropdownItem
-          label="Report a Bug"
-          icon={<span className="icon icon-sm">bug_report</span>}
-          onClick={() => { setBugModalOpen(true); setDropdownOpen(false); }}
-        />
 
         <div className="h-px bg-(--border-main) my-1" />
 
@@ -666,355 +643,6 @@ function MainMenuPanel({
           onClick={handleLogout}
           danger
         />
-      </div>
-    </>
-  );
-}
-
-// ── Preferences panel ──────────────────────────────────────
-const SCALE_OPTIONS = [0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.15];
-
-const HOME_OPTIONS = [
-  { value: '/',          label: 'Landing Page'  },
-  { value: '/dashboard', label: 'Investigators' },
-  { value: '/keeper',    label: 'Keeper Panel'  },
-  { value: '/campaign',  label: 'Campaigns'     },
-];
-
-// ── Shared section header utility classes (used by every section in
-// PreferencesPanel) — expanded inline at each call site.
-
-// ── Shared setting row wrapper ──────────────────────────────
-// label on the left, control on the right, consistent vertical padding,
-// divider on the bottom. Mirrors the ToggleRow rhythm.
-function SettingRow({ label, desc, children }) {
-  return (
-    <div className="flex items-center justify-between gap-2.5 py-2 border-b border-(--border-main)">
-      <div className="min-w-0">
-        <div className="text-[13px] font-medium text-(--text-primary) font-sans">
-          {label}
-        </div>
-        {desc && (
-          <div className="text-[11px] text-(--text-muted) font-sans leading-[1.4]">
-            {desc}
-          </div>
-        )}
-      </div>
-      <div className="shrink-0">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-// ── ± stepper control ───────────────────────────────────────
-function Stepper({ value, idx, min, max, onStep }) {
-  return (
-    <div className="flex items-center gap-1">
-      <button
-        onClick={() => onStep(-1)}
-        disabled={idx <= min}
-        className={`w-6 h-6 rounded-md border border-(--border-main) bg-transparent font-sans text-[15px] leading-none flex items-center justify-center ${idx <= min ? 'text-(--text-faint) cursor-default' : 'text-(--text-secondary) cursor-pointer'}`}
-      >−</button>
-      <span className="font-sans text-xs text-(--text-primary) min-w-9 text-center">
-        {Math.round(value * 100)}%
-      </span>
-      <button
-        onClick={() => onStep(+1)}
-        disabled={idx >= max}
-        className={`w-6 h-6 rounded-md border border-(--border-main) bg-transparent font-sans text-[15px] leading-none flex items-center justify-center ${idx >= max ? 'text-(--text-faint) cursor-default' : 'text-(--text-secondary) cursor-pointer'}`}
-      >+</button>
-    </div>
-  );
-}
-
-function PreferencesPanel({ theme, setPanel }) {
-  const {
-    setTheme,
-    sheetFontScale, setSheetFontScale,
-    roomFontScale,  setRoomFontScale,
-    bgArtEnabled,      setBgArtEnabled,
-    parallaxEnabled,   setParallaxEnabled,
-    parallaxIntensity, setParallaxIntensity,
-  } = useTheme();
-  const { i18n }                  = useTranslation();
-  const [savedMsg, setSavedMsg]   = useState('');
-  const [homePage, setHomePage]   = useState(() => localStorage.getItem('coc_home_page') || '/');
-
-  // i18next holds the active language; localStorage only seeds it on next boot.
-  const handleLanguageChange = (lang) => {
-    i18n.changeLanguage(lang);
-    localStorage.setItem('catoolu_lang', lang);
-  };
-
-  // Flash "Saved" confirmation when a setting changes
-  const applySetting = (fn) => {
-    fn();
-    setSavedMsg('✓ Saved');
-    setTimeout(() => setSavedMsg(''), 1500);
-  };
-
-  return (
-    <>
-      {/* ── Header with back button ── */}
-      <div className="py-2.5 px-3 border-b border-(--border-main) flex items-center justify-between">
-        <button
-          onClick={() => setPanel('main')}
-          className="flex items-center gap-1 bg-transparent border-none cursor-pointer font-sans text-[13px] text-(--text-secondary) py-0.5 px-1.5 rounded-md [transition:all_0.1s]"
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'var(--row-hover)';
-            e.currentTarget.style.color      = 'var(--text-primary)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color      = 'var(--text-secondary)';
-          }}
-        >
-          <span className="icon icon-sm">arrow_back</span>{' '}Back
-        </button>
-
-        <span className="font-sans text-xs font-medium text-(--text-primary)">
-          Preferences
-        </span>
-
-        {/* Saved confirmation flash */}
-        <span className={`font-sans text-[11px] text-(--success) [transition:opacity_0.2s_ease] min-w-12 text-right ${savedMsg ? 'opacity-100' : 'opacity-0'}`}>
-          {savedMsg}
-        </span>
-      </div>
-
-      {/* ── Settings body ── */}
-      <div className="pt-2.5 px-3 pb-3.5">
-
-        {/* ── THEME ── */}
-        <div className="mb-3.5">
-          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Theme</div>
-          <div className="grid grid-cols-3 gap-1.5">
-            {THEMES.map(opt => {
-              const isActive = theme === opt.id;
-              return (
-                <Tooltip key={opt.id} content={opt.label}>
-                <button
-                  onClick={() => applySetting(() => setTheme(opt.id))}
-                  className={`flex flex-col items-center gap-1 py-1.5 px-1 rounded-lg [transition:border-color_0.15s_ease,background_0.15s_ease] ${isActive ? 'border-2 border-(--accent)' : 'border-[1.5px] border-(--border-main)'} ${isActive ? 'bg-(--accent-bg)' : 'bg-(--bg-input)'} ${isActive ? 'cursor-default' : 'cursor-pointer'}`}
-                >
-                  {/* Three-colour swatch: [background, accent, surface] */}
-                  <div className="flex gap-0.5 rounded-[3px] overflow-hidden">
-                    {opt.swatch.map((color, i) => (
-                      // swatch colour is dynamic per-theme data — stays inline
-                      <div key={i} className="w-3.5 h-3.5" style={{ background: color }} />
-                    ))}
-                  </div>
-                  <span className={`font-sans text-[10px] leading-[1.2] text-center truncate max-w-full ${isActive ? 'text-(--accent)' : 'text-(--text-muted)'} ${isActive ? 'font-medium' : 'font-normal'}`}>
-                    {opt.label}
-                  </span>
-                </button>
-                </Tooltip>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── LANGUAGE ── */}
-        <div className="border-t border-(--border-main) pt-2.5 mb-3.5">
-          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Language</div>
-          <div className="seg">
-            {[{ id: 'en', label: 'EN' }, { id: 'th', label: 'ภาษาไทย' }].map(l => (
-              <button
-                key={l.id}
-                onClick={() => applySetting(() => handleLanguageChange(l.id))}
-                className={`seg-tab ${i18n.language === l.id ? 'active' : ''}`}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── FONT SCALE ── */}
-        <div className="border-t border-(--border-main) pt-2.5 mb-1">
-          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Font Scale</div>
-          {[
-            { label: 'Sheet text',   desc: 'Character sheet size',  value: sheetFontScale, set: setSheetFontScale },
-            { label: 'Display text', desc: 'Room / session panels', value: roomFontScale,  set: setRoomFontScale  },
-          ].map(({ label, desc, value, set }) => {
-            const idx = SCALE_OPTIONS.indexOf(value);
-            const step = (dir) => {
-              const next = SCALE_OPTIONS[idx + dir];
-              if (next !== undefined) applySetting(() => set(next));
-            };
-            return (
-              <SettingRow key={label} label={label} desc={desc}>
-                <Stepper
-                  value={value}
-                  idx={idx}
-                  min={0}
-                  max={SCALE_OPTIONS.length - 1}
-                  onStep={step}
-                />
-              </SettingRow>
-            );
-          })}
-        </div>
-
-        {/* ── VISUALS ── */}
-        <div className="border-t border-(--border-main) pt-2.5 mb-1">
-          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Visuals</div>
-
-          {/* Background master toggle */}
-          <ToggleRow
-            label="Background"
-            desc="Atmospheric art behind pages"
-            checked={bgArtEnabled}
-            onChange={() => applySetting(() => setBgArtEnabled(!bgArtEnabled))}
-          />
-
-          {/* Sub-controls — shown only when Background is ON */}
-          {bgArtEnabled && (
-            <>
-              <ToggleRow
-                label="Parallax effect"
-                desc="Art moves with your cursor"
-                checked={parallaxEnabled}
-                onChange={() => applySetting(() => setParallaxEnabled(!parallaxEnabled))}
-              />
-
-              {/* Amount slider — shown only when Parallax is also ON.
-                  Indented slightly to show visual nesting under the parallax toggle. */}
-              {parallaxEnabled && (
-                <SettingRow label="Amount" desc="Parallax strength">
-                  <div className="w-[88px]">
-                    <Slider
-                      value={parallaxIntensity}
-                      min={0.25}
-                      max={2}
-                      step={0.05}
-                      onChange={v => applySetting(() => setParallaxIntensity(v))}
-                      ariaLabel="Parallax amount"
-                    />
-                  </div>
-                </SettingRow>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* ── HOME PAGE ── */}
-        <div className="border-t border-(--border-main) pt-2.5">
-          <div className="font-sans text-[10px] font-semibold uppercase tracking-[0.08em] text-(--text-muted) mb-2">Home Page</div>
-          {/* CustomDropdown already fills its container; wrap in a SettingRow-
-              compatible block so spacing matches the rest of the panel. */}
-          <div className="pb-0.5">
-            <CustomDropdown
-              value={homePage}
-              onChange={v => {
-                setHomePage(v);
-                localStorage.setItem('coc_home_page', v);
-                applySetting(() => {});
-              }}
-              options={HOME_OPTIONS}
-            />
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ── Upload Quota panel ─────────────────────────────────────
-function QuotaPanel({ setPanel, navigate, onClose }) {
-  const [quota, setQuota] = useState(null);
-
-  const load = () => {
-    apiClient.get('/profile/upload-quota')
-      .then(r => setQuota(r.data))
-      .catch(() => {});
-  };
-
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 3000);
-    return () => clearInterval(id);
-  }, []);
-
-  const fmt = (b) => {
-    const m = b / (1024 * 1024);
-    return m >= 10 ? Math.round(m) : Math.round(m * 10) / 10;
-  };
-  const barColor = (pct) => pct >= 90 ? 'var(--danger)' : pct >= 60 ? '#d97706' : 'var(--color-primary)';
-
-  const totalUsed  = quota?.totalUsed  ?? 0;
-  const totalLimit = quota?.totalLimit ?? 200 * 1024 * 1024;
-  const winUsed    = quota?.windowUsed ?? 0;
-  const winLimit   = quota?.windowLimit ?? 50 * 1024 * 1024;
-  const totalPct   = Math.min(100, Math.round((totalUsed / totalLimit) * 100));
-  const winPct     = Math.min(100, Math.round((winUsed / winLimit) * 100));
-
-  return (
-    <>
-      {/* Header */}
-      <div className="py-2.5 px-3 border-b border-(--border-main) flex items-center justify-between">
-        <button
-          onClick={() => setPanel('main')}
-          className="flex items-center gap-1 bg-transparent border-none cursor-pointer font-sans text-[13px] text-(--text-secondary) py-0.5 px-1.5 rounded-md [transition:all_0.1s]"
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--row-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-        >
-          <span className="icon icon-sm">arrow_back</span>{' '}Back
-        </button>
-        <span className="font-sans text-xs font-medium text-(--text-primary)">
-          Upload Quota
-        </span>
-        <span className="min-w-12" />
-      </div>
-
-      {/* Content */}
-      <div className="pt-4 px-3.5 pb-[18px]">
-
-        {/* Total storage */}
-        <div className="flex justify-between items-baseline mb-1.5">
-          <span className="font-sans text-[13px] text-(--text-secondary)">
-            Storage used
-          </span>
-          {/* color is dynamic (barColor) — stays inline */}
-          <span className="font-sans text-[13px] font-semibold" style={{ color: barColor(totalPct) }}>
-            {fmt(totalUsed)} <span className="text-(--text-faint) font-normal">/ {fmt(totalLimit)} MB</span>
-          </span>
-        </div>
-        <div className="h-2 rounded bg-(--border-main) overflow-hidden mb-3.5">
-          {/* width + background are runtime values — stay inline */}
-          <div className="h-full rounded [transition:width_0.4s_ease,background_0.3s_ease]" style={{ width: `${totalPct}%`, background: barColor(totalPct) }} />
-        </div>
-
-        {/* 5-minute rate */}
-        <div className="flex justify-between items-baseline mb-1.5">
-          <span className="font-sans text-[13px] text-(--text-secondary)">
-            Uploaded · last 5 min
-          </span>
-          {/* color is dynamic (barColor) — stays inline */}
-          <span className="font-sans text-[13px] font-semibold" style={{ color: barColor(winPct) }}>
-            {fmt(winUsed)} <span className="text-(--text-faint) font-normal">/ {fmt(winLimit)} MB</span>
-          </span>
-        </div>
-        <div className="h-2 rounded bg-(--border-main) overflow-hidden mb-2.5">
-          {/* width + background are runtime values — stay inline */}
-          <div className="h-full rounded [transition:width_0.4s_ease,background_0.3s_ease]" style={{ width: `${winPct}%`, background: barColor(winPct) }} />
-        </div>
-
-        <div className="font-sans text-[11px] text-(--text-faint) leading-normal mb-3.5">
-          200&nbsp;MB total &middot; 50&nbsp;MB per 5 minutes.
-        </div>
-
-        {/* Manage files → */}
-        <button
-          onClick={() => { navigate('/files'); onClose?.(); }}
-          className="w-full py-2 px-3 border border-(--color-primary-mid) rounded-lg bg-(--accent-bg) text-(--accent) font-sans text-[13px] font-medium cursor-pointer flex items-center justify-center gap-1.5 [transition:background_0.1s]"
-          onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-hover)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'var(--accent-bg)'}
-        >
-          <span className="icon icon-sm">folder_open</span>
-          Manage files
-        </button>
       </div>
     </>
   );

@@ -25,6 +25,7 @@ import { preloadWhenIdle }   from './utils/preloadImages';
 import { ABOUT_PRELOAD_IMAGES } from './utils/aboutTeam';
 import { APP_VERSION }       from './config/version';
 import WhatsNewModal         from './components/WhatsNewModal';
+import { WHATS_NEW_KEY }     from './components/SettingsModal';
 import BackgroundArt         from './components/BackgroundArt';
 import ErrorBoundary         from './components/ErrorBoundary';
 import { useToast }          from './context/ToastContext';
@@ -259,8 +260,11 @@ export default function App() {
 
   // Auto-show the What's New modal once per release for logged-in users.
   // The short delay lets the app settle before the modal pops in.
+  // Opting out (Settings → Notifications) suppresses only the auto-show — the
+  // footer link still opens it on demand.
   useEffect(() => {
     if (!user) return;
+    if (localStorage.getItem(WHATS_NEW_KEY) === 'false') return;
     if (localStorage.getItem('catoolu_seen_whats_new') === APP_VERSION) return;
     const timer = setTimeout(() => setShowWhatsNew(true), 1500);
     return () => clearTimeout(timer);

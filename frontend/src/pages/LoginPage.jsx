@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import logo from '../assets/vault-logo.png';
 import LegalModal from '../components/LegalModal';
 
 export default function LoginPage({ initialMode = 'login' }) {
   const { login, register } = useAuth();
+  const toast                = useToast();
   const navigate             = useNavigate();
   const [searchParams]       = useSearchParams();
 
@@ -28,7 +30,17 @@ export default function LoginPage({ initialMode = 'login' }) {
     setLoading(true);
     try {
       if (mode === 'login') {
-        await login(identifier, password);
+        const signedIn = await login(identifier, password);
+        // Advisory only — the sign-in already succeeded. A password set before
+        // the current rules keeps working; this just points at where to update
+        // it. Delayed so it lands after the dashboard has settled.
+        if (signedIn?.password_needs_update) {
+          setTimeout(() => toast.info(
+            'Consider updating your password',
+            'Yours predates our current guidelines. It still works — you can change it any time in Account & Settings → Security.',
+            { duration: 9000 },
+          ), 1200);
+        }
       } else {
         await register(username, email, password);
       }
