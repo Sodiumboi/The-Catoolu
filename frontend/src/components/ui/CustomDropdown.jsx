@@ -149,6 +149,12 @@ export default function CustomDropdown({
   const panel = open && createPortal(
     <div
       ref={panelRef}
+      // Portaled to <body>, so this panel is NOT a DOM descendant of whatever
+      // opened it. Any ancestor with a mousedown "close on outside click"
+      // handler would see a click on an option as an outside click, unmount us
+      // mid-press, and swallow the click event before it ever selects anything.
+      // Such handlers must skip events matching this attribute.
+      data-dropdown-panel=""
       className="bg-(--bg-popup) border-[0.5px] border-(--border-main) rounded-lg shadow-(--shadow-dropdown) overflow-hidden animate-[fadeRise_150ms_ease-out_both]"
       style={panelStyle}>
       {/* Search bar */}
@@ -158,10 +164,17 @@ export default function CustomDropdown({
             <span className="icon icon-sm text-(--text-faint)">search</span>
             <input
               ref={searchRef}
+              // An unlabelled text input is an autofill candidate: when the
+              // browser fills a password anywhere in the document it looks for
+              // a field to put the matching username in, and would pick this
+              // one. Declaring it as a search box takes it out of the running.
+              type="search"
+              name="dropdown-search"
+              autoComplete="off"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search..."
-              className="border-none bg-transparent outline-none! text-xs text-(--text-primary) flex-1 font-sans"
+              className="border-none bg-transparent outline-none! text-xs text-(--text-primary) flex-1 font-sans [&::-webkit-search-cancel-button]:hidden"
             />
             {search && (
               <button

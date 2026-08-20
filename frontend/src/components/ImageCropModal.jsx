@@ -74,7 +74,9 @@ export default function ImageCropModal({ imageSrc, onSave, onClose, saving }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-400 p-6 backdrop-blur-xs"
+      // Above SettingsModal (10002/10003) — the crop step is opened from inside
+      // it, so it must never be trapped behind the modal that spawned it.
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-[10010] p-6 backdrop-blur-xs"
       onClick={onClose}
     >
       <div
