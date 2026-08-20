@@ -29,6 +29,16 @@ import BackgroundArt         from './components/BackgroundArt';
 import ErrorBoundary         from './components/ErrorBoundary';
 import { useToast }          from './context/ToastContext';
 
+// Errors thrown by browser extensions and Cloudflare's injected edge scripts
+// land on our global handlers but are not ours to fix — showing them as a toast
+// just tells the user something is broken when the app is fine. Our own bundles
+// never live under these paths, so a stack frame naming one is proof of origin.
+const FOREIGN_SOURCES = ['chrome-extension://', 'moz-extension://', 'safari-web-extension://', 'safari-extension://', '/cdn-cgi/'];
+function isForeignError(error, filename = '') {
+  const trace = `${filename}\n${error?.stack || ''}`;
+  return FOREIGN_SOURCES.some((s) => trace.includes(s));
+}
+
 // ── Renders the parallax background art behind the 4 main pages ─
 // Lives inside <BrowserRouter> so it can read the current path. BackgroundArt
 // itself reads bgArtEnabled + theme from context and gates its own rendering.
@@ -219,6 +229,8 @@ export default function App() {
     const onRejection = (event) => {
       // Rejections tagged { silent: true } are intentionally ignored.
       if (event.reason?.silent) return;
+      console.error('[unhandledrejection]', event.reason);
+      if (isForeignError(event.reason)) return;
       toast.error(
         'Something went wrong',
         'An unexpected error occurred. Try refreshing if the problem persists.',
@@ -226,11 +238,11 @@ export default function App() {
       );
     };
     const onError = (event) => {
-      // Ignore noise from browser extensions and cross-origin scripts (which
-      // report a generic "Script error." with no usable error object).
-      const src = event.filename || '';
-      if (src.startsWith('chrome-extension://') || src.startsWith('moz-extension://') || src.startsWith('safari-extension://')) return;
+      // Cross-origin scripts report a generic "Script error." with no usable
+      // error object — nothing actionable to show.
       if (!event.error) return;
+      console.error('[window.onerror]', event.filename, event.error);
+      if (isForeignError(event.error, event.filename)) return;
       toast.error(
         'Something went wrong',
         'An unexpected error occurred. Try refreshing if the problem persists.',
